@@ -9,8 +9,9 @@ const locations = ['Dakar', 'Pikine', 'Guédiawaye', 'Rufisque', 'Thiès', 'Sain
 const ExplorePage = () => {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
+  const initialCategory = searchParams.get('category') || location.state?.category || 'all';
   const initialSearch = searchParams.get('q') || '';
-  const initialCategory = location.state?.category || 'all';
+  const initialSubcategory = searchParams.get('subcategory') || 'all';
 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -21,7 +22,7 @@ const ExplorePage = () => {
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
   const [sortBy, setSortBy] = useState('newest'); // newest, price_asc, price_desc
-  const [activeSubcategory, setActiveSubcategory] = useState('all');
+  const [activeSubcategory, setActiveSubcategory] = useState(initialSubcategory);
   const [conditionFilter, setConditionFilter] = useState('all');
   const [locationFilter, setLocationFilter] = useState('all');
 
@@ -37,7 +38,14 @@ const ExplorePage = () => {
 
       // 1b. Filtre par Sous-catégorie
       if (activeSubcategory !== 'all') {
-        query = query.contains('metadata', { subcategory: activeSubcategory });
+        const cat = categories.find(c => c.id === activeCategory);
+        const subcategoriesField = cat?.fields?.find(f => f.type === 'select' && ['type', 'property_type', 'service_type', 'species', 'sector', 'contract_type', 'brand'].includes(f.name));
+        if (subcategoriesField) {
+          query = query.contains('metadata', { [subcategoriesField.name]: activeSubcategory });
+        } else {
+          // Fallback old subcategory
+          query = query.contains('metadata', { subcategory: activeSubcategory });
+        }
       }
 
       // 2. Recherche Textuelle (titre)
@@ -66,6 +74,7 @@ const ExplorePage = () => {
       }
 
       // 7. Tri
+      query = query.order('is_boosted', { ascending: false, nullsFirst: false });
       if (sortBy === 'newest') {
         query = query.order('created_at', { ascending: false });
       } else if (sortBy === 'price_asc') {
@@ -84,6 +93,14 @@ const ExplorePage = () => {
       setLoading(false);
     }
   }, [activeCategory, activeSubcategory, searchQuery, minPrice, maxPrice, conditionFilter, locationFilter, sortBy]);
+
+  // Synchronize state with URL search params if they change
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('category')) setActiveCategory(params.get('category'));
+    if (params.get('subcategory')) setActiveSubcategory(params.get('subcategory'));
+    if (params.get('q')) setSearchQuery(params.get('q'));
+  }, [location.search]);
 
   // Déclencher la recherche au chargement ou quand les filtres automatiques changent
   useEffect(() => {
@@ -218,8 +235,8 @@ const ExplorePage = () => {
                 </button>
               </li>
               {categories.map(cat => {
-                const subcategoriesField = cat.requiredFields?.find(f => f.name === 'subcategory');
-                const subcategories = subcategoriesField ? subcategoriesField.options : [];
+                const subcategoriesField = cat.fields?.find(f => f.type === 'select' && ['type', 'property_type', 'service_type', 'species', 'sector', 'contract_type', 'brand'].includes(f.name));
+                const subcategories = subcategoriesField?.options ? subcategoriesField.options.filter(o => o !== 'Autre') : [];
                 const isActive = activeCategory === cat.id;
 
                 return (
@@ -349,7 +366,7 @@ const ExplorePage = () => {
                         {product.title}
                       </h3>
                       <div style={{ fontSize: '14px', fontWeight: '800', color: 'var(--primary)' }}>
-                        {product.price.toLocaleString('fr-FR')} {product.currency || 'FCFA'}
+                        {(product.price || 0).toLocaleString('fr-FR')} {product.currency || 'FCFA'}
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px', gap: '4px' }}>
                         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>📍 {product.location}</span>

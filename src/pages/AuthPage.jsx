@@ -55,6 +55,7 @@ const AuthPage = () => {
 
     try {
       const formattedPhone = phone.startsWith('+') ? phone : `+221${phone.replace(/\s+/g, '')}`;
+      const authEmail = `${formattedPhone.replace('+', '')}@colobanemarket.local`;
 
       if (isRegister) {
         if (!acceptTerms) {
@@ -62,29 +63,40 @@ const AuthPage = () => {
         }
         
         const { data, error } = await supabase.auth.signUp({
-          phone: formattedPhone,
+          email: authEmail,
           password: password,
           options: {
             data: {
               full_name: `${prenom} ${nom}`.trim(),
               whatsapp_number: formattedPhone,
               city: city,
-              email: email || undefined
+              real_email: email || undefined
             }
           }
         });
         
-        if (error) throw error;
+        if (error) {
+          // If the error mentions email confirmation, we can ignore it if we auto-login, but standard Supabase will block if confirm is required
+          throw error;
+        }
         
         setSuccessMsg("Inscription réussie ! Vous pouvez maintenant vous connecter.");
         setIsRegister(false);
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({
-          phone: formattedPhone,
+          email: authEmail,
           password: password
         });
         
-        if (error) throw error;
+        if (error) {
+          if (error.message.includes('Invalid login credentials')) {
+            throw new Error('Numéro de téléphone ou mot de passe incorrect.');
+          }
+          if (error.message.includes('Email not confirmed')) {
+            throw new Error('Veuillez désactiver la confirmation d\'email dans Supabase (Authentication > Providers > Email).');
+          }
+          throw error;
+        }
         navigate('/');
       }
     } catch (error) {
@@ -138,12 +150,12 @@ const AuthPage = () => {
               onClick={() => { setIsRegister(false); setErrorMsg(''); setSuccessMsg(''); }}
               style={{ flex: 1, padding: '0.7rem', borderRadius: '99px', border: 'none', background: 'transparent', color: !isRegister ? 'var(--primary)' : 'var(--text-muted)', fontWeight: !isRegister ? '700' : '500', fontSize: '0.95rem', cursor: 'pointer', position: 'relative', zIndex: 1, transition: 'color 0.3s' }}
             >
-              Connexion
+              Déjà membre ?
             </button>
           </div>
 
-          {errorMsg && <div style={{ color: '#e74c3c', marginBottom: '1.5rem', textAlign: 'center', fontSize: '0.9rem', padding: '0.8rem', background: '#fdf0ed', borderRadius: '12px' }}>{errorMsg}</div>}
-          {successMsg && <div style={{ color: '#2ecc71', marginBottom: '1.5rem', textAlign: 'center', fontSize: '0.9rem', padding: '0.8rem', background: '#eafaf1', borderRadius: '12px' }}>{successMsg}</div>}
+          {errorMsg && <div style={{ color: '#e74c3c', marginBottom: '1.5rem', textAlign: 'center', fontSize: '0.9rem', padding: '0.8rem', background: '#fdf0ed', borderRadius: '12px' }}><span>{errorMsg}</span></div>}
+          {successMsg && <div style={{ color: '#2ecc71', marginBottom: '1.5rem', textAlign: 'center', fontSize: '0.9rem', padding: '0.8rem', background: '#eafaf1', borderRadius: '12px' }}><span>{successMsg}</span></div>}
 
           <style>{`
             .auth-input-container:focus-within { border-color: var(--primary) !important; background: white !important; box-shadow: 0 0 0 4px rgba(138, 28, 28, 0.05); }
@@ -225,9 +237,9 @@ const AuthPage = () => {
             )}
 
             <button type="submit" className="active-scale" disabled={loading} style={{ width: '100%', background: 'var(--primary)', color: 'white', padding: '1.1rem', borderRadius: '16px', border: 'none', fontWeight: '700', fontSize: '1rem', marginTop: '0.5rem', cursor: 'pointer', boxShadow: '0 8px 25px rgba(138, 28, 28, 0.25)', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}>
-              {loading ? 'Traitement en cours...' : (
+              {loading ? <span>Traitement en cours...</span> : (
                 <>
-                  {isRegister ? 'Créer mon compte' : 'Se connecter'}
+                  <span>{isRegister ? 'Créer mon compte' : 'Se connecter'}</span>
                   {!loading && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>}
                 </>
               )}

@@ -6,6 +6,24 @@ import toast from 'react-hot-toast';
 
 const locations = ['Dakar', 'Pikine', 'Guédiawaye', 'Rufisque', 'Thiès', 'Saint-Louis', 'Touba', 'Kaolack', 'Ziguinchor', 'Mbour', 'Louga', 'Tambacounda', 'Autre'];
 
+const InputWrapper = ({ label, icon, children }) => (
+  <div style={{ marginBottom: '1rem' }}>
+    <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem', fontWeight: '500' }}>{label}</label>
+    <div style={{ display: 'flex', border: '1px solid #E2E8F0', borderRadius: '12px', overflow: 'hidden', background: '#FAFAF9' }}>
+      <div style={{ padding: '0 12px', color: '#94A3B8', display: 'flex', alignItems: 'center' }}>
+        {icon}
+      </div>
+      {children}
+    </div>
+  </div>
+);
+
+const FastInput = ({ value, onChange, ...props }) => {
+  const [localVal, setLocalVal] = useState(value || '');
+  useEffect(() => { setLocalVal(value || ''); }, [value]);
+  return <input value={localVal} onChange={e => setLocalVal(e.target.value)} onBlur={e => onChange({ target: { name: props.name, value: localVal } })} {...props} />;
+};
+
 const ProfilePage = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -55,7 +73,28 @@ const ProfilePage = () => {
           .order('created_at', { ascending: false });
 
         if (productsError) throw productsError;
-        setMyProducts(productsData || []);
+        
+        let productsWithFavs = productsData || [];
+        if (productsWithFavs.length > 0) {
+          const productIds = productsWithFavs.map(p => p.id);
+          const { data: favsData } = await supabase
+            .from('favorites')
+            .select('product_id')
+            .in('product_id', productIds);
+            
+          if (favsData) {
+            const favCounts = favsData.reduce((acc, curr) => {
+              acc[curr.product_id] = (acc[curr.product_id] || 0) + 1;
+              return acc;
+            }, {});
+            productsWithFavs = productsWithFavs.map(p => ({
+              ...p,
+              favorites_count: favCounts[p.id] || 0
+            }));
+          }
+        }
+        
+        setMyProducts(productsWithFavs);
 
       } catch (err) {
         console.error('Error fetching profile data:', err);
@@ -115,23 +154,10 @@ const ProfilePage = () => {
     }
   };
 
-  const handleBoostProduct = async (productId) => {
-    try {
-      const { error } = await supabase
-        .from('products')
-        .update({ is_boosted: true })
-        .eq('id', productId);
-
-      if (error) throw error;
-      
-      setMyProducts(myProducts.map(p => 
-        p.id === productId ? { ...p, is_boosted: true } : p
-      ));
-      toast.success("Annonce boostée avec succès ! 🚀");
-    } catch (err) {
-      toast.error("Erreur lors du boost.");
-      console.error(err);
-    }
+  const handleBoostProduct = (productId, productTitle) => {
+    const adminNumber = "221773713175";
+    const text = encodeURIComponent(`Bonjour, je souhaite mettre en VIP mon annonce "${productTitle}" (ID: ${productId}). Comment procéder au paiement ?`);
+    window.open(`https://wa.me/${adminNumber}?text=${text}`, '_blank');
   };
 
   const handleLogout = async () => {
@@ -146,23 +172,6 @@ const ProfilePage = () => {
       </div>
     );
   }
-
-  const InputWrapper = ({ label, icon, children }) => (
-    <div style={{ marginBottom: '1.2rem', textAlign: 'left' }}>
-      <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem', fontWeight: '500' }}>
-        {label}
-      </label>
-      <div style={{ display: 'flex', border: '1px solid #E2E8F0', borderRadius: '12px', overflow: 'hidden', background: '#FAFAF9' }}>
-        {icon && (
-          <div style={{ padding: '0 12px', color: '#94A3B8', display: 'flex', alignItems: 'center' }}>
-            {icon}
-          </div>
-        )}
-        {children}
-      </div>
-    </div>
-  );
-
   let trialDaysLeft = null;
   let isTrialExpired = false;
 
@@ -190,7 +199,15 @@ const ProfilePage = () => {
                <h2 style={{ fontSize: '1.4rem', fontWeight: '800', marginBottom: '1.5rem', fontFamily: 'var(--font-heading)' }}>Modifier mon profil</h2>
                <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: '0 2rem' }}>
                   <InputWrapper label="Nom complet" icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>}>
-                    <input type="text" value={formData.full_name} onChange={(e) => setFormData({...formData, full_name: e.target.value})} placeholder="Votre nom" style={{ flex: 1, padding: '0.9rem 0.9rem 0.9rem 0', border: 'none', background: 'transparent', outline: 'none', fontSize: '0.95rem' }} />
+                    <FastInput type="text" name="full_name" value={formData.full_name} onChange={(e) => setFormData({...formData, full_name: e.target.value})} style={{ flex: 1, padding: '1rem 1rem 1rem 0', border: 'none', background: 'transparent', outline: 'none', fontSize: '0.95rem' }} />
+                  </InputWrapper>
+                  
+                  <InputWrapper label="Téléphone principal" icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>}>
+                    <FastInput type="tel" name="phone_number" value={formData.phone_number} onChange={(e) => setFormData({...formData, phone_number: e.target.value})} style={{ flex: 1, padding: '1rem 1rem 1rem 0', border: 'none', background: 'transparent', outline: 'none', fontSize: '0.95rem' }} />
+                  </InputWrapper>
+                  
+                  <InputWrapper label="Numéro WhatsApp" icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>}>
+                    <FastInput type="tel" name="whatsapp_number" value={formData.whatsapp_number} onChange={(e) => setFormData({...formData, whatsapp_number: e.target.value})} style={{ flex: 1, padding: '1rem 1rem 1rem 0', border: 'none', background: 'transparent', outline: 'none', fontSize: '0.95rem' }} />
                   </InputWrapper>
 
                   <InputWrapper label="Ville" icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>}>
@@ -329,22 +346,28 @@ const ProfilePage = () => {
                             <div style={{ fontSize: '0.95rem', color: 'var(--text-main)', fontWeight: '500', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '8px' }}>
                               {product.title}
                             </div>
-                            <div style={{ fontSize: '0.8rem', color: '#94A3B8', marginTop: 'auto' }}>
-                              {new Date(product.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            <div style={{ fontSize: '0.8rem', color: '#94A3B8', marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span>{new Date(product.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                              <div style={{ display: 'flex', gap: '10px' }}>
+                                {(product.views_count > 0 || product.views_count === 0) && <span style={{ color: '#64748b', fontWeight: '600', fontSize: '0.85rem' }}>👁️ {product.views_count || 0}</span>}
+                                {product.favorites_count > 0 && <span style={{ color: '#e74c3c', fontWeight: '700', fontSize: '0.85rem' }}>❤️ {product.favorites_count}</span>}
+                              </div>
                             </div>
                           </div>
                           
                           <div style={{ display: 'flex', borderTop: '1px solid #E2E8F0', background: '#FAFAF9' }}>
                             <Link to={`/product/${product.id}`} className="active-scale touch-target" style={{ flex: 1, padding: '0.9rem', textAlign: 'center', textDecoration: 'none', color: 'var(--text-main)', borderRight: '1px solid #E2E8F0', fontSize: '0.9rem', fontWeight: '700', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px' }}>
-                              👀
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                              Voir
                             </Link>
                             {!product.is_boosted && (
-                              <button onClick={() => handleBoostProduct(product.id)} className="active-scale touch-target" style={{ flex: 2, padding: '0.9rem', textAlign: 'center', background: 'none', borderRight: '1px solid #E2E8F0', cursor: 'pointer', color: '#f59e0b', fontSize: '0.9rem', fontWeight: '800', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px' }}>
-                                🚀 Booster
+                              <button onClick={() => handleBoostProduct(product.id, product.title)} className="active-scale touch-target" style={{ flex: 2, padding: '0.9rem', textAlign: 'center', background: 'none', borderRight: '1px solid #E2E8F0', cursor: 'pointer', color: '#f59e0b', fontSize: '0.9rem', fontWeight: '800', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px' }}>
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+                                Booster
                               </button>
                             )}
                             <button onClick={() => handleDeleteProduct(product.id)} className="active-scale touch-target" style={{ flex: 1, padding: '0.9rem', textAlign: 'center', background: 'none', border: 'none', cursor: 'pointer', color: '#e74c3c', fontSize: '0.9rem', fontWeight: '700', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px' }}>
-                              🗑️
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                             </button>
                           </div>
                         </div>

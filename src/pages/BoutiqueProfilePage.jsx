@@ -3,12 +3,21 @@ import { useParams, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import FavoriteButton from '../components/FavoriteButton';
 import toast from 'react-hot-toast';
+import { useAuth } from '../components/AuthContext';
+import { formatDistanceToNow } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 const BoutiqueProfilePage = () => {
   const { boutiqueId } = useParams();
+  const { user } = useAuth();
   const [profile, setProfile] = useState(null);
   const [products, setProducts] = useState([]);
+  const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('catalogue');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [newReview, setNewReview] = useState({ rating: 5, comment: '' });
+  const [submittingReview, setSubmittingReview] = useState(false);
 
   useEffect(() => {
     const fetchBoutiqueData = async () => {
@@ -32,6 +41,25 @@ const BoutiqueProfilePage = () => {
 
         if (productsError) throw productsError;
         setProducts(productsData || []);
+
+        // Fetch reviews safely
+        const { data: reviewsData, error: reviewsError } = await supabase
+          .from('boutique_reviews')
+          .select('*')
+          .eq('boutique_id', boutiqueId)
+          .order('created_at', { ascending: false });
+
+        if (!reviewsError && reviewsData && reviewsData.length > 0) {
+          const reviewerIds = [...new Set(reviewsData.map(r => r.reviewer_id))];
+          const { data: profilesData } = await supabase.from('profiles').select('id, full_name, avatar_url').in('id', reviewerIds);
+          const profilesMap = {};
+          if (profilesData) {
+             profilesData.forEach(p => profilesMap[p.id] = p);
+          }
+          const richReviews = reviewsData.map(r => ({...r, reviewer: profilesMap[r.reviewer_id] || {}}));
+          setReviews(richReviews);
+        }
+
       } catch (err) {
         console.error('Error fetching boutique:', err);
       } finally {
@@ -41,6 +69,50 @@ const BoutiqueProfilePage = () => {
 
     fetchBoutiqueData();
   }, [boutiqueId]);
+
+  const submitReview = async (e) => {
+    e.preventDefault();
+    if (!user) { toast.error("Connectez-vous pour laisser un avis"); return; }
+    if (user.id === boutiqueId) { toast.error("Vous ne pouvez pas noter votre propre boutique"); return; }
+    if (!newReview.rating) { toast.error("Veuillez sélectionner une note"); return; }
+    
+    setSubmittingReview(true);
+    try {
+      const { error } = await supabase.from('boutique_reviews').insert([{
+        boutique_id: boutiqueId,
+        reviewer_id: user.id,
+        rating: newReview.rating,
+        comment: newReview.comment
+      }]);
+      
+      if (error) {
+        if (error.code === '23505') { toast.error("Vous avez déjà laissé un avis."); }
+        else { throw error; }
+      } else {
+        toast.success("Avis publié avec succès !");
+        // Update local state directly for immediate feedback
+        const { data: myProfile } = await supabase.from('profiles').select('id, full_name, avatar_url').eq('id', user.id).single();
+        setReviews([{
+          id: Math.random().toString(),
+          boutique_id: boutiqueId,
+          reviewer_id: user.id,
+          rating: newReview.rating,
+          comment: newReview.comment,
+          created_at: new Date().toISOString(),
+          reviewer: myProfile || {}
+        }, ...reviews]);
+        setNewReview({ rating: 5, comment: '' });
+      }
+    } catch(err) {
+      toast.error("Erreur lors de l'envoi.");
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
+  const avgRating = reviews.length > 0 ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1) : 0;
+  
+  const filteredProducts = products.filter(p => p.title.toLowerCase().includes(searchQuery.toLowerCase()));
 
   if (loading) {
     return (
@@ -104,7 +176,11 @@ const BoutiqueProfilePage = () => {
               <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem', color: 'var(--text-muted)', fontSize: '0.9rem', flexWrap: 'wrap' }}>
                 <span>📍 {profile.location || 'Sénégal'}</span>
                 {profile.business_hours && <span>🕒 {profile.business_hours}</span>}
-                <span style={{ color: '#f59e0b', fontWeight: 'bold' }}>⭐ Avis bientôt disponibles</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }} onClick={() => setActiveTab('avis')}>
+                  <span style={{ color: '#f59e0b', fontSize: '16px' }}>★</span>
+                  <span style={{ fontWeight: '700', color: 'var(--text-main)' }}>{avgRating > 0 ? avgRating : 'Nouveau'}</span>
+                  <span style={{ opacity: 0.8 }}>({reviews.length} avis)</span>
+                </div>
               </div>
             </div>
           </div>
@@ -167,56 +243,133 @@ const BoutiqueProfilePage = () => {
           </a>
         </div>
 
-        {/* Catalogue */}
-        <div style={{ marginTop: '3rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-            <h2 style={{ fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: '800' }}>
-              <span>🛍️</span> Catalogue ({products.length} articles)
-            </h2>
-          </div>
-          
-          {products.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '4rem', background: 'white', borderRadius: '12px', border: '1px dashed var(--border-color)' }}>
-              <p style={{ color: 'var(--text-muted)' }}>Cette boutique n'a pas encore publié d'articles.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3" style={{ gap: '16px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))' }}>
-              {products.map(product => {
-                const imageUrl = product.images && product.images.length > 0 ? product.images[0] : 'https://placehold.co/400x400?text=No+Image';
-                const condition = product.condition || 'Occasion';
-
-                return (
-                  <div key={product.id} onClick={() => window.location.href = `/product/${product.id}`} className="product-card active-scale" style={{ cursor: 'pointer', border: 'none', background: 'var(--card-bg)', borderRadius: 'var(--radius-md)' }}>
-                    <div style={{ position: 'relative', width: '100%', paddingTop: '100%', background: '#F1F5F9', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
-                      <img src={imageUrl} alt={product.title} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-                      
-                      <span style={{ position: 'absolute', top: '8px', left: '8px', background: 'rgba(255,255,255,0.9)', color: 'var(--text-main)', fontSize: '10px', fontWeight: '700', padding: '4px 8px', borderRadius: 'var(--radius-pill)', backdropFilter: 'blur(4px)', zIndex: 10 }}>
-                        {condition}
-                      </span>
-                      
-                      <FavoriteButton 
-                        productId={product.id} 
-                        style={{ position: 'absolute', top: '8px', right: '8px', width: '32px', height: '32px', zIndex: 10 }} 
-                      />
-                    </div>
-
-                    <div style={{ padding: '8px 4px 4px 4px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <h3 style={{ fontSize: '13px', fontWeight: '500', lineHeight: '1.4', margin: '0', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', color: 'var(--text-main)' }}>
-                        {product.title}
-                      </h3>
-                      <div style={{ fontSize: '14px', fontWeight: '800', color: 'var(--primary)' }}>
-                        {product.price > 0 ? `${product.price.toLocaleString('fr-FR')} FCFA` : product.metadata?.price_type || 'Sur demande'}
-                      </div>
-                      <div className="text-meta" style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
-                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>📍 {product.location || 'Dakar'}</span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+        {/* Tabs */}
+        <div style={{ display: 'flex', borderBottom: '1px solid #E2E8F0', marginTop: '3rem', marginBottom: '1.5rem', gap: '2rem' }}>
+          <button onClick={() => setActiveTab('catalogue')} style={{ padding: '0 0 12px 0', border: 'none', background: 'transparent', fontSize: '1.1rem', fontWeight: activeTab === 'catalogue' ? '800' : '600', color: activeTab === 'catalogue' ? 'var(--primary)' : 'var(--text-muted)', borderBottom: activeTab === 'catalogue' ? '3px solid var(--primary)' : '3px solid transparent', cursor: 'pointer', transition: 'all 0.2s' }}>
+            Catalogue ({products.length})
+          </button>
+          <button onClick={() => setActiveTab('avis')} style={{ padding: '0 0 12px 0', border: 'none', background: 'transparent', fontSize: '1.1rem', fontWeight: activeTab === 'avis' ? '800' : '600', color: activeTab === 'avis' ? 'var(--primary)' : 'var(--text-muted)', borderBottom: activeTab === 'avis' ? '3px solid var(--primary)' : '3px solid transparent', cursor: 'pointer', transition: 'all 0.2s' }}>
+            Avis clients ({reviews.length})
+          </button>
         </div>
+
+        {/* Tab Content: Catalogue */}
+        {activeTab === 'catalogue' && (
+          <div style={{ animation: 'fadeIn 0.3s' }}>
+            <div style={{ marginBottom: '1.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', background: 'white', borderRadius: '12px', border: '1px solid #E2E8F0', padding: '0 12px', height: '48px' }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="text" placeholder="Rechercher dans cette boutique..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} style={{ flex: 1, border: 'none', background: 'transparent', outline: 'none', padding: '0 12px', fontSize: '0.95rem' }} />
+              </div>
+            </div>
+            
+            {filteredProducts.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '4rem', background: 'white', borderRadius: '12px', border: '1px dashed var(--border-color)' }}>
+                <p style={{ color: 'var(--text-muted)' }}>Aucun article trouvé.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-3" style={{ gap: '16px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))' }}>
+                {filteredProducts.map(product => {
+                  const imageUrl = product.images && product.images.length > 0 ? product.images[0] : 'https://placehold.co/400x400?text=No+Image';
+                  const condition = product.condition || 'Occasion';
+
+                  return (
+                    <div key={product.id} onClick={() => window.location.href = `/product/${product.id}`} className="product-card active-scale" style={{ cursor: 'pointer', border: 'none', background: 'var(--card-bg)', borderRadius: 'var(--radius-md)' }}>
+                      <div style={{ position: 'relative', width: '100%', paddingTop: '100%', background: '#F1F5F9', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
+                        <img src={imageUrl} alt={product.title} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+                        
+                        <span style={{ position: 'absolute', top: '8px', left: '8px', background: 'rgba(255,255,255,0.9)', color: 'var(--text-main)', fontSize: '10px', fontWeight: '700', padding: '4px 8px', borderRadius: 'var(--radius-pill)', backdropFilter: 'blur(4px)', zIndex: 10 }}>
+                          {condition}
+                        </span>
+                        
+                        <FavoriteButton 
+                          productId={product.id} 
+                          style={{ position: 'absolute', top: '8px', right: '8px', width: '32px', height: '32px', zIndex: 10 }} 
+                        />
+                      </div>
+
+                      <div style={{ padding: '8px 4px 4px 4px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <h3 style={{ fontSize: '13px', fontWeight: '500', lineHeight: '1.4', margin: '0', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', color: 'var(--text-main)' }}>
+                          {product.title}
+                        </h3>
+                        <div style={{ fontSize: '14px', fontWeight: '800', color: 'var(--primary)' }}>
+                          {product.price > 0 ? `${product.price.toLocaleString('fr-FR')} FCFA` : product.metadata?.price_type || 'Sur demande'}
+                        </div>
+                        <div className="text-meta" style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>📍 {product.location || 'Dakar'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Tab Content: Avis */}
+        {activeTab === 'avis' && (
+          <div style={{ animation: 'fadeIn 0.3s' }}>
+            
+            {(!user || user.id !== boutiqueId) && (
+              <div style={{ background: 'white', padding: '1.5rem', borderRadius: '12px', border: '1px solid #E2E8F0', marginBottom: '2rem' }}>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: '800', marginBottom: '1rem' }}>Laisser un avis</h3>
+                {!user ? (
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Veuillez vous <Link to="/auth" style={{ color: 'var(--primary)', fontWeight: 'bold' }}>connecter</Link> pour laisser un avis.</p>
+                ) : (
+                  <form onSubmit={submitReview}>
+                    <div style={{ display: 'flex', gap: '8px', marginBottom: '1rem' }}>
+                      {[1, 2, 3, 4, 5].map(star => (
+                        <button type="button" key={star} onClick={() => setNewReview({...newReview, rating: star})} style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '24px', color: star <= newReview.rating ? '#f59e0b' : '#e2e8f0', padding: 0 }}>
+                          ★
+                        </button>
+                      ))}
+                    </div>
+                    <textarea 
+                      placeholder="Partagez votre expérience avec cette boutique..."
+                      value={newReview.comment}
+                      onChange={e => setNewReview({...newReview, comment: e.target.value})}
+                      style={{ width: '100%', padding: '1rem', border: '1px solid #E2E8F0', borderRadius: '12px', outline: 'none', fontSize: '0.95rem', minHeight: '100px', resize: 'vertical', marginBottom: '1rem', fontFamily: 'inherit' }}
+                    ></textarea>
+                    <button type="submit" disabled={submittingReview} className="btn-primary active-scale" style={{ padding: '0.8rem 1.5rem', borderRadius: '12px', fontWeight: '700', border: 'none', cursor: 'pointer' }}>
+                      {submittingReview ? 'Publication...' : 'Publier mon avis'}
+                    </button>
+                  </form>
+                )}
+              </div>
+            )}
+
+            <div>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: '800', marginBottom: '1.5rem' }}>Avis récents</h3>
+              {reviews.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '3rem', background: '#F8FAFC', borderRadius: '12px', border: '1px dashed #cbd5e1' }}>
+                  <p style={{ color: 'var(--text-muted)' }}>Aucun avis pour le moment. Soyez le premier !</p>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                  {reviews.map(review => (
+                    <div key={review.id} style={{ paddingBottom: '1.5rem', borderBottom: '1px solid #E2E8F0' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                        <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#E2E8F0', backgroundImage: `url(${review.reviewer?.avatar_url || ''})`, backgroundSize: 'cover', backgroundPosition: 'center' }}></div>
+                        <div>
+                          <div style={{ fontWeight: '700', fontSize: '0.95rem' }}>{review.reviewer?.full_name || 'Utilisateur'}</div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                            <span style={{ color: '#f59e0b', fontSize: '12px' }}>{'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}</span>
+                            <span>•</span>
+                            <span>{formatDistanceToNow(new Date(review.created_at), { addSuffix: true, locale: fr })}</span>
+                          </div>
+                        </div>
+                      </div>
+                      {review.comment && (
+                        <p style={{ margin: 0, fontSize: '0.95rem', color: 'var(--text-main)', lineHeight: '1.5', paddingLeft: '52px' }}>{review.comment}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
       </div>
     </div>

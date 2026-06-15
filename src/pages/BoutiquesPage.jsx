@@ -9,14 +9,35 @@ const BoutiquesPage = () => {
   useEffect(() => {
     const fetchBoutiques = async () => {
       try {
-        // Fetch profiles where account_type is 'boutique'
-        const { data, error } = await supabase
+        const { data: profiles, error } = await supabase
           .from('profiles')
           .select('*')
           .eq('account_type', 'boutique');
           
         if (error) throw error;
-        setBoutiques(data || []);
+
+        if (profiles && profiles.length > 0) {
+          const boutiqueIds = profiles.map(p => p.id);
+          const { data: reviewsData } = await supabase
+            .from('boutique_reviews')
+            .select('boutique_id, rating')
+            .in('boutique_id', boutiqueIds);
+
+          if (reviewsData) {
+            profiles.forEach(p => {
+              const bReviews = reviewsData.filter(r => r.boutique_id === p.id);
+              if (bReviews.length > 0) {
+                p.avgRating = (bReviews.reduce((acc, r) => acc + r.rating, 0) / bReviews.length).toFixed(1);
+                p.reviewCount = bReviews.length;
+              } else {
+                p.avgRating = 0;
+                p.reviewCount = 0;
+              }
+            });
+          }
+        }
+        
+        setBoutiques(profiles || []);
       } catch (err) {
         console.error('Error fetching boutiques:', err);
       } finally {
@@ -71,8 +92,13 @@ const BoutiquesPage = () => {
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', marginTop: '0.5rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: '1.5' }}>
                   {boutique.boutique_description || 'Découvrez nos articles et nouveautés exclusives.'}
                 </p>
-                <div style={{ marginTop: '1.2rem', fontSize: '0.9rem', color: 'var(--text-main)', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ marginTop: '1.2rem', fontSize: '0.9rem', color: 'var(--text-main)', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                   <span style={{ padding: '4px 8px', background: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0' }}>📍 {boutique.location || 'Sénégal'}</span>
+                  {boutique.avgRating > 0 && (
+                    <span style={{ padding: '4px 8px', background: '#FEF3C7', color: '#B45309', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <span style={{ color: '#F59E0B' }}>★</span> {boutique.avgRating} ({boutique.reviewCount} avis)
+                    </span>
+                  )}
                 </div>
               </div>
             </Link>

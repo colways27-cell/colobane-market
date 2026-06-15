@@ -24,6 +24,18 @@ const InputWrapper = ({ label, icon, children, required }) => (
   </div>
 );
 
+const FastInput = ({ value, onChange, ...props }) => {
+  const [localVal, setLocalVal] = useState(value || '');
+  useEffect(() => { setLocalVal(value || ''); }, [value]);
+  return <input value={localVal} onChange={e => setLocalVal(e.target.value)} onBlur={e => onChange({ target: { name: props.name, value: localVal } })} {...props} />;
+};
+
+const FastTextarea = ({ value, onChange, ...props }) => {
+  const [localVal, setLocalVal] = useState(value || '');
+  useEffect(() => { setLocalVal(value || ''); }, [value]);
+  return <textarea value={localVal} onChange={e => setLocalVal(e.target.value)} onBlur={e => onChange({ target: { name: props.name, value: localVal } })} {...props} />;
+};
+
 const PublishPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -197,15 +209,26 @@ const PublishPage = () => {
         finalPrice = typeof price === 'string' ? parseFloat(price.replace(/\s/g, '')) : parseFloat(price);
       }
 
+      // Handle "Autre" custom fields
+      const processedMetadata = { ...metadata, price_type, delivery, contact_whatsapp };
+      Object.keys(processedMetadata).forEach(key => {
+        if (processedMetadata[key] === 'Autre' && processedMetadata[`custom_${key}`]) {
+          processedMetadata[key] = processedMetadata[`custom_${key}`];
+        }
+        if (key.startsWith('custom_')) {
+          delete processedMetadata[key];
+        }
+      });
+
       const { error: insertError } = await supabase.from('products').insert([{
         seller_id: user.id,
         title: title || 'Sans titre',
         description: description || '',
         price: isNaN(finalPrice) ? 0 : finalPrice,
-        location: location || 'Sénégal',
+        location: (location === 'Autre' && formData.custom_location) ? formData.custom_location : (location || 'Sénégal'),
         category: selectedCategory,
         images: imageUrls,
-        metadata: { ...metadata, price_type, delivery, contact_whatsapp },
+        metadata: processedMetadata,
         status: 'available'
       }]);
 
@@ -294,18 +317,37 @@ const PublishPage = () => {
                  const fieldName = getSubcategoryField(category).name;
                  const isSelected = formData[fieldName] === opt;
                  return (
-                   <button 
-                     key={opt}
-                     onClick={() => { 
-                       setFormData({...formData, [fieldName]: opt}); 
-                       setTimeout(() => setStep(3), 300); 
-                     }}
-                     className="touch-target active-scale"
-                     style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: isSelected ? 'var(--primary)' : '#FAFAF9', border: isSelected ? 'none' : '1px solid #E2E8F0', borderRadius: '16px', padding: '16px 20px', color: isSelected ? 'white' : 'var(--text-main)', fontWeight: '600', fontSize: '1rem', transition: 'all 0.2s' }}
-                   >
-                     {opt}
-                     {isSelected && <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
-                   </button>
+                   <div key={opt}>
+                     <button 
+                       type="button"
+                       onClick={() => { 
+                         setFormData({...formData, [fieldName]: opt}); 
+                         if (opt !== 'Autre') {
+                           setTimeout(() => setStep(3), 300); 
+                         }
+                       }}
+                       className="touch-target active-scale"
+                       style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: isSelected ? 'var(--primary)' : '#FAFAF9', border: isSelected ? 'none' : '1px solid #E2E8F0', borderRadius: '16px', padding: '16px 20px', color: isSelected ? 'white' : 'var(--text-main)', fontWeight: '600', fontSize: '1rem', transition: 'all 0.2s' }}
+                     >
+                       {opt}
+                       {isSelected && <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
+                     </button>
+                     {isSelected && opt === 'Autre' && (
+                       <div style={{ marginTop: '12px', animation: 'fadeIn 0.2s ease-out' }}>
+                         <FastInput 
+                           type="text" 
+                           name={`custom_${fieldName}`} 
+                           placeholder="Veuillez préciser..."
+                           onChange={(e) => setFormData({...formData, [`custom_${fieldName}`]: e.target.value})}
+                           value={formData[`custom_${fieldName}`] || ''}
+                           style={{ width: '100%', padding: '16px', borderRadius: '12px', border: '1px solid #E2E8F0', outline: 'none', fontSize: '1rem', background: 'white' }} 
+                         />
+                         <button onClick={() => setStep(3)} disabled={!formData[`custom_${fieldName}`]} className="btn-primary active-scale" style={{ width: '100%', marginTop: '12px', padding: '1rem', borderRadius: '12px', fontWeight: '700' }}>
+                           Continuer
+                         </button>
+                       </div>
+                     )}
+                   </div>
                  );
               })}
             </div>
@@ -317,11 +359,11 @@ const PublishPage = () => {
             <h2 style={{ fontSize: '1.5rem', fontWeight: '800', marginBottom: '24px', fontFamily: 'var(--font-heading)' }}>Détails et Photos</h2>
             
             <InputWrapper label="Titre de l'annonce" required icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>}>
-              <input type="text" name="title" placeholder="Ex: iPhone 14 Pro Max 256Go" value={formData.title} onChange={handleInputChange} style={{ flex: 1, padding: '1rem 1rem 1rem 0', border: 'none', background: 'transparent', outline: 'none', fontSize: '0.95rem' }} />
+              <FastInput type="text" name="title" placeholder="Ex: iPhone 14 Pro Max 256Go" value={formData.title} onChange={handleInputChange} style={{ flex: 1, padding: '1rem 1rem 1rem 0', border: 'none', background: 'transparent', outline: 'none', fontSize: '0.95rem' }} />
             </InputWrapper>
 
             <InputWrapper label="Description" required icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginTop: '14px' }}><line x1="21" y1="10" x2="3" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="14" y1="18" x2="3" y2="18"></line></svg>}>
-              <textarea name="description" rows="4" placeholder="État, accessoires inclus, raison de la vente..." value={formData.description} onChange={handleInputChange} style={{ flex: 1, padding: '1rem 1rem 1rem 0', border: 'none', background: 'transparent', outline: 'none', fontSize: '0.95rem', resize: 'vertical' }}></textarea>
+              <FastTextarea name="description" rows="4" placeholder="État, accessoires inclus, raison de la vente..." value={formData.description} onChange={handleInputChange} style={{ flex: 1, padding: '1rem 1rem 1rem 0', border: 'none', background: 'transparent', outline: 'none', fontSize: '0.95rem', resize: 'vertical' }}></FastTextarea>
             </InputWrapper>
 
             <div style={{ marginBottom: '1.5rem' }}>
@@ -363,16 +405,30 @@ const PublishPage = () => {
               <div key={field.name} style={{ marginBottom: '1.5rem' }}>
                 <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.8rem', fontWeight: '500' }}>{field.label}</label>
                 {field.type === 'select' ? (
-                  <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch', margin: '0 -20px', paddingLeft: '20px', paddingRight: '20px' }}>
-                    {field.options.map((opt) => (
-                      <button type="button" key={opt} onClick={() => setFormData({...formData, [field.name]: opt})} className="active-scale touch-target" style={{ flexShrink: 0, padding: '0 16px', minHeight: '40px', borderRadius: '20px', border: formData[field.name] === opt ? 'none' : '1px solid #E2E8F0', background: formData[field.name] === opt ? 'var(--primary)' : '#FAFAF9', color: formData[field.name] === opt ? 'white' : 'var(--text-main)', fontWeight: '600', fontSize: '0.85rem', boxShadow: formData[field.name] === opt ? '0 4px 10px rgba(139, 28, 49, 0.2)' : 'none', transition: 'all 0.2s' }}>
-                        {opt}
-                      </button>
-                    ))}
+                  <div>
+                    <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch', margin: '0 -20px', paddingLeft: '20px', paddingRight: '20px' }}>
+                      {field.options.map((opt) => (
+                        <button type="button" key={opt} onClick={() => setFormData({...formData, [field.name]: opt})} className="active-scale touch-target" style={{ flexShrink: 0, padding: '0 16px', minHeight: '40px', borderRadius: '20px', border: formData[field.name] === opt ? 'none' : '1px solid #E2E8F0', background: formData[field.name] === opt ? 'var(--primary)' : '#FAFAF9', color: formData[field.name] === opt ? 'white' : 'var(--text-main)', fontWeight: '600', fontSize: '0.85rem', boxShadow: formData[field.name] === opt ? '0 4px 10px rgba(139, 28, 49, 0.2)' : 'none', transition: 'all 0.2s' }}>
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                    {formData[field.name] === 'Autre' && (
+                      <div style={{ marginTop: '12px', animation: 'fadeIn 0.2s ease-out' }}>
+                        <FastInput 
+                          type="text" 
+                          name={`custom_${field.name}`} 
+                          placeholder={`Précisez : ${field.label}`}
+                          onChange={(e) => setFormData({...formData, [`custom_${field.name}`]: e.target.value})}
+                          value={formData[`custom_${field.name}`] || ''}
+                          style={{ width: '100%', padding: '14px 16px', borderRadius: '12px', border: '1px solid #E2E8F0', outline: 'none', fontSize: '0.95rem', background: '#FAFAF9' }} 
+                        />
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <InputWrapper label={field.label} icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>}>
-                    <input type={field.type} name={field.name} placeholder={field.placeholder} onChange={handleInputChange} value={formData[field.name] || ''} style={{ flex: 1, padding: '1rem 1rem 1rem 0', border: 'none', background: 'transparent', outline: 'none', fontSize: '0.95rem' }} />
+                    <FastInput type={field.type} name={field.name} placeholder={field.placeholder} onChange={handleInputChange} value={formData[field.name] || ''} style={{ flex: 1, padding: '1rem 1rem 1rem 0', border: 'none', background: 'transparent', outline: 'none', fontSize: '0.95rem' }} />
                   </InputWrapper>
                 )}
               </div>
@@ -401,16 +457,30 @@ const PublishPage = () => {
 
             {(formData.price_type !== 'Gratuit' && formData.price_type !== 'Échange') && (
               <InputWrapper label="Prix (FCFA)" required icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>}>
-                <input type="number" name="price" placeholder="Ex: 15000" value={formData.price} onChange={handleInputChange} style={{ flex: 1, padding: '1rem 1rem 1rem 0', border: 'none', background: 'transparent', outline: 'none', fontSize: '1.1rem', fontWeight: '700', letterSpacing: '1px' }} />
+                <FastInput type="number" name="price" placeholder="Ex: 15000" value={formData.price} onChange={handleInputChange} style={{ flex: 1, padding: '1rem 1rem 1rem 0', border: 'none', background: 'transparent', outline: 'none', fontSize: '1.1rem', fontWeight: '700', letterSpacing: '1px' }} />
               </InputWrapper>
             )}
 
-            <InputWrapper label="Ville / Quartier" required icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>}>
-              <select name="location" onChange={handleInputChange} value={formData.location} style={{ flex: 1, padding: '1rem 1rem 1rem 0', border: 'none', background: 'transparent', outline: 'none', fontSize: '0.95rem', appearance: 'none' }}>
-                {locations.map(loc => <option key={loc} value={loc} style={{ color: 'var(--text-main)' }}>{loc}</option>)}
-              </select>
-              <div style={{ padding: '0 16px', color: '#94A3B8', display: 'flex', alignItems: 'center', pointerEvents: 'none' }}>▼</div>
-            </InputWrapper>
+            <div>
+              <InputWrapper label="Ville / Quartier" required icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>}>
+                <select name="location" onChange={handleInputChange} value={formData.location} style={{ flex: 1, padding: '1rem 1rem 1rem 0', border: 'none', background: 'transparent', outline: 'none', fontSize: '0.95rem', appearance: 'none' }}>
+                  {locations.map(loc => <option key={loc} value={loc} style={{ color: 'var(--text-main)' }}>{loc}</option>)}
+                </select>
+                <div style={{ padding: '0 16px', color: '#94A3B8', display: 'flex', alignItems: 'center', pointerEvents: 'none' }}>▼</div>
+              </InputWrapper>
+              {formData.location === 'Autre' && (
+                <div style={{ marginTop: '12px', animation: 'fadeIn 0.2s ease-out' }}>
+                  <FastInput 
+                    type="text" 
+                    name="custom_location" 
+                    placeholder="Précisez votre ville / quartier"
+                    onChange={(e) => setFormData({...formData, custom_location: e.target.value})}
+                    value={formData.custom_location || ''}
+                    style={{ width: '100%', padding: '14px 16px', borderRadius: '12px', border: '1px solid #E2E8F0', outline: 'none', fontSize: '0.95rem', background: '#FAFAF9' }} 
+                  />
+                </div>
+              )}
+            </div>
 
             <InputWrapper label="Options de livraison" icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>}>
               <select name="delivery" onChange={handleInputChange} value={formData.delivery} style={{ flex: 1, padding: '1rem 1rem 1rem 0', border: 'none', background: 'transparent', outline: 'none', fontSize: '0.95rem', appearance: 'none' }}>
@@ -425,7 +495,7 @@ const PublishPage = () => {
                 <div style={{ display: 'flex', alignItems: 'center', padding: '0 12px', background: '#F8FAFC', borderRight: '1px solid #E2E8F0', color: 'var(--text-main)', fontWeight: '600', fontSize: '0.9rem', height: '100%' }}>
                   <span style={{ color: '#94A3B8', marginRight: '6px', fontSize: '0.8rem' }}>SN</span> +221
                 </div>
-                <input type="tel" name="contact_whatsapp" value={formData.contact_whatsapp} onChange={handleInputChange} placeholder="77 123 45 67" style={{ flex: 1, padding: '1rem', border: 'none', background: 'transparent', outline: 'none', fontSize: '1rem', letterSpacing: '1px' }} />
+                <FastInput type="tel" name="contact_whatsapp" value={formData.contact_whatsapp} onChange={handleInputChange} placeholder="77 123 45 67" style={{ flex: 1, padding: '1rem', border: 'none', background: 'transparent', outline: 'none', fontSize: '1rem', letterSpacing: '1px' }} />
               </div>
             </div>
 

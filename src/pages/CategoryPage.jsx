@@ -16,7 +16,7 @@ const CategoryPage = () => {
         const { data, error } = await supabase
           .from('products')
           .select('*')
-          .eq('category_id', categoryId)
+          .eq('category', categoryId)
           .order('created_at', { ascending: false });
 
         if (error) throw error;
@@ -69,7 +69,7 @@ const CategoryPage = () => {
                     {product.title}
                   </h3>
                   <div style={{ fontSize: '14px', fontWeight: '800', color: 'var(--primary)' }}>
-                    {product.price.toLocaleString('fr-FR')} FCFA
+                    {(product.price || 0).toLocaleString('fr-FR')} FCFA
                   </div>
                 </div>
               </Link>

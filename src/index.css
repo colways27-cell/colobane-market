@@ -978,3 +978,27 @@ input[type="radio"] {
   }
 }
 
+/* Marquee Animation */
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.marquee-wrapper {
+  overflow: hidden;
+  margin: 0 -16px;
+  padding: 12px 16px 4px 16px;
+  mask-image: linear-gradient(to right, transparent, black 16px, black calc(100% - 16px), transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 16px, black calc(100% - 16px), transparent);
+}
+
+.marquee-container {
+  display: flex;
+  width: max-content;
+  animation: marquee 15s linear infinite;
+  gap: 8px;
+}
+
+.marquee-container:hover {
+  animation-play-state: paused;
+}

@@ -11,8 +11,10 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.107.0",
+    "date-fns": "^4.4.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
+    "react-helmet-async": "^3.0.0",
     "react-hot-toast": "^2.6.0",
     "react-router-dom": "^7.17.0"
   },

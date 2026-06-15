@@ -127,7 +127,7 @@ const FavoritesPage = () => {
 
                   <div style={{ padding: '10px 8px 12px 8px' }}>
                     <div className="product-price" style={{ fontSize: '15px', fontWeight: '800', marginBottom: '2px', color: 'var(--text-main)', letterSpacing: '-0.3px' }}>
-                      {product.price.toLocaleString('fr-FR')} FCFA
+                      {(product.price || 0).toLocaleString('fr-FR')} FCFA
                     </div>
                     
                     <h3 className="product-title" style={{ fontSize: '12px', color: 'var(--text-main)', fontWeight: '500', marginBottom: '6px', opacity: 0.9 }}>

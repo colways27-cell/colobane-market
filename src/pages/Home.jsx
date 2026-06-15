@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { categories } from '../data/categories';
 import { products as mockProducts } from '../data/products';
@@ -13,8 +13,18 @@ const Home = () => {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(0);
+  const [activeCategorySlide, setActiveCategorySlide] = useState(null);
+  const subcategoriesRef = useRef(null);
   const PAGE_SIZE = 15;
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (activeCategorySlide && subcategoriesRef.current) {
+      setTimeout(() => {
+        subcategoriesRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
+    }
+  }, [activeCategorySlide]);
 
   const fetchProducts = async (currentPage, isLoadMore = false) => {
     try {
@@ -30,7 +40,7 @@ const Home = () => {
           *,
           profiles:seller_id (account_type, boutique_name, is_verified)
         `)
-        .order('is_boosted', { ascending: false })
+        .order('is_boosted', { ascending: false, nullsFirst: false })
         .order('created_at', { ascending: false })
         .range(from, to);
         
@@ -102,17 +112,19 @@ const Home = () => {
         </div>
         
         {/* Quick Filter Chips */}
-        <div style={{ display: 'flex', overflowX: 'auto', gap: '8px', padding: '12px 0 4px', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch', margin: '0 -16px', paddingLeft: '16px', paddingRight: '16px' }}>
-          {['Nouveautés', 'Moins de 10.000F', 'Téléphones', 'Chaussures', 'Véhicules'].map(filter => (
-            <button key={filter} className="active-scale" style={{ background: '#F1F5F9', border: '1px solid #E2E8F0', padding: '6px 16px', borderRadius: '20px', fontSize: '13px', fontWeight: '600', color: 'var(--text-main)', whiteSpace: 'nowrap' }}>
-              {filter}
-            </button>
-          ))}
+        <div className="marquee-wrapper">
+          <div className="marquee-container" style={{ paddingLeft: '8px', paddingRight: '8px' }}>
+            {[...['Nouveautés', 'Moins de 10.000F', 'Téléphones', 'Chaussures', 'Véhicules', 'Électroménager', 'Mode'], ...['Nouveautés', 'Moins de 10.000F', 'Téléphones', 'Chaussures', 'Véhicules', 'Électroménager', 'Mode']].map((filter, idx) => (
+              <button key={`${filter}-${idx}`} className="active-scale" style={{ background: '#F1F5F9', border: '1px solid #E2E8F0', padding: '6px 16px', borderRadius: '20px', fontSize: '13px', fontWeight: '600', color: 'var(--text-main)', whiteSpace: 'nowrap' }}>
+                {filter}
+              </button>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* Categories Horizontal Scroll */}
-      <section style={{ marginBottom: '1.5rem', padding: '0 16px' }}>
+      <section style={{ marginBottom: '0.5rem', padding: '0 16px' }}>
         <div style={{ display: 'flex', overflowX: 'auto', gap: '16px', paddingBottom: '0.5rem', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch', margin: '0 -16px', paddingLeft: '16px', paddingRight: '16px' }}>
           <button onClick={() => navigate(`/boutiques`)} className="touch-target active-scale" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', background: 'transparent', border: 'none', flexShrink: 0, gap: '8px' }}>
             <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: '#8b1c3115', color: '#8b1c31', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px' }}>
@@ -123,20 +135,53 @@ const Home = () => {
             </span>
           </button>
           
-          {categories.map(cat => (
-            <button key={cat.id} onClick={() => navigate(`/category/${cat.id}`)} className="touch-target active-scale" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', background: 'transparent', border: 'none', flexShrink: 0, gap: '8px' }}>
-              <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: `${cat.color}15`, color: cat.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px' }}>
+          {categories.map(cat => {
+            const isActive = activeCategorySlide === cat.id;
+            return (
+            <button key={cat.id} onClick={(e) => {
+              if (isActive) {
+                setActiveCategorySlide(null);
+              } else {
+                setActiveCategorySlide(cat.id);
+                e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+              }
+            }} className="touch-target active-scale" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', background: 'transparent', border: 'none', flexShrink: 0, gap: '8px', opacity: (activeCategorySlide && !isActive) ? 0.5 : 1, transition: 'opacity 0.3s' }}>
+              <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: isActive ? cat.color : `${cat.color}15`, color: isActive ? 'white' : cat.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', transition: 'all 0.3s', boxShadow: isActive ? `0 4px 12px ${cat.color}40` : 'none' }}>
                 {cat.icon}
               </div>
-              <span className="text-muted-small" style={{ fontWeight: '500', maxWidth: '80px', textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', whiteSpace: 'normal', lineHeight: '1.2' }}>
+              <span className="text-muted-small" style={{ fontWeight: isActive ? '700' : '500', color: isActive ? 'var(--text-main)' : 'var(--text-muted)', maxWidth: '80px', textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', whiteSpace: 'normal', lineHeight: '1.2' }}>
                 {cat.name}
               </span>
             </button>
-          ))}
+          )})}
           {/* Spacer */}
           <div style={{ width: '1px', flexShrink: 0 }}></div>
         </div>
       </section>
+
+      {/* Sliding Subcategories */}
+      {activeCategorySlide && (() => {
+        const subcategoriesField = categories.find(c => c.id === activeCategorySlide)?.fields?.find(f => f.type === 'select' && ['type', 'property_type', 'service_type', 'species', 'sector', 'contract_type', 'brand'].includes(f.name));
+        const subcategories = subcategoriesField?.options ? subcategoriesField.options.filter(o => o !== 'Autre') : [];
+        
+        return (
+          <div ref={subcategoriesRef} style={{ animation: 'slideDown 0.3s ease-out', margin: '0 16px 1.5rem 16px', padding: '16px', background: '#F8FAFC', borderRadius: '16px', border: '1px solid #E2E8F0' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+              <span style={{ fontWeight: '700', fontSize: '0.95rem', color: 'var(--text-main)' }}>Sous-catégories</span>
+              <button onClick={() => navigate(`/category/${activeCategorySlide}`)} style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: '600', fontSize: '0.85rem', cursor: 'pointer' }}>Tout voir</button>
+            </div>
+            <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
+              {subcategories.length > 0 ? subcategories.map(opt => (
+                <button key={opt} onClick={() => navigate(`/explore?category=${activeCategorySlide}&subcategory=${encodeURIComponent(opt)}`)} className="active-scale touch-target" style={{ flexShrink: 0, padding: '8px 16px', background: 'white', border: '1px solid #E2E8F0', borderRadius: '20px', fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-main)', cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+                  {opt}
+                </button>
+              )) : (
+                <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Aucune sous-catégorie</span>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Hero Banner */}
       <section style={{ padding: '0 16px', marginBottom: '1.5rem' }}>
@@ -202,7 +247,7 @@ const Home = () => {
                     {product.title}
                   </h3>
                   <div style={{ fontSize: '15px', fontWeight: '800', color: 'var(--text-main)' }}>
-                    {product.price.toLocaleString('fr-FR')} FCFA
+                    {(product.price || 0).toLocaleString('fr-FR')} FCFA
                   </div>
                   <div className="text-meta" style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px', fontSize: '11px' }}>
                     <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '80px', color: 'var(--text-muted)' }}>{product.profiles?.boutique_name || product.profiles?.full_name || 'Vendeur'}</span>

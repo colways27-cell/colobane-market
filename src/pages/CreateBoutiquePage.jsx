@@ -5,6 +5,29 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { senegalRegions } from '../data/locations';
 
+const InputWrapper = ({ label, required, children }) => (
+  <div style={{ marginBottom: '1.2rem' }}>
+    <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem', fontWeight: '500' }}>
+      {label} {required && <span style={{ color: '#e74c3c' }}>*</span>}
+    </label>
+    <div style={{ display: 'flex', border: '1px solid #E2E8F0', borderRadius: '12px', overflow: 'hidden', background: '#FAFAF9' }}>
+      {children}
+    </div>
+  </div>
+);
+
+const FastInput = ({ value, onChange, ...props }) => {
+  const [localVal, setLocalVal] = useState(value || '');
+  useEffect(() => { setLocalVal(value || ''); }, [value]);
+  return <input value={localVal} onChange={e => setLocalVal(e.target.value)} onBlur={e => onChange({ target: { name: props.name, value: localVal } })} {...props} />;
+};
+
+const FastTextarea = ({ value, onChange, ...props }) => {
+  const [localVal, setLocalVal] = useState(value || '');
+  useEffect(() => { setLocalVal(value || ''); }, [value]);
+  return <textarea value={localVal} onChange={e => setLocalVal(e.target.value)} onBlur={e => onChange({ target: { name: props.name, value: localVal } })} {...props} />;
+};
+
 const CreateBoutiquePage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -135,17 +158,6 @@ const CreateBoutiquePage = () => {
     }
   };
 
-  const InputWrapper = ({ label, required, children }) => (
-    <div style={{ marginBottom: '1.2rem' }}>
-      <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem', fontWeight: '500' }}>
-        {label} {required && <span style={{ color: '#e74c3c' }}>*</span>}
-      </label>
-      <div style={{ display: 'flex', border: '1px solid #E2E8F0', borderRadius: '12px', overflow: 'hidden', background: '#FAFAF9' }}>
-        {children}
-      </div>
-    </div>
-  );
-
   return (
     <div style={{ maxWidth: '600px', margin: '0 auto', background: 'white', minHeight: '100vh', paddingBottom: '120px' }}>
       <div style={{ position: 'sticky', top: 0, background: 'white', zIndex: 100, borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', padding: '16px', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
@@ -195,11 +207,11 @@ const CreateBoutiquePage = () => {
           </div>
 
           <InputWrapper label="Nom de la boutique" required>
-            <input type="text" name="boutique_name" value={formData.boutique_name} onChange={handleInputChange} placeholder="Ex: Dakar Électronique" style={{ flex: 1, padding: '1rem', border: 'none', background: 'transparent', outline: 'none', fontSize: '0.95rem' }} />
+            <FastInput type="text" name="boutique_name" value={formData.boutique_name} onChange={handleInputChange} placeholder="Ex: Dakar Électronique" style={{ flex: 1, padding: '1rem', border: 'none', background: 'transparent', outline: 'none', fontSize: '0.95rem' }} />
           </InputWrapper>
 
           <InputWrapper label="Description courte (Ce que vous vendez)">
-            <textarea name="boutique_description" rows="3" value={formData.boutique_description} onChange={handleInputChange} placeholder="Ex: Vente de téléphones, ordinateurs et accessoires garantis..." style={{ flex: 1, padding: '1rem', border: 'none', background: 'transparent', outline: 'none', fontSize: '0.95rem', resize: 'vertical' }}></textarea>
+            <FastTextarea name="boutique_description" rows="3" value={formData.boutique_description} onChange={handleInputChange} placeholder="Ex: Vente de téléphones, ordinateurs et accessoires garantis..." style={{ flex: 1, padding: '1rem', border: 'none', background: 'transparent', outline: 'none', fontSize: '0.95rem', resize: 'vertical' }}></FastTextarea>
           </InputWrapper>
 
           <div style={{ display: 'flex', gap: '1rem' }}>
@@ -226,7 +238,7 @@ const CreateBoutiquePage = () => {
           </div>
 
           <InputWrapper label="Horaires d'ouverture">
-            <input type="text" name="business_hours" value={formData.business_hours} onChange={handleInputChange} placeholder="Ex: Lun-Sam: 09h-19h" style={{ flex: 1, padding: '1rem', border: 'none', background: 'transparent', outline: 'none', fontSize: '0.95rem' }} />
+            <FastInput type="text" name="business_hours" value={formData.business_hours} onChange={handleInputChange} placeholder="Ex: Lun-Sam: 09h-19h" style={{ flex: 1, padding: '1rem', border: 'none', background: 'transparent', outline: 'none', fontSize: '0.95rem' }} />
           </InputWrapper>
 
           <button type="submit" disabled={loading} className="btn-primary active-scale" style={{ width: '100%', marginTop: '1.5rem', padding: '1.1rem', borderRadius: '12px', border: 'none', fontWeight: '800', fontSize: '1.1rem', cursor: 'pointer', boxShadow: '0 4px 15px rgba(139, 28, 49, 0.2)', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}>

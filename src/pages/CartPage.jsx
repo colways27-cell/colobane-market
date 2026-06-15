@@ -63,7 +63,7 @@ const CartPage = () => {
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem' }}>
                     <div style={{ background: '#fdf2f2', color: '#8a1c1c', padding: '0.2rem 0.6rem', borderRadius: 'var(--radius-pill)', fontSize: '0.8rem', fontWeight: 'bold' }}>
-                      {item.price.toLocaleString('fr-FR')} F CFA
+                      {(item.price || 0).toLocaleString('fr-FR')} F CFA
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>{item.quantity} ˅</span>
@@ -93,7 +93,7 @@ const CartPage = () => {
           <div style={{ marginTop: '2rem', background: 'white', padding: '1.5rem', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
               <span style={{ color: 'var(--text-muted)' }}>Sous-total:</span>
-              <span style={{ fontWeight: '600' }}>{subtotal.toLocaleString('fr-FR')} F CFA</span>
+              <span style={{ fontWeight: '600' }}>{(subtotal || 0).toLocaleString('fr-FR')} F CFA</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
               <span style={{ color: 'var(--text-muted)' }}>Frais:</span>
@@ -112,7 +112,7 @@ const CartPage = () => {
             
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', paddingTop: '1rem', borderTop: '1px solid var(--border-color)' }}>
               <span style={{ fontWeight: '800', fontSize: '1.2rem' }}>Total:</span>
-              <span style={{ fontWeight: '800', fontSize: '1.2rem', color: 'var(--primary)' }}>{total.toLocaleString('fr-FR')} F CFA</span>
+              <span style={{ fontWeight: '800', fontSize: '1.2rem', color: 'var(--primary)' }}>{(total || 0).toLocaleString('fr-FR')} F CFA</span>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
