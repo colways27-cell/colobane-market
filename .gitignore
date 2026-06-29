@@ -1,3 +1,9 @@
+# Variables d'environnement (SECRETS — ne jamais committer)
+.env
+.env.local
+.env.production
+.env.*.local
+
 # Logs
 logs
 *.log
