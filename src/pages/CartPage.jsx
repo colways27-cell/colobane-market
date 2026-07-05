@@ -121,12 +121,9 @@ const CartPage = () => {
               </button>
               
               <div style={{ display: 'flex', gap: '10px' }}>
-                <button className="active-scale" style={{ flex: 1, padding: '0.9rem', fontSize: '1rem', borderRadius: '12px', background: '#1185fe', color: 'white', border: 'none', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer' }}>
-                  <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>🐧</span> Wave
-                </button>
-                <button className="active-scale" style={{ flex: 1, padding: '0.9rem', fontSize: '1rem', borderRadius: '12px', background: '#ff6600', color: 'white', border: 'none', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer' }}>
-                  <div style={{ width: '16px', height: '16px', background: 'white', borderRadius: '4px' }}></div>
-                  Orange Money
+                <button className="active-scale" style={{ flex: 1, padding: '0.9rem', fontSize: '1.05rem', borderRadius: '12px', background: '#00b0f0', color: 'white', border: 'none', fontWeight: '800', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0, 176, 240, 0.2)' }}>
+                  <img src="/wave.png" alt="Wave" style={{ width: '24px', height: '24px', borderRadius: '50%', objectFit: 'cover' }} />
+                  Payer avec Wave
                 </button>
               </div>
             </div>

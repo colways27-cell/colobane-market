@@ -40,6 +40,9 @@ export default defineConfig({
         ]
       },
       workbox: {
+        skipWaiting: true,
+        clientsClaim: true,
+        cleanupOutdatedCaches: true,
         maximumFileSizeToCacheInBytes: 20 * 1024 * 1024,
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
         runtimeCaching: [
@@ -56,9 +59,58 @@ export default defineConfig({
             urlPattern: /^https:\/\/images\.unsplash\.com\/.*/i,
             handler: 'StaleWhileRevalidate',
             options: { cacheName: 'unsplash-images-cache' }
+          },
+          {
+            // Cache des images Supabase Storage
+            urlPattern: /^https:\/\/.*\.supabase\.co\/storage\/.*/i,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'supabase-images-cache',
+              expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 7 }
+            }
           }
         ]
       }
     })
   ],
+
+  build: {
+    // Augmente légèrement le seuil d'avertissement (nos chunks seront sous 600kB)
+    chunkSizeWarningLimit: 600,
+
+    rollupOptions: {
+      output: {
+        // ─── Découpage manuel des vendors ──────────────────────────────
+        manualChunks: (id) => {
+          // React core — toujours chargé
+          if (id.includes('node_modules/react/') ||
+              id.includes('node_modules/react-dom/') ||
+              id.includes('node_modules/scheduler/')) {
+            return 'vendor-react';
+          }
+
+          // React Router — toujours chargé
+          if (id.includes('node_modules/react-router') ||
+              id.includes('node_modules/@remix-run/')) {
+            return 'vendor-router';
+          }
+
+          // Supabase — chargé dès l'auth
+          if (id.includes('node_modules/@supabase/')) {
+            return 'vendor-supabase';
+          }
+
+          // Lucide icons — séparé car assez lourd
+          if (id.includes('node_modules/lucide-react/')) {
+            return 'vendor-icons';
+          }
+
+          // Utilitaires divers (date-fns, react-hot-toast, etc.)
+          if (id.includes('node_modules/')) {
+            return 'vendor-utils';
+          }
+        }
+      }
+    }
+  }
 })

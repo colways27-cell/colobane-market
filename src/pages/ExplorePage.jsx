@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { categories } from '../data/categories';
 import FavoriteButton from '../components/FavoriteButton';
+import { Store } from 'lucide-react';
 
 const locations = ['Dakar', 'Pikine', 'Guédiawaye', 'Rufisque', 'Thiès', 'Saint-Louis', 'Touba', 'Kaolack', 'Ziguinchor', 'Mbour', 'Louga', 'Tambacounda', 'Autre'];
 
@@ -12,6 +13,17 @@ const ExplorePage = () => {
   const initialCategory = searchParams.get('category') || location.state?.category || 'all';
   const initialSearch = searchParams.get('q') || '';
   const initialSubcategory = searchParams.get('subcategory') || 'all';
+  const initialBoosted = searchParams.get('boosted') === 'true';
+
+  const resultsRef = useRef(null);
+
+  const scrollToResults = useCallback(() => {
+    if (resultsRef.current) {
+      const yOffset = -20;
+      const y = resultsRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    }
+  }, []);
 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -25,6 +37,7 @@ const ExplorePage = () => {
   const [activeSubcategory, setActiveSubcategory] = useState(initialSubcategory);
   const [conditionFilter, setConditionFilter] = useState('all');
   const [locationFilter, setLocationFilter] = useState('all');
+  const [isBoostedOnly, setIsBoostedOnly] = useState(initialBoosted);
 
   const fetchProducts = useCallback(async () => {
     setLoading(true);
@@ -44,13 +57,13 @@ const ExplorePage = () => {
           query = query.contains('metadata', { [subcategoriesField.name]: activeSubcategory });
         } else {
           // Fallback old subcategory
-          query = query.contains('metadata', { subcategory: activeSubcategory });
+          query = query.or(`subcategory.eq."${activeSubcategory}",metadata->>subcategory.eq."${activeSubcategory}"`);
         }
       }
 
-      // 2. Recherche Textuelle (titre)
+      // 2. Recherche par mot-clé (Titre ou Description)
       if (searchQuery.trim() !== '') {
-        query = query.ilike('title', `%${searchQuery.trim()}%`);
+        query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
       }
 
       // 3. Filtre de Prix Min
@@ -73,6 +86,11 @@ const ExplorePage = () => {
         query = query.eq('location', locationFilter);
       }
 
+      // 6b. Filtre "Voir tout" pour les articles sponsorisés
+      if (isBoostedOnly) {
+        query = query.eq('is_boosted', true);
+      }
+
       // 7. Tri
       query = query.order('is_boosted', { ascending: false, nullsFirst: false });
       if (sortBy === 'newest') {
@@ -92,7 +110,7 @@ const ExplorePage = () => {
     } finally {
       setLoading(false);
     }
-  }, [activeCategory, activeSubcategory, searchQuery, minPrice, maxPrice, conditionFilter, locationFilter, sortBy]);
+  }, [activeCategory, activeSubcategory, searchQuery, minPrice, maxPrice, conditionFilter, locationFilter, sortBy, isBoostedOnly]);
 
   // Synchronize state with URL search params if they change
   useEffect(() => {
@@ -100,16 +118,26 @@ const ExplorePage = () => {
     if (params.get('category')) setActiveCategory(params.get('category'));
     if (params.get('subcategory')) setActiveSubcategory(params.get('subcategory'));
     if (params.get('q')) setSearchQuery(params.get('q'));
+    setIsBoostedOnly(params.get('boosted') === 'true');
   }, [location.search]);
 
   // Déclencher la recherche au chargement ou quand les filtres automatiques changent
   useEffect(() => {
     fetchProducts();
-  }, [activeCategory, activeSubcategory, conditionFilter, locationFilter, sortBy]);
+  }, [activeCategory, activeSubcategory, conditionFilter, locationFilter, sortBy, isBoostedOnly]);
+
+  // Défilement automatique vers les résultats lorsqu'un filtre est actif
+  useEffect(() => {
+    if (activeCategory !== 'all' || activeSubcategory !== 'all' || searchQuery !== '' || conditionFilter !== 'all' || locationFilter !== 'all' || sortBy !== 'newest' || isBoostedOnly) {
+      const timeoutId = setTimeout(scrollToResults, 150);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [activeCategory, activeSubcategory, searchQuery, conditionFilter, locationFilter, sortBy, isBoostedOnly, scrollToResults]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     fetchProducts();
+    setTimeout(scrollToResults, 150);
   };
 
   const handleResetFilters = () => {
@@ -121,6 +149,7 @@ const ExplorePage = () => {
     setConditionFilter('all');
     setLocationFilter('all');
     setSortBy('newest');
+    setIsBoostedOnly(false);
     setTimeout(() => fetchProducts(), 0);
   };
 
@@ -307,10 +336,16 @@ const ExplorePage = () => {
         </div>
 
         {/* Grille de Résultats */}
-        <div className="explore-content">
+        <div className="explore-content" ref={resultsRef}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', background: 'white', padding: '1rem 1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)', flexWrap: 'wrap', gap: '1rem' }}>
-            <div style={{ color: 'var(--text-muted)', fontWeight: '500', minWidth: '200px' }}>
-              <span style={{ color: 'var(--primary)', fontWeight: '800', fontSize: '1.2rem' }}>{products.length}</span> résultat(s) trouvé(s)
+            <div style={{ color: 'var(--text-muted)', fontWeight: '500', minWidth: '200px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span><span style={{ color: 'var(--primary)', fontWeight: '800', fontSize: '1.2rem' }}>{products.length}</span> résultat(s) trouvé(s)</span>
+              {isBoostedOnly && (
+                <span style={{ background: '#fef3c7', color: '#92400e', fontSize: '0.8rem', fontWeight: '700', padding: '4px 10px', borderRadius: 'var(--radius-pill)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  ⚡ Annonces Sponsorisées
+                  <button onClick={() => setIsBoostedOnly(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0', display: 'inline-flex', marginLeft: '4px', color: '#92400e' }}>✕</button>
+                </span>
+              )}
             </div>
             
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
@@ -350,28 +385,37 @@ const ExplorePage = () => {
               {products.map(product => {
                 const imageUrl = product.images && product.images.length > 0 ? product.images[0] : 'https://placehold.co/400x400?text=No+Image';
                 return (
-                  <Link to={`/product/${product.id}`} key={product.id} className="product-card active-scale" style={{ textDecoration: 'none', background: 'var(--card-bg)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', display: 'block', overflow: 'hidden' }}>
+                  <Link to={`/product/${product.id}`} key={product.id} className="product-card active-scale" style={{ textDecoration: 'none', background: 'var(--card-bg)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                     <div style={{ position: 'relative', width: '100%', paddingTop: '100%', background: '#F1F5F9' }}>
                       <img src={imageUrl} alt={product.title} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+                      {product.is_boosted && (
+                        <span style={{ position: 'absolute', top: '8px', left: '8px', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: 'white', padding: '4px 8px', borderRadius: '10px', fontSize: '9px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.3px', boxShadow: '0 2px 6px rgba(217,119,6,0.4)', zIndex: 11 }}>
+                          ⚡ Sponsorisé
+                        </span>
+                      )}
                       {product.is_urgent && (
-                        <span style={{ position: 'absolute', top: '8px', left: '8px', background: '#e74c3c', color: 'white', padding: '4px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', zIndex: 10 }}>URGENT</span>
+                        <span style={{ position: 'absolute', top: product.is_boosted ? '32px' : '8px', left: '8px', background: '#e74c3c', color: 'white', padding: '4px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', zIndex: 10 }}>URGENT</span>
                       )}
                       <FavoriteButton 
                         productId={product.id} 
                         style={{ position: 'absolute', top: '8px', right: '8px', width: '32px', height: '32px', zIndex: 10 }} 
                       />
                     </div>
-                    <div style={{ padding: '8px 6px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <div style={{ padding: '8px 6px', display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
                       <h3 style={{ fontSize: '13px', fontWeight: '500', lineHeight: '1.4', margin: '0', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', color: 'var(--text-main)', wordBreak: 'break-word' }}>
                         {product.title}
                       </h3>
-                      <div style={{ fontSize: '14px', fontWeight: '800', color: 'var(--primary)' }}>
+                      <div style={{ fontSize: '14px', fontWeight: '800', color: 'var(--primary)', marginBottom: 'auto' }}>
                         {(product.price || 0).toLocaleString('fr-FR')} {product.currency || 'FCFA'}
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px', gap: '4px' }}>
                         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>📍 {product.location}</span>
                         <span style={{ whiteSpace: 'nowrap', flexShrink: 0 }}>{new Date(product.created_at).toLocaleDateString()}</span>
                       </div>
+                    </div>
+                    {/* Bouton Contacter */}
+                    <div style={{ background: '#e30b3b', color: 'white', padding: '8px', textAlign: 'center', fontSize: '13px', fontWeight: '800', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                      <Store size={14} /> CONTACTER
                     </div>
                   </Link>
                 );

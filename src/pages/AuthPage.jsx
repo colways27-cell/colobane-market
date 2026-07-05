@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 
 const senegalLocations = {
-  "Dakar": ["Dakar Plateau", "Médina", "Fass-Colobane", "Point E", "Almadies", "Ngor", "Yoff", "Ouakam", "Mermoz-Sacré-Cœur", "Grand Dakar", "HLM", "Sicap-Liberté", "Dieuppeul-Derklé", "Parcelles Assainies", "Patte d'Oie", "Grand Yoff", "Pikine", "Guédiawaye", "Rufisque", "Keur Massar", "Diamniadio"],
+  "Dakar": ["Dakar Plateau", "Médina", "Fass-Colobane", "Point E", "Almadies", "Ngor", "Yoff", "Ouakam", "Mermoz-Sacré-Cœur", "Grand Dakar", "HLM", "Sicap-Liberté", "Dieuppeul-Derklé", "Parcelles Assainies", "Patte d'Oie", "Grand Yoff", "Pikine", "Guédiawaye", "Rufisque", "Keur Massar", "Diamniadio", "Sébikotane"],
   "Thiès": ["Thiès Ville", "Mbour", "Saly Portudal", "Somone", "Ngaparou", "Popenguine", "Tivaouane", "Joal-Fadiouth"],
   "Diourbel": ["Touba", "Mbacké", "Diourbel", "Bambey"],
   "Saint-Louis": ["Saint-Louis Ville", "Richard-Toll", "Dagana", "Podor"],
@@ -45,6 +45,7 @@ const AuthPage = () => {
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [phoneWarning, setPhoneWarning] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -54,8 +55,9 @@ const AuthPage = () => {
     setSuccessMsg('');
 
     try {
-      const formattedPhone = phone.startsWith('+') ? phone : `+221${phone.replace(/\s+/g, '')}`;
-      const authEmail = `${formattedPhone.replace('+', '')}@colobanemarket.local`;
+    const digits = phone.replace(/\s+/g, '').replace(/^0+/, '');
+    const formattedPhone = phone.startsWith('+') ? phone : `+221${digits}`;
+    const authEmail = `${formattedPhone.replace('+', '')}@colobanemarket.local`;
 
       if (isRegister) {
         if (!acceptTerms) {
@@ -184,8 +186,30 @@ const AuthPage = () => {
               <div style={{ display: 'flex', alignItems: 'center', color: 'var(--text-main)', fontWeight: '600', fontSize: '0.95rem', borderRight: '1px solid #E2E8F0', paddingRight: '12px', marginRight: '12px', height: '60%' }}>
                 <span style={{ color: '#94A3B8', marginRight: '4px', fontSize: '0.8rem' }}>SN</span> +221
               </div>
-              <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} required placeholder="77 123 45 67" className="clean-input" style={{ letterSpacing: '1px' }} />
+              <input
+                type="tel"
+                value={phone}
+                onChange={e => {
+                  const val = e.target.value;
+                  setPhone(val);
+                  const digits = val.replace(/\s+/g, '').replace(/^0+/, '');
+                  if (digits.length > 0 && digits.length !== 9) {
+                    setPhoneWarning('Les numéros sénégalais font 9 chiffres (ex: 77 123 45 67)');
+                  } else {
+                    setPhoneWarning('');
+                  }
+                }}
+                required
+                placeholder="77 123 45 67"
+                className="clean-input"
+                style={{ letterSpacing: '1px' }}
+              />
             </InputWrapper>
+            {phoneWarning && (
+              <p style={{ color: '#f39c12', fontSize: '0.8rem', marginTop: '-0.7rem', marginBottom: '0.8rem', paddingLeft: '4px' }}>
+                ⚠️ {phoneWarning}
+              </p>
+            )}
 
             {isRegister && (
               <>

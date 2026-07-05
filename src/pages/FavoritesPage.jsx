@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../components/AuthContext';
 import SkeletonCard from '../components/SkeletonCard';
 import toast from 'react-hot-toast';
+import { Store } from 'lucide-react';
 
 const FavoritesPage = () => {
   const { user } = useAuth();
@@ -109,7 +110,7 @@ const FavoritesPage = () => {
               const imageUrl = product.images && product.images.length > 0 ? product.images[0] : '/hero.png';
               
               return (
-                <div key={product.id} onClick={() => navigate(`/product/${product.id}`)} className="product-card active-scale" style={{ cursor: 'pointer', border: 'none', background: 'var(--card-bg)', borderRadius: 'var(--radius-md)', position: 'relative' }}>
+                <div key={product.id} onClick={() => navigate(`/product/${product.id}`)} className="product-card active-scale" style={{ cursor: 'pointer', border: 'none', background: 'var(--card-bg)', borderRadius: 'var(--radius-md)', position: 'relative', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                   
                   {/* Bouton pour retirer des favoris superposé sur l'image */}
                   <button 
@@ -125,14 +126,18 @@ const FavoritesPage = () => {
                     </div>
                   </div>
 
-                  <div style={{ padding: '10px 8px 12px 8px' }}>
-                    <div className="product-price" style={{ fontSize: '15px', fontWeight: '800', marginBottom: '2px', color: 'var(--text-main)', letterSpacing: '-0.3px' }}>
+                  <div style={{ padding: '10px 8px 12px 8px', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                    <div className="product-price" style={{ fontSize: '15px', fontWeight: '800', marginBottom: '2px', color: 'var(--text-main)', letterSpacing: '-0.3px', marginBottom: 'auto' }}>
                       {(product.price || 0).toLocaleString('fr-FR')} FCFA
                     </div>
                     
                     <h3 className="product-title" style={{ fontSize: '12px', color: 'var(--text-main)', fontWeight: '500', marginBottom: '6px', opacity: 0.9 }}>
                       {product.title}
                     </h3>
+                  </div>
+                  {/* Bouton Contacter */}
+                  <div style={{ background: '#e30b3b', color: 'white', padding: '8px', textAlign: 'center', fontSize: '13px', fontWeight: '800', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                    <Store size={14} /> CONTACTER
                   </div>
                 </div>
               );

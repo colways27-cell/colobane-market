@@ -5,6 +5,7 @@ import { categories } from '../data/categories';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../components/AuthContext';
 import toast from 'react-hot-toast';
+import { Shield, Tag, Gauge, Settings, Fuel } from 'lucide-react';
 
 const ProductPage = () => {
   const { productId } = useParams();
@@ -132,12 +133,14 @@ const ProductPage = () => {
     return (
       <div style={{ textAlign: 'center', paddingTop: '4rem' }}>
         <h2>Annonce introuvable</h2>
-        <Link to="/" className="btn-primary" style={{ marginTop: '2rem' }}>Retour à l'accueil</Link>
+        <Link to="/" className="btn-primary" style={{ marginTop: '2rem' }}>Retour aux annonces</Link>
       </div>
     );
   }
 
   const imageUrl = product.images && product.images.length > 0 ? product.images[activeImage] : '/hero.png';
+  const rawPhone = product.profiles?.phone_number || product.profiles?.whatsapp_number || product.metadata?.contact_whatsapp || product.contact || '';
+  const phoneNumber = rawPhone.replace(/[^\d+]/g, '');
 
   return (
     <div className="product-page" style={{ paddingBottom: '120px', maxWidth: '600px', margin: '0 auto', background: 'var(--bg-color)', minHeight: '100vh', position: 'relative' }}>
@@ -179,9 +182,9 @@ const ProductPage = () => {
             />
           </div>
         ))}
-        {product.condition && (
+        {(product.condition || (product.metadata && product.metadata.condition)) && (
           <div style={{ position: 'absolute', bottom: '16px', left: '16px', background: 'rgba(255,255,255,0.95)', color: 'var(--text-main)', padding: '6px 12px', borderRadius: 'var(--radius-pill)', fontSize: '12px', fontWeight: '800', backdropFilter: 'blur(4px)', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', pointerEvents: 'none' }}>
-            {product.condition}
+            {product.condition || (product.metadata && product.metadata.condition)}
           </div>
         )}
       </div>
@@ -226,16 +229,23 @@ const ProductPage = () => {
             style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '8px', borderRadius: '8px', color: '#25D366', borderColor: '#25D366', background: 'rgba(37,211,102,0.05)', textDecoration: 'none' }}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.888-.788-1.489-1.761-1.663-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.052 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
-            Contacter
+            WhatsApp
           </a>
           <a 
-            href={`tel:${product.profiles?.phone_number || product.contact || ''}`}
+            href={phoneNumber ? `tel:${phoneNumber}` : '#'}
+            onClick={(e) => {
+              if (!phoneNumber) {
+                e.preventDefault();
+                toast.error("Aucun numéro de téléphone disponible.");
+              }
+            }}
             className="btn-secondary active-scale" 
             style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '8px', borderRadius: '8px', textDecoration: 'none', color: 'var(--text-main)' }}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
             Appel
           </a>
+
           <button 
             onClick={handleShare}
             className="btn-secondary active-scale" 
@@ -288,6 +298,56 @@ const ProductPage = () => {
         </div>
       </div>
 
+      {/* Détails du véhicule */}
+      {product.category === 'vehicules' && (
+        <div style={{ background: 'white', padding: '20px 16px', margin: '12px 0', borderTop: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
+          <h2 style={{ fontSize: '18px', fontWeight: '500', marginBottom: '20px', color: 'var(--text-main)' }}>Détails du véhicule</h2>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '10px' }}>
+            
+            {(product.brand || product.metadata?.brand) && (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: '1 1 18%', minWidth: '60px', gap: '6px' }}>
+                <div style={{ color: '#64748B' }}><Shield size={28} strokeWidth={1.5} /></div>
+                <div style={{ fontSize: '12px', color: '#64748B' }}>Constructeur</div>
+                <div style={{ fontSize: '13px', fontWeight: '700', color: '#1E293B', textAlign: 'center' }}>{product.brand || product.metadata?.brand}</div>
+              </div>
+            )}
+
+            {(product.model || product.metadata?.model) && (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: '1 1 18%', minWidth: '60px', gap: '6px' }}>
+                <div style={{ color: '#64748B' }}><Tag size={28} strokeWidth={1.5} /></div>
+                <div style={{ fontSize: '12px', color: '#64748B' }}>Modèle</div>
+                <div style={{ fontSize: '13px', fontWeight: '700', color: '#1E293B', textAlign: 'center' }}>{product.model || product.metadata?.model} {product.year || product.metadata?.year}</div>
+              </div>
+            )}
+
+            {(product.metadata?.mileage) && (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: '1 1 18%', minWidth: '60px', gap: '6px' }}>
+                <div style={{ color: '#64748B' }}><Gauge size={28} strokeWidth={1.5} /></div>
+                <div style={{ fontSize: '12px', color: '#64748B' }}>Kilométrage</div>
+                <div style={{ fontSize: '13px', fontWeight: '700', color: '#1E293B', textAlign: 'center' }}>{product.metadata.mileage}</div>
+              </div>
+            )}
+
+            {(product.metadata?.transmission) && (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: '1 1 18%', minWidth: '60px', gap: '6px' }}>
+                <div style={{ color: '#64748B' }}><Settings size={28} strokeWidth={1.5} /></div>
+                <div style={{ fontSize: '12px', color: '#64748B' }}>Transmission</div>
+                <div style={{ fontSize: '13px', fontWeight: '700', color: '#1E293B', textAlign: 'center' }}>{product.metadata.transmission}</div>
+              </div>
+            )}
+
+            {(product.metadata?.fuel) && (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: '1 1 18%', minWidth: '60px', gap: '6px' }}>
+                <div style={{ color: '#64748B' }}><Fuel size={28} strokeWidth={1.5} /></div>
+                <div style={{ fontSize: '12px', color: '#64748B' }}>Carburant</div>
+                <div style={{ fontSize: '13px', fontWeight: '700', color: '#1E293B', textAlign: 'center' }}>{product.metadata.fuel}</div>
+              </div>
+            )}
+
+          </div>
+        </div>
+      )}
+
       {/* Description */}
       <div style={{ background: 'white', padding: '20px 16px', margin: '12px 0', borderTop: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
         <h2 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '12px' }}>Description</h2>
@@ -297,6 +357,7 @@ const ProductPage = () => {
       </div>
 
       {/* Caractéristiques Tableau */}
+      {product.category !== 'vehicules' && (
       <div style={{ background: 'white', padding: '20px 16px', margin: '12px 0', borderTop: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
         <h2 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '12px' }}>Caractéristiques</h2>
         <div style={{ border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', overflow: 'hidden' }}>
@@ -336,6 +397,7 @@ const ProductPage = () => {
           })()}
         </div>
       </div>
+      )}
 
       {/* Annonces Similaires */}
       {similarProducts.length > 0 && (
@@ -373,16 +435,27 @@ const ProductPage = () => {
             {(product.price || 0).toLocaleString('fr-FR')} FCFA
           </div>
         </div>
-        <a 
-          href={`https://wa.me/${(product.contact || product.profiles?.whatsapp_number || '').replace(/\+/g, '')}?text=${encodeURIComponent(`Bonjour, je suis intéressé par votre article "${product.title}" sur Colobane Market.`)}`}
-          target="_blank" rel="noopener noreferrer"
-          className="btn-whatsapp active-scale touch-target"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.888-.788-1.489-1.761-1.663-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.052 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/>
-          </svg>
-          Contacter sur WhatsApp
-        </a>
+        {user && user.id === product.seller_id ? (
+          <Link 
+            to={`/edit-product/${product.id}`}
+            className="btn-primary active-scale touch-target"
+            style={{ textAlign: 'center', textDecoration: 'none', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '14px', borderRadius: '12px', fontWeight: '700' }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+            Modifier mon annonce
+          </Link>
+        ) : (
+          <a 
+            href={`https://wa.me/${(product.contact || product.profiles?.whatsapp_number || '').replace(/\+/g, '')}?text=${encodeURIComponent(`Bonjour, je suis intéressé par votre article "${product.title}" sur Colobane Market.`)}`}
+            target="_blank" rel="noopener noreferrer"
+            className="btn-whatsapp active-scale touch-target"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.888-.788-1.489-1.761-1.663-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.052 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/>
+            </svg>
+            Contacter sur WhatsApp
+          </a>
+        )}
       </div>
 
     </div>

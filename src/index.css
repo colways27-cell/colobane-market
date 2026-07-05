@@ -1,34 +1,33 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap');
 
 :root {
-  /* Soft, Modern, Vibrant Palette */
-  --primary: #8B1C31; /* Burgundy Red */
-  --primary-hover: #6a1525;
-  --primary-light: #f5e8ea;
-  --primary-gradient: linear-gradient(135deg, #8B1C31 0%, #6a1525 100%);
-  --primary: #8a1c1c; /* Bordeau dominant */
-  --primary-hover: #701414;
-  --secondary: #0F172A;
-  --bg-color: #F8FAFC;
-  --card-bg: rgba(255, 255, 255, 0.85); /* Glassmorphism base */
-  --text-main: #1E293B;
-  --text-muted: #64748B;
-  --border-color: rgba(226, 232, 240, 0.8);
-  --success: #10B981;
+  /* Vibrant Premium Palette */
+  --primary: #be123c; /* Rose/Burgundy vibrant */
+  --primary-hover: #9f1239;
+  --primary-light: #ffe4e6;
+  --primary-gradient: linear-gradient(135deg, #f43f5e 0%, #be123c 100%);
+  --secondary: #0f172a;
+  --bg-color: #fafaf9; /* Warm premium white */
+  --card-bg: rgba(255, 255, 255, 0.7); /* Deep Glassmorphism base */
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --border-color: rgba(226, 232, 240, 0.6);
+  --success: #10b981;
+  --whatsapp-color: #25D366;
   
   --font-sans: 'Inter', system-ui, sans-serif;
   --font-heading: 'Outfit', sans-serif;
   
-  --radius-sm: 8px;
-  --radius-md: 16px; /* Arrondis plus doux type app mobile */
-  --radius-lg: 24px;
+  --radius-sm: 14px;
+  --radius-md: 24px; /* Modern bubbly corners */
+  --radius-lg: 36px;
   --radius-pill: 9999px;
   
-  --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
-  --shadow-glass: 0 8px 32px 0 rgba(138, 28, 28, 0.1);
+  --shadow-sm: 0 4px 14px -2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 12px 32px -4px rgba(0, 0, 0, 0.06);
+  --shadow-glass: 0 24px 48px -12px rgba(190, 18, 60, 0.25); /* Premium primary glow */
   
-  --transition: all 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+  --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   --transition-spring: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -152,7 +151,7 @@ img {
 }
 
 .nav-link {
-  font-weight: 600;
+  font-weight: 700;
   font-size: 0.95rem;
   color: var(--text-muted);
   position: relative;
@@ -174,7 +173,7 @@ img {
   opacity: 0;
 }
 
-.mobile-only-icon {
+.mobile-only-icon, .mobile-only-block {
   display: none;
 }
 
@@ -202,12 +201,18 @@ img {
   font-family: var(--font-sans);
   border: none;
   cursor: pointer;
-  transition: transform 0.1s;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
   font-size: 14px;
+}
+
+.btn-primary:hover {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(190, 18, 60, 0.2);
 }
 
 .btn-primary:active {
@@ -224,11 +229,18 @@ img {
   font-family: var(--font-sans);
   border: 1px solid var(--border-color);
   cursor: pointer;
-  transition: transform 0.1s;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   font-size: 14px;
+}
+
+.btn-secondary:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
 }
 
 .btn-secondary:active {
@@ -242,12 +254,60 @@ img {
   margin: 2rem auto 3rem;
   border-radius: var(--radius-lg);
   overflow: hidden;
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #0F172A;
+  background: #0f172a;
   min-height: 400px;
+  isolation: isolate;
+}
+
+.hero-banner::before, .hero-banner::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  z-index: -1;
+  animation: float-aura 15s ease-in-out infinite alternate;
+}
+
+.hero-banner::before {
+  width: 400px;
+  height: 400px;
+  background: rgba(190, 18, 60, 0.5);
+  top: -100px;
+  left: -100px;
+}
+
+.hero-banner::after {
+  width: 300px;
+  height: 300px;
+  background: rgba(244, 63, 94, 0.4);
+  bottom: -50px;
+  right: -50px;
+  animation-delay: -5s;
+}
+
+@keyframes float-aura {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(30px, 50px) scale(1.1); }
+  100% { transform: translate(-20px, 20px) scale(0.9); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .hero-banner-img {
@@ -257,8 +317,9 @@ img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0.7;
+  opacity: 0.4; /* Opacity reduced so aura shines through */
   transition: transform 10s ease-out;
+  z-index: -2;
 }
 
 .hero-banner:hover .hero-banner-img {
@@ -465,25 +526,27 @@ img {
 /* Product Card - Ultra Soft Premium */
 .product-card {
   background: var(--card-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-radius: var(--radius-md);
   overflow: hidden;
-  border: 1px solid var(--border-color);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-spring);
   display: flex;
   flex-direction: column;
-  /* Hardware acceleration to prevent jumping during scroll */
   transform: translateZ(0);
-  will-change: transform;
+  will-change: transform, box-shadow;
 }
 
 .product-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-8px) scale(1.02);
   box-shadow: var(--shadow-glass);
-  border-color: rgba(138, 28, 28, 0.2);
+  border-color: rgba(190, 18, 60, 0.4); /* Stronger Rose tint on border hover */
 }
 
 .product-card:active {
-  transform: scale(0.95);
+  transform: scale(0.97);
 }
 
 .product-image-container {
@@ -780,6 +843,9 @@ input[type="radio"] {
   .hide-on-mobile {
     display: none !important;
   }
+  .mobile-only-block {
+    display: block !important;
+  }
   .navbar-search {
     margin: 0 0 0 0.5rem !important;
   }
@@ -1001,4 +1067,183 @@ input[type="radio"] {
 
 .marquee-container:hover {
   animation-play-state: paused;
+}
+
+/* Home Page Enhancements */
+.sponsored-card {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  will-change: transform, box-shadow;
+}
+
+.sponsored-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 10px 25px rgba(245, 158, 11, 0.3) !important;
+}
+
+.search-input-wrapper {
+  transition: all 0.3s ease;
+}
+
+.search-input-wrapper:focus-within {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(190, 18, 60, 0.15) !important;
+}
+
+/* Glassmorphism & Animations Utilities */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
+}
+
+.glass-button {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: var(--text-main);
+  transition: var(--transition-spring);
+}
+
+.glass-button:hover {
+  background: rgba(255, 255, 255, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.stagger-1 { animation-delay: 0.1s; }
+.stagger-2 { animation-delay: 0.2s; }
+.stagger-3 { animation-delay: 0.3s; }
+.stagger-4 { animation-delay: 0.4s; }
+
+.hover-lift {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+}
+
+/* Boutique Profile Card Styling */
+.boutique-profile-card {
+  padding: 2.5rem;
+  border-radius: 24px;
+  display: flex;
+  flex-direction: row;
+  gap: 2.5rem;
+  align-items: center;
+  backdrop-filter: blur(25px);
+  background-color: rgba(255, 255, 255, 0.85);
+  box-shadow: var(--shadow-md);
+  margin-top: -80px;
+  position: relative;
+  z-index: 10;
+}
+
+.boutique-profile-info {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  gap: 2rem;
+  align-items: center;
+}
+
+.boutique-profile-avatar {
+  width: 140px;
+  height: 140px;
+  border-radius: 32px;
+  background-color: white;
+  border: 4px solid white;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  background-size: cover;
+  background-position: center;
+  flex-shrink: 0;
+}
+
+.boutique-profile-details {
+  flex: 1;
+}
+
+.boutique-profile-badges {
+  margin-top: 1.2rem;
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.boutique-badge {
+  padding: 6px 14px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--text-main);
+  background: rgba(248, 250, 252, 0.8);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.boutique-badge-rating {
+  background: rgba(254, 243, 199, 0.8);
+  border: 1px solid #fde68a;
+  color: #b45309;
+}
+
+.boutique-profile-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 260px;
+}
+
+@media (max-width: 768px) {
+  .boutique-profile-card {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    padding: 1.75rem !important;
+    gap: 1.5rem !important;
+  }
+  
+  .boutique-profile-info {
+    flex-direction: column !important;
+    gap: 1.25rem !important;
+    width: 100% !important;
+    align-items: center !important;
+  }
+  
+  .boutique-profile-avatar {
+    width: 110px !important;
+    height: 110px !important;
+    border-radius: 50% !important; /* Circle looks much cleaner and premium on mobile */
+    margin: 0 auto !important;
+  }
+  
+  .boutique-profile-badges {
+    justify-content: center !important;
+  }
+  
+  .boutique-profile-actions {
+    min-width: 100% !important;
+    width: 100% !important;
+  }
 }

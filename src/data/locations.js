@@ -4,7 +4,7 @@ export const senegalRegions = {
     "Grand Dakar", "Sicap-Liberté", "Dieuppeul-Derklé", "Hann-Bel Air",
     "Yoff", "Ngor", "Ouakam", "Mermoz-Sacré-Cœur", 
     "Parcelles Assainies", "Patte d'Oie", "Grand Yoff",
-    "Pikine", "Guédiawaye", "Rufisque", "Keur Massar", "Diamniadio"
+    "Pikine", "Guédiawaye", "Rufisque", "Keur Massar", "Diamniadio", "Sébikotane"
   ],
   "Thiès": [
     "Thiès Ville", "Mbour", "Saly Portudal", "Somone", "Tivaouane", "Joal-Fadiouth", "Popenguine"

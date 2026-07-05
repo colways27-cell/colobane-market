@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { categories } from '../data/categories';
 import { supabase } from '../lib/supabase';
 import FavoriteButton from '../components/FavoriteButton';
+import { Store } from 'lucide-react';
 
 const CategoryPage = () => {
   const { categoryId } = useParams();
@@ -56,7 +57,7 @@ const CategoryPage = () => {
           {categoryProducts.map((product) => {
             const imageUrl = product.images && product.images.length > 0 ? product.images[0] : 'https://placehold.co/400x400?text=No+Image';
             return (
-              <Link to={`/product/${product.id}`} key={product.id} className="product-card active-scale" style={{ textDecoration: 'none', background: 'var(--card-bg)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', display: 'block', overflow: 'hidden' }}>
+              <Link to={`/product/${product.id}`} key={product.id} className="product-card active-scale" style={{ textDecoration: 'none', background: 'var(--card-bg)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                 <div style={{ position: 'relative', width: '100%', paddingTop: '100%', background: '#F1F5F9' }}>
                   <img src={imageUrl} alt={product.title} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
                   <FavoriteButton 
@@ -64,13 +65,17 @@ const CategoryPage = () => {
                     style={{ position: 'absolute', top: '8px', right: '8px', width: '32px', height: '32px', zIndex: 10 }} 
                   />
                 </div>
-                <div style={{ padding: '8px 6px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <div style={{ padding: '8px 6px', display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
                   <h3 style={{ fontSize: '13px', fontWeight: '500', lineHeight: '1.4', margin: '0', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', color: 'var(--text-main)', wordBreak: 'break-word' }}>
                     {product.title}
                   </h3>
-                  <div style={{ fontSize: '14px', fontWeight: '800', color: 'var(--primary)' }}>
+                  <div style={{ fontSize: '14px', fontWeight: '800', color: 'var(--primary)', marginBottom: 'auto' }}>
                     {(product.price || 0).toLocaleString('fr-FR')} FCFA
                   </div>
+                </div>
+                {/* Bouton Contacter */}
+                <div style={{ background: '#e30b3b', color: 'white', padding: '8px', textAlign: 'center', fontSize: '13px', fontWeight: '800', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                  <Store size={14} /> CONTACTER
                 </div>
               </Link>
             );
