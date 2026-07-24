@@ -8,18 +8,47 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check active sessions and sets the user
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    let mounted = true;
 
-    // Listen for changes on auth state (logged in, signed out, etc.)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
+    const initAuth = async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (mounted) {
+          setUser(data?.session?.user ?? null);
+        }
+      } catch (err) {
+        console.warn("Auth getSession warning:", err);
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
 
-    return () => subscription.unsubscribe();
+    initAuth();
+
+    // Safety fallback timeout to ensure app NEVER stays blank
+    const safetyTimer = setTimeout(() => {
+      if (mounted) setLoading(false);
+    }, 1500);
+
+    let subscription;
+    try {
+      const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+        if (mounted) {
+          setUser(session?.user ?? null);
+        }
+      });
+      subscription = data?.subscription;
+    } catch (e) {
+      console.warn("Auth listener error:", e);
+    }
+
+    return () => {
+      mounted = false;
+      clearTimeout(safetyTimer);
+      if (subscription) subscription.unsubscribe();
+    };
   }, []);
 
   const value = {
@@ -29,7 +58,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 };
@@ -37,3 +66,4 @@ export const AuthProvider = ({ children }) => {
 export const useAuth = () => {
   return useContext(AuthContext);
 };
+

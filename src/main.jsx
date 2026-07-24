@@ -3,30 +3,26 @@ import { createRoot } from 'react-dom/client'
 import { HelmetProvider } from 'react-helmet-async'
 import './index.css'
 import App from './App.jsx'
-
 import { ErrorBoundary } from './components/ErrorBoundary.jsx'
 
-function init() {
-  let rootElement = document.getElementById('root');
-  if (!rootElement) {
-    console.warn("Root element not found (possibly cached). Creating one...");
-    rootElement = document.createElement('div');
-    rootElement.id = 'root';
-    document.body.appendChild(rootElement);
-  }
-  createRoot(rootElement).render(
-    <StrictMode>
-      <ErrorBoundary>
-        <HelmetProvider>
-          <App />
-        </HelmetProvider>
-      </ErrorBoundary>
-    </StrictMode>,
-  );
+const rootElement = document.getElementById('root') || (() => {
+  const el = document.createElement('div');
+  el.id = 'root';
+  document.body.appendChild(el);
+  return el;
+})();
+
+if (!window.__react_root__) {
+  window.__react_root__ = createRoot(rootElement);
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init);
-} else {
-  init();
-}
+window.__react_root__.render(
+  <StrictMode>
+    <ErrorBoundary>
+      <HelmetProvider>
+        <App />
+      </HelmetProvider>
+    </ErrorBoundary>
+  </StrictMode>
+);
+

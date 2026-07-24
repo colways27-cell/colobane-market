@@ -7,36 +7,37 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import BottomNav from './components/BottomNav';
 import { Toaster } from 'react-hot-toast';
+import Home from './pages/Home';
 
 // Reset chunk reload flag if the application loads successfully
 try {
   window.sessionStorage.removeItem('chunk-failed-reloaded');
 } catch (e) {}
 
-// Wrapper to handle dynamic import failures (e.g. after a new deployment when hashes change)
+// Wrapper to handle dynamic import failures safely
 const lazyWithRetry = (componentImport) => {
   return lazy(async () => {
     try {
       return await componentImport();
     } catch (error) {
-      console.error("Error loading lazy page, attempting window reload:", error);
-      const hasReloaded = window.sessionStorage.getItem('chunk-failed-reloaded');
-      if (!hasReloaded) {
-        window.sessionStorage.setItem('chunk-failed-reloaded', 'true');
-        window.location.reload();
-        return new Promise(() => {});
-      }
+      console.error("Error loading lazy page:", error);
+      try {
+        const hasReloaded = window.sessionStorage.getItem('chunk-failed-reloaded');
+        if (!hasReloaded) {
+          window.sessionStorage.setItem('chunk-failed-reloaded', 'true');
+          window.location.reload();
+        }
+      } catch (e) {}
       throw error;
     }
   });
 };
 
-// ─── Lazy-loaded pages (chargées uniquement à la demande) ────────────────────
-// Pages principales — préchargées en priorité
-const Home               = lazyWithRetry(() => import('./pages/Home'));
+// ─── Pages principales ────────────────────────────────────────────────────────
 const ExplorePage        = lazyWithRetry(() => import('./pages/ExplorePage'));
 const ProductPage        = lazyWithRetry(() => import('./pages/ProductPage'));
 const AuthPage           = lazyWithRetry(() => import('./pages/AuthPage'));
+
 
 // Pages secondaires
 const CategoryPage       = lazyWithRetry(() => import('./pages/CategoryPage'));

@@ -16,7 +16,13 @@ const Home = () => {
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(0);
   const [activeCategorySlide, setActiveCategorySlide] = useState(null);
-  const [showPromoBanner, setShowPromoBanner] = useState(!localStorage.getItem('hidePromoBanner'));
+  const [showPromoBanner, setShowPromoBanner] = useState(() => {
+    try {
+      return !localStorage.getItem('hidePromoBanner');
+    } catch (e) {
+      return true;
+    }
+  });
   const subcategoriesRef = useRef(null);
   const categoriesRef = useRef(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
@@ -625,7 +631,9 @@ const Home = () => {
           <button
             onClick={() => {
               setShowPromoBanner(false);
-              localStorage.setItem('hidePromoBanner', 'true');
+              try {
+                localStorage.setItem('hidePromoBanner', 'true');
+              } catch (e) {}
             }}
             style={{
               position: 'absolute', top: '14px', right: '14px',
