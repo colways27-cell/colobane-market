@@ -98,11 +98,6 @@ const Home = () => {
   }, [products]);
 
   const fetchProducts = async (currentPage, isLoadMore = false) => {
-    // Timer de sécurité : si la requête Supabase met + de 1.5s ou échoue, afficher les données tout de suite
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Supabase request timeout')), 1500)
-    );
-
     try {
       if (isLoadMore) setLoadingMore(true);
       else setLoading(true);
@@ -110,21 +105,36 @@ const Home = () => {
       const from = currentPage * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
 
-      const fetchPromise = (async () => {
-        const { data, error } = await supabase
-          .from('products')
-          .select(`
-            *,
-            profiles:seller_id (account_type, boutique_name, is_verified, phone_number, whatsapp_number)
-          `)
-          .order('created_at', { ascending: false })
-          .range(from, to);
+      // 1. Fetch boosted products for top banner
+      if (!isLoadMore) {
+        try {
+          const { data: boostedData } = await supabase
+            .from('products')
+            .select(`*, profiles:seller_id (account_type, boutique_name, is_verified, phone_number, whatsapp_number)`)
+            .eq('is_boosted', true)
+            .order('created_at', { ascending: false })
+            .limit(10);
+          if (boostedData && boostedData.length > 0) {
+            setBoostedProducts(boostedData);
+          } else {
+            setBoostedProducts([]);
+          }
+        } catch (bErr) {
+          console.warn('Boosted products error:', bErr);
+        }
+      }
 
-        if (error) throw error;
-        return data;
-      })();
+      // 2. Fetch main products from real Supabase database
+      const { data, error } = await supabase
+        .from('products')
+        .select(`
+          *,
+          profiles:seller_id (account_type, boutique_name, is_verified, phone_number, whatsapp_number)
+        `)
+        .order('created_at', { ascending: false })
+        .range(from, to);
 
-      const data = await Promise.race([fetchPromise, timeoutPromise]);
+      if (error) throw error;
 
       if (data && data.length > 0) {
         if (isLoadMore) {
@@ -134,12 +144,12 @@ const Home = () => {
         }
         if (data.length < PAGE_SIZE) setHasMore(false);
       } else {
-        if (!isLoadMore) setProducts(mockProducts);
+        if (!isLoadMore) setProducts([]);
         setHasMore(false);
       }
     } catch (err) {
-      console.warn('Supabase fetch notice, using fallback mock data:', err);
-      if (!isLoadMore) setProducts(mockProducts);
+      console.error('Real Supabase fetch error:', err);
+      if (!isLoadMore) setProducts([]);
       setHasMore(false);
     } finally {
       setLoading(false);
