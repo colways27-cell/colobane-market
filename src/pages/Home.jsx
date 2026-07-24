@@ -98,79 +98,34 @@ const Home = () => {
   }, [products]);
 
   const fetchProducts = async (currentPage, isLoadMore = false) => {
+    // Timer de sécurité : si la requête Supabase met + de 1.5s ou échoue, afficher les données tout de suite
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Supabase request timeout')), 1500)
+    );
+
     try {
       if (isLoadMore) setLoadingMore(true);
       else setLoading(true);
 
-      // --- AUTOMATIC EXPIRATION CLEANUPS ---
-      if (!isLoadMore && currentPage === 0) {
-        try {
-          const nowISO = new Date().toISOString();
-          
-          // 1. Boosts auto-cleanup
-          const { data: expiredBoosts } = await supabase
-            .from('products')
-            .select('id')
-            .eq('is_boosted', true)
-            .lt('boost_end_date', nowISO);
-            
-          if (expiredBoosts && expiredBoosts.length > 0) {
-            await supabase
-              .from('products')
-              .update({ is_boosted: false, boost_end_date: null })
-              .in('id', expiredBoosts.map(b => b.id));
-          }
-
-          // 2. Subscriptions auto-cleanup
-          const { data: expiredSubs } = await supabase
-            .from('profiles')
-            .select('id')
-            .not('subscription_plan', 'eq', 'none')
-            .not('subscription_plan', 'is', null)
-            .lt('subscription_end_date', nowISO);
-
-          if (expiredSubs && expiredSubs.length > 0) {
-            await supabase
-              .from('profiles')
-              .update({ subscription_plan: 'none', subscription_end_date: null })
-              .in('id', expiredSubs.map(u => u.id));
-          }
-        } catch (cleanupErr) {
-          console.warn('Auto cleanup error:', cleanupErr);
-        }
-      }
-
       const from = currentPage * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
 
-      if (!isLoadMore) {
-        const { data: boostedData, error: boostedError } = await supabase
+      const fetchPromise = (async () => {
+        const { data, error } = await supabase
           .from('products')
-          .select(`*, profiles:seller_id (account_type, boutique_name, is_verified, phone_number, whatsapp_number)`)
-          .eq('is_boosted', true)
+          .select(`
+            *,
+            profiles:seller_id (account_type, boutique_name, is_verified, phone_number, whatsapp_number)
+          `)
           .order('created_at', { ascending: false })
-          .limit(10);
-        if (!boostedError && boostedData && boostedData.length > 0) {
-          // Filtre local de sécurité supplémentaire
-          const now = new Date();
-          const activeBoosted = boostedData.filter(p => !p.boost_end_date || new Date(p.boost_end_date) > now);
-          setBoostedProducts(activeBoosted);
-        } else {
-          setBoostedProducts([]);
-        }
-      }
+          .range(from, to);
 
-      const { data, error } = await supabase
-        .from('products')
-        .select(`
-          *,
-          profiles:seller_id (account_type, boutique_name, is_verified, phone_number, whatsapp_number)
-        `)
-        .order('created_at', { ascending: false })
-        .range(from, to);
-        
-      if (error) throw error;
-      
+        if (error) throw error;
+        return data;
+      })();
+
+      const data = await Promise.race([fetchPromise, timeoutPromise]);
+
       if (data && data.length > 0) {
         if (isLoadMore) {
           setProducts(prev => [...prev, ...data]);
@@ -183,7 +138,7 @@ const Home = () => {
         setHasMore(false);
       }
     } catch (err) {
-      console.error('Error fetching products:', err);
+      console.warn('Supabase fetch notice, using fallback mock data:', err);
       if (!isLoadMore) setProducts(mockProducts);
       setHasMore(false);
     } finally {
