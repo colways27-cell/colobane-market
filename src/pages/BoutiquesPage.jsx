@@ -110,7 +110,7 @@ const BoutiquesPage = () => {
           </p>
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link to="/create-boutique" className="active-scale hover-lift" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '1rem 2.2rem', borderRadius: '18px', fontWeight: '800', textDecoration: 'none', background: 'var(--primary-gradient)', color: 'white', fontSize: '1.05rem', boxShadow: '0 10px 30px rgba(244,63,94,0.4)' }}>
-              <Store size={20} /> Ouvrir ma boutique (Gratuit)
+              <Store size={20} /> Ouvrir ma boutique
             </Link>
           </div>
         </div>

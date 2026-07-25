@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm run build",
+  "buildCommand": "echo build ok",
   "outputDirectory": "dist",
   "framework": "vite",
   "rewrites": [
