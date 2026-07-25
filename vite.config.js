@@ -40,6 +40,7 @@ export default defineConfig({
         ]
       },
       workbox: {
+        cacheId: 'colobane-market-v2',
         skipWaiting: true,
         clientsClaim: true,
         cleanupOutdatedCaches: true,
