@@ -22,8 +22,8 @@ const ContactPage = () => {
           <div style={styles.contactBox}>
             <span style={{ fontSize: '2rem' }}>📱</span>
             <span style={{ fontWeight: '600', color: 'var(--text-muted)' }}>Assistance WhatsApp</span>
-            <a href="https://wa.me/221770000000" target="_blank" rel="noopener noreferrer" style={styles.link}>
-              +221 77 000 00 00
+            <a href="https://wa.me/221773713175" target="_blank" rel="noopener noreferrer" style={styles.link}>
+              +221 77 371 31 75
             </a>
           </div>
 
