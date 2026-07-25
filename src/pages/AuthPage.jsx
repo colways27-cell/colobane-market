@@ -244,6 +244,19 @@ const AuthPage = () => {
               </button>
             </InputWrapper>
 
+            {!isRegister && (
+              <div style={{ textAlign: 'right', marginTop: '-0.3rem', marginBottom: '1.2rem' }}>
+                <a
+                  href={`https://wa.me/221770000000?text=${encodeURIComponent("Bonjour ColobaneMarket, j'ai oublié mon mot de passe pour mon compte. Pouvez-vous m'aider à le réinitialiser ?")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: 'var(--primary)', fontSize: '0.85rem', fontWeight: '600', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                >
+                  <span style={{ fontSize: '1rem' }}>💬</span> Mot de passe oublié ?
+                </a>
+              </div>
+            )}
+
             {isRegister && (
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginTop: '0.5rem', marginBottom: '1rem' }}>
                 <input 
