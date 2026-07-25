@@ -4,6 +4,7 @@ import { useAuth } from '../components/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { senegalRegions } from '../data/locations';
+import { Store, Sparkles } from 'lucide-react';
 
 const InputWrapper = ({ label, required, children }) => (
   <div style={{ marginBottom: '1.2rem' }}>
@@ -229,23 +230,23 @@ const CreateBoutiquePage = () => {
                 <FastTextarea name="boutique_description" rows="3" value={formData.boutique_description} onChange={handleInputChange} placeholder="Ex: Vente de téléphones, ordinateurs et accessoires garantis..." style={{ flex: 1, padding: '1.2rem', border: 'none', background: 'transparent', outline: 'none', fontSize: '1rem', resize: 'vertical', fontWeight: '500', lineHeight: '1.5' }}></FastTextarea>
               </InputWrapper>
 
-              <div className="grid grid-cols-2" style={{ gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
                 <InputWrapper label="Région" required>
-                  <select name="region" value={formData.region} onChange={handleInputChange} style={{ flex: 1, padding: '1.2rem', border: 'none', background: 'transparent', outline: 'none', fontSize: '1rem', appearance: 'none', color: 'var(--text-main)', fontWeight: '600' }}>
+                  <select name="region" value={formData.region} onChange={handleInputChange} style={{ flex: 1, padding: '1rem', border: 'none', background: 'transparent', outline: 'none', fontSize: '1rem', appearance: 'none', color: 'var(--text-main)', fontWeight: '600', textOverflow: 'ellipsis', width: '100%', minWidth: 0 }}>
                     {Object.keys(senegalRegions).map(region => (
                       <option key={region} value={region}>{region}</option>
                     ))}
                   </select>
-                  <div style={{ padding: '0 16px', color: '#94A3B8', display: 'flex', alignItems: 'center', pointerEvents: 'none' }}>▼</div>
+                  <div style={{ padding: '0 12px', color: '#94A3B8', display: 'flex', alignItems: 'center', pointerEvents: 'none' }}>▼</div>
                 </InputWrapper>
 
                 <InputWrapper label="Quartier" required>
-                  <select name="quartier" value={formData.quartier} onChange={handleInputChange} style={{ flex: 1, padding: '1.2rem', border: 'none', background: 'transparent', outline: 'none', fontSize: '1rem', appearance: 'none', color: 'var(--text-main)', fontWeight: '600' }}>
+                  <select name="quartier" value={formData.quartier} onChange={handleInputChange} style={{ flex: 1, padding: '1rem', border: 'none', background: 'transparent', outline: 'none', fontSize: '1rem', appearance: 'none', color: 'var(--text-main)', fontWeight: '600', textOverflow: 'ellipsis', width: '100%', minWidth: 0 }}>
                     {senegalRegions[formData.region]?.map(q => (
                       <option key={q} value={q}>{q}</option>
                     ))}
                   </select>
-                  <div style={{ padding: '0 16px', color: '#94A3B8', display: 'flex', alignItems: 'center', pointerEvents: 'none' }}>▼</div>
+                  <div style={{ padding: '0 12px', color: '#94A3B8', display: 'flex', alignItems: 'center', pointerEvents: 'none' }}>▼</div>
                 </InputWrapper>
               </div>
 
@@ -262,7 +263,7 @@ const CreateBoutiquePage = () => {
                 </>
               ) : (
                 <>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                  <Store size={22} />
                   Commencer mon essai gratuit
                 </>
               )}

@@ -151,24 +151,41 @@ const BoutiqueProfilePage = () => {
         className="boutique-banner" 
         style={{ 
           height: '320px', 
-          background: `linear-gradient(to bottom, rgba(15,23,42,0) 0%, rgba(15,23,42,0.8) 100%), url(${profile.banner_url || 'https://placehold.co/1200x400?text=Couverture+Boutique'})`, 
-          backgroundSize: 'cover', 
-          backgroundPosition: 'center',
+          background: profile.banner_url 
+            ? `linear-gradient(to bottom, rgba(15,23,42,0) 0%, rgba(15,23,42,0.85) 100%), url(${profile.banner_url}) center/cover no-repeat` 
+            : 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #831843 100%)', 
           position: 'relative'
         }}
       ></div>
 
       <div className="section-container" style={{ position: 'relative' }}>
-        <div className="boutique-profile-card glass-panel">
+        <div className="boutique-profile-card glass-panel" style={{ marginTop: '-80px', position: 'relative', zIndex: 10, background: 'rgba(255, 255, 255, 0.95)', borderRadius: '28px', padding: '2rem', boxShadow: '0 20px 40px rgba(0,0,0,0.08)' }}>
           
           {/* Logo et Infos Principales */}
           <div className="boutique-profile-info">
             <div 
               className="boutique-profile-avatar hover-lift"
               style={{ 
-                backgroundImage: `url(${profile.avatar_url || 'https://placehold.co/150x150?text=Logo'})`
+                width: '120px',
+                height: '120px',
+                borderRadius: '30px',
+                border: '4px solid white',
+                boxShadow: '0 12px 30px rgba(0,0,0,0.15)',
+                overflow: 'hidden',
+                background: '#F8FAFC',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
               }}
-            ></div>
+            >
+              {profile.avatar_url ? (
+                <img src={profile.avatar_url} alt={profile.boutique_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <div style={{ width: '100%', height: '100%', background: 'var(--primary-gradient)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem', fontWeight: '900', fontFamily: 'var(--font-heading)' }}>
+                  {(profile.boutique_name || profile.full_name || 'B').charAt(0).toUpperCase()}
+                </div>
+              )}
+            </div>
             <div className="boutique-profile-details">
               <h1 style={{ fontSize: '2.2rem', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', fontFamily: 'var(--font-heading)', fontWeight: '900', color: 'var(--text-main)' }}>
                 {profile.boutique_name || profile.full_name || 'Boutique Sans Nom'}
@@ -177,13 +194,13 @@ const BoutiqueProfilePage = () => {
               <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem', fontSize: '1.05rem', lineHeight: '1.6', maxWidth: '600px' }}>
                 {profile.boutique_description || 'Bienvenue dans notre boutique officielle sur ColobaneMarket.'}
               </p>
-              <div className="boutique-profile-badges">
-                <span className="boutique-badge"><MapPin size={16} color="#64748b" /> {profile.location || 'Sénégal'}</span>
-                {profile.business_hours && <span className="boutique-badge">🕒 {profile.business_hours}</span>}
-                <div className="boutique-badge boutique-badge-rating hover-lift" style={{ cursor: 'pointer' }} onClick={() => setActiveTab('avis')}>
+              <div className="boutique-profile-badges" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '1rem' }}>
+                <span className="boutique-badge" style={{ padding: '6px 14px', background: '#F1F5F9', borderRadius: '12px', fontSize: '0.9rem', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '6px' }}><MapPin size={16} color="#64748b" /> {profile.location || profile.region || 'Sénégal'}</span>
+                {profile.business_hours && <span className="boutique-badge" style={{ padding: '6px 14px', background: '#F1F5F9', borderRadius: '12px', fontSize: '0.9rem', fontWeight: '700' }}>🕒 {profile.business_hours}</span>}
+                <div className="boutique-badge boutique-badge-rating hover-lift" style={{ cursor: 'pointer', padding: '6px 14px', background: '#FEF3C7', color: '#B45309', borderRadius: '12px', fontSize: '0.9rem', fontWeight: '800', display: 'inline-flex', alignItems: 'center', gap: '6px' }} onClick={() => setActiveTab('avis')}>
                   <Star size={16} fill="#f59e0b" color="#f59e0b" />
-                  <span style={{ fontWeight: '800' }}>{avgRating > 0 ? avgRating : 'Nouveau'}</span>
-                  <span style={{ fontWeight: '600' }}>({reviews.length} avis)</span>
+                  <span>{avgRating > 0 ? avgRating : 'Nouveau'}</span>
+                  <span style={{ fontWeight: '600', opacity: 0.8 }}>({reviews.length} avis)</span>
                 </div>
               </div>
             </div>

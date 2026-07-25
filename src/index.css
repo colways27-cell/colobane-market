@@ -1247,3 +1247,32 @@ input[type="radio"] {
     width: 100% !important;
   }
 }
+
+/* Global Mobile Form & Text Truncation Fixes */
+select, input, textarea {
+  max-width: 100%;
+}
+
+select {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .section-container {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+  
+  .grid-cols-2 {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
+  }
+
+  h1 {
+    font-size: 1.6rem !important;
+  }
+  
+  h2 {
+    font-size: 1.35rem !important;
+  }
+}
