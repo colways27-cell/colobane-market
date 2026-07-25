@@ -193,7 +193,7 @@ const BottomNav = () => {
             <circle cx="19" cy="12" r="1"></circle>
             <circle cx="5" cy="12" r="1"></circle>
           </svg>
-          <span>Yeneen ➕</span>
+          <span>Infos+</span>
         </button>
       </div>
     </>
