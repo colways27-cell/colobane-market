@@ -7,11 +7,11 @@ import { senegalRegions } from '../data/locations';
 import { Store, Sparkles } from 'lucide-react';
 
 const InputWrapper = ({ label, required, children }) => (
-  <div style={{ marginBottom: '1.2rem' }}>
-    <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem', fontWeight: '500' }}>
+  <div style={{ marginBottom: '1.2rem', width: '100%', minWidth: 0 }}>
+    <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem', fontWeight: '600' }}>
       {label} {required && <span style={{ color: '#e74c3c' }}>*</span>}
     </label>
-    <div style={{ display: 'flex', border: '1px solid #E2E8F0', borderRadius: '12px', overflow: 'hidden', background: '#FAFAF9' }}>
+    <div style={{ display: 'flex', border: '1px solid #E2E8F0', borderRadius: '12px', overflow: 'hidden', background: '#FAFAF9', width: '100%', minWidth: 0, alignItems: 'center' }}>
       {children}
     </div>
   </div>
@@ -190,7 +190,7 @@ const CreateBoutiquePage = () => {
         </div>
 
         {/* Form Container */}
-        <div className="animate-fade-in-up stagger-2 glass-panel" style={{ background: 'rgba(255,255,255,0.9)', borderRadius: '24px', padding: '2rem', boxShadow: '0 12px 40px rgba(0,0,0,0.06)' }}>
+        <div className="animate-fade-in-up stagger-2 glass-panel" style={{ background: 'rgba(255,255,255,0.95)', borderRadius: '24px', padding: '1.5rem 1.25rem', boxShadow: '0 12px 40px rgba(0,0,0,0.06)', width: '100%', overflow: 'hidden' }}>
           <form onSubmit={handleSubmit}>
             <div style={{ background: '#F8FAFC', padding: '1.25rem', borderRadius: '16px', marginBottom: '2rem', border: '2px dashed #cbd5e1', fontSize: '0.95rem', color: 'var(--text-main)', display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
               <span style={{ fontSize: '1.5rem' }}>💡</span>
@@ -221,32 +221,32 @@ const CreateBoutiquePage = () => {
               </label>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', width: '100%' }}>
               <InputWrapper label="Nom de la boutique" required>
-                <FastInput type="text" name="boutique_name" value={formData.boutique_name} onChange={handleInputChange} placeholder="Ex: Dakar Électronique" style={{ flex: 1, padding: '1.2rem', border: 'none', background: 'transparent', outline: 'none', fontSize: '1.05rem', fontWeight: '600' }} />
+                <FastInput type="text" name="boutique_name" value={formData.boutique_name} onChange={handleInputChange} placeholder="Ex: Dakar Électronique" style={{ flex: 1, minWidth: 0, width: '100%', padding: '1rem', border: 'none', background: 'transparent', outline: 'none', fontSize: '1rem', fontWeight: '600' }} />
               </InputWrapper>
 
               <InputWrapper label="Description courte (Ce que vous vendez)">
-                <FastTextarea name="boutique_description" rows="3" value={formData.boutique_description} onChange={handleInputChange} placeholder="Ex: Vente de téléphones, ordinateurs et accessoires garantis..." style={{ flex: 1, padding: '1.2rem', border: 'none', background: 'transparent', outline: 'none', fontSize: '1rem', resize: 'vertical', fontWeight: '500', lineHeight: '1.5' }}></FastTextarea>
+                <FastTextarea name="boutique_description" rows="3" value={formData.boutique_description} onChange={handleInputChange} placeholder="Ex: Vente de téléphones, ordinateurs et accessoires garantis..." style={{ flex: 1, minWidth: 0, width: '100%', padding: '1rem', border: 'none', background: 'transparent', outline: 'none', fontSize: '0.95rem', resize: 'vertical', fontWeight: '500', lineHeight: '1.5' }}></FastTextarea>
               </InputWrapper>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '0.8rem', width: '100%' }}>
                 <InputWrapper label="Région" required>
-                  <select name="region" value={formData.region} onChange={handleInputChange} style={{ flex: 1, padding: '1rem', border: 'none', background: 'transparent', outline: 'none', fontSize: '1rem', appearance: 'none', color: 'var(--text-main)', fontWeight: '600', textOverflow: 'ellipsis', width: '100%', minWidth: 0 }}>
+                  <select name="region" value={formData.region} onChange={handleInputChange} style={{ flex: 1, minWidth: 0, width: '100%', padding: '0.9rem 0.4rem 0.9rem 0.8rem', border: 'none', background: 'transparent', outline: 'none', fontSize: '0.95rem', appearance: 'none', color: 'var(--text-main)', fontWeight: '600', textOverflow: 'ellipsis' }}>
                     {Object.keys(senegalRegions).map(region => (
                       <option key={region} value={region}>{region}</option>
                     ))}
                   </select>
-                  <div style={{ padding: '0 12px', color: '#94A3B8', display: 'flex', alignItems: 'center', pointerEvents: 'none' }}>▼</div>
+                  <div style={{ padding: '0 8px', color: '#94A3B8', display: 'flex', alignItems: 'center', pointerEvents: 'none', flexShrink: 0 }}>▼</div>
                 </InputWrapper>
 
                 <InputWrapper label="Quartier" required>
-                  <select name="quartier" value={formData.quartier} onChange={handleInputChange} style={{ flex: 1, padding: '1rem', border: 'none', background: 'transparent', outline: 'none', fontSize: '1rem', appearance: 'none', color: 'var(--text-main)', fontWeight: '600', textOverflow: 'ellipsis', width: '100%', minWidth: 0 }}>
+                  <select name="quartier" value={formData.quartier} onChange={handleInputChange} style={{ flex: 1, minWidth: 0, width: '100%', padding: '0.9rem 0.4rem 0.9rem 0.8rem', border: 'none', background: 'transparent', outline: 'none', fontSize: '0.95rem', appearance: 'none', color: 'var(--text-main)', fontWeight: '600', textOverflow: 'ellipsis' }}>
                     {senegalRegions[formData.region]?.map(q => (
                       <option key={q} value={q}>{q}</option>
                     ))}
                   </select>
-                  <div style={{ padding: '0 12px', color: '#94A3B8', display: 'flex', alignItems: 'center', pointerEvents: 'none' }}>▼</div>
+                  <div style={{ padding: '0 8px', color: '#94A3B8', display: 'flex', alignItems: 'center', pointerEvents: 'none', flexShrink: 0 }}>▼</div>
                 </InputWrapper>
               </div>
 
