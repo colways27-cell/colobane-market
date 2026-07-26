@@ -22,7 +22,7 @@ const PrivacyPolicyPage = () => {
         </p>
 
         <h2 style={styles.h2}>Article 1 — Responsable du traitement</h2>
-        <p style={styles.p}>Le responsable du traitement des données personnelles collectées sur ColobaneMarket est SG GlobalBusiness, basé à Sébikotane, Dakar, Sénégal. Contact : <a href="mailto:legal@colobanemarket.sn" style={{ color: 'var(--primary)', fontWeight: '700', textDecoration: 'none' }}>legal@colobanemarket.sn</a></p>
+        <p style={styles.p}>Le responsable du traitement des données personnelles collectées sur ColobaneMarket est SG GlobalBusiness, basé à Sébikotane, Dakar, Sénégal. Contact : <a href="mailto:colobanemarket9@gmail.com" style={{ color: 'var(--primary)', fontWeight: '700', textDecoration: 'none' }}>colobanemarket9@gmail.com</a></p>
 
         <h2 style={styles.h2}>Article 2 — Données collectées</h2>
         <p style={styles.p}>Lors de votre inscription et utilisation de ColobaneMarket, nous collectons :</p>
@@ -68,7 +68,7 @@ const PrivacyPolicyPage = () => {
           <li style={styles.li}><strong>Droit de suppression</strong> — demander la suppression de votre compte et de vos données ;</li>
           <li style={styles.li}><strong>Droit d'opposition</strong> — vous opposer à certains traitements.</li>
         </ul>
-        <p style={styles.p}>Pour exercer ces droits, contactez-nous à : <a href="mailto:legal@colobanemarket.sn" style={{ color: 'var(--primary)', fontWeight: '700', textDecoration: 'none' }}>legal@colobanemarket.sn</a> — Nous répondons dans un délai de 30 jours.</p>
+        <p style={styles.p}>Pour exercer ces droits, contactez-nous à : <a href="mailto:colobanemarket9@gmail.com" style={{ color: 'var(--primary)', fontWeight: '700', textDecoration: 'none' }}>colobanemarket9@gmail.com</a> — Nous répondons dans un délai de 30 jours.</p>
 
         <h2 style={styles.h2}>Article 7 — Sécurité des données</h2>
         <p style={styles.p}>ColobaneMarket met en œuvre les mesures techniques suivantes pour protéger vos données :</p>

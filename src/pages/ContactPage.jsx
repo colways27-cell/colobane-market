@@ -30,8 +30,8 @@ const ContactPage = () => {
           <div style={styles.contactBox}>
             <span style={{ fontSize: '2rem' }}>📧</span>
             <span style={{ fontWeight: '600', color: 'var(--text-muted)' }}>Email</span>
-            <a href="mailto:contact@colobanemarket.sn" style={styles.link}>
-              contact@colobanemarket.sn
+            <a href="mailto:colobanemarket9@gmail.com" style={styles.link}>
+              colobanemarket9@gmail.com
             </a>
           </div>
 
