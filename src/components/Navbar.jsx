@@ -2,6 +2,7 @@ import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
+import totemLapin from '../assets/totem-lapin.png';
 
 const Navbar = () => {
   const { user, signOut } = useAuth();
@@ -18,7 +19,7 @@ const Navbar = () => {
   };
 
   const handleMenuClick = () => {
-    setIsMenuOpen(true);
+    setIsMenuOpen(!isMenuOpen);
   };
 
   const closeMenu = () => {
@@ -27,26 +28,32 @@ const Navbar = () => {
 
   return (
     <>
-      <header className="navbar" style={{ padding: '0', background: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', borderBottom: '1px solid var(--border-color)' }}>
-        <div className="navbar-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', maxWidth: '1200px', margin: '0 auto', padding: '0.5rem 1rem' }}>
+      <header className="navbar-header" style={{ position: 'sticky', top: 0, zIndex: 100, background: 'white', borderBottom: '1px solid var(--border-color)', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
+        <div className="section-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '70px', padding: '0 1rem' }}>
           
-          {/* Left: Mobile Menu & Logo */}
+          {/* Left: Logo */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <button className="mobile-only-block" onClick={handleMenuClick} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: 'var(--text-main)' }}>
-              ☰
+            <button 
+              className="active-scale" 
+              onClick={handleMenuClick} 
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '6px', color: 'var(--text-main)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              aria-label="Menu"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
             </button>
-            <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
-              <img src="/image marque.jpg" alt="Colobane Market" style={{ height: '45px', objectFit: 'contain', borderRadius: '4px' }} />
+
+            <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+              <img src="/image marque.jpg" alt="Colobane Market" style={{ height: '48px', objectFit: 'contain', borderRadius: '4px' }} />
             </Link>
           </div>
-          
-          {/* Middle: Search Bar (Hidden on Mobile) */}
-          <div className="hide-on-mobile" style={{ flex: 1, maxWidth: '600px', margin: '0 2rem', position: 'relative', display: 'flex' }}>
+
+          {/* Center: Search Bar (Desktop) */}
+          <div className="hide-on-mobile" style={{ flex: 1, maxWidth: '450px', margin: '0 2rem', position: 'relative' }}>
             <input 
               type="text" 
-              placeholder="Lan nga bëgg wut ? (téléphones, voitures, habits...)" 
-              style={{ width: '100%', padding: '0.65rem 1rem 0.65rem 2.8rem', borderRadius: 'var(--radius-pill)', border: '1px solid var(--border-color)', background: '#F1F5F9', fontSize: '0.95rem', fontWeight: '500' }}
-              onKeyPress={(e) => {
+              placeholder="Lan nga bëgg wut ? (ex: iPhone, robe, voiture...)" 
+              style={{ width: '100%', padding: '0.6rem 1rem 0.6rem 2.5rem', borderRadius: 'var(--radius-pill)', border: '1px solid var(--border-color)', background: '#F8FAFC', outline: 'none', fontSize: '0.9rem' }}
+              onKeyDown={(e) => {
                 if (e.key === 'Enter' && e.target.value.trim() !== '') {
                   navigate(`/explore?q=${encodeURIComponent(e.target.value.trim())}`);
                 }
@@ -60,9 +67,12 @@ const Navbar = () => {
             <Link 
               to="/wutal-ma" 
               className="hide-on-mobile active-scale hover-lift" 
-              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)', color: '#78350F', padding: '0.6rem 1.1rem', borderRadius: 'var(--radius-pill)', fontWeight: '900', textDecoration: 'none', border: '1.5px solid #FCD34D', fontSize: '0.88rem', boxShadow: '0 2px 8px rgba(245, 158, 11, 0.15)' }}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)', color: '#78350F', padding: '0.4rem 1rem 0.4rem 0.5rem', borderRadius: 'var(--radius-pill)', fontWeight: '900', textDecoration: 'none', border: '1.5px solid #FCD34D', fontSize: '0.88rem', boxShadow: '0 2px 8px rgba(245, 158, 11, 0.15)' }}
             >
-              <span style={{ fontSize: '1.1rem' }}>🙋‍♂️</span> Wutal Ma
+              <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'white', border: '1px solid #F59E0B', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 }}>
+                <img src={totemLapin} alt="Wutal Ma Totem" style={{ width: '32px', height: '32px', objectFit: 'contain', transform: 'scale(1.3)' }} />
+              </div>
+              Wutal Ma
             </Link>
 
             <button 
@@ -83,9 +93,12 @@ const Navbar = () => {
         </div>
       </header>
 
-      {/* Mobile Menu Drawer */}
+      {/* Drawer Mobile */}
       {isMenuOpen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100vh', background: 'rgba(0,0,0,0.5)', zIndex: 100000 }} onClick={closeMenu}>
+        <div 
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, backdropFilter: 'blur(4px)' }}
+          onClick={closeMenu}
+        >
           <div 
             style={{ width: '280px', height: '100%', background: 'white', padding: '2rem 1.5rem 100px 1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', boxShadow: '2px 0 20px rgba(0,0,0,0.1)', overflowY: 'auto' }}
             onClick={e => e.stopPropagation()}
@@ -100,12 +113,12 @@ const Navbar = () => {
             </div>
             
             <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <NavLink to="/wutal-ma" onClick={closeMenu} className="active-scale hover-lift" style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '0.9rem 1.1rem', borderRadius: '16px', textDecoration: 'none', background: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)', border: '1.5px solid #FCD34D', boxShadow: '0 4px 14px rgba(245, 158, 11, 0.15)' }}>
-                <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', boxShadow: '0 3px 8px rgba(245, 158, 11, 0.35)', flexShrink: 0 }}>
-                  🙋‍♂️
+              <NavLink to="/wutal-ma" onClick={closeMenu} className="active-scale hover-lift" style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '0.8rem 1rem', borderRadius: '16px', textDecoration: 'none', background: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)', border: '1.5px solid #FCD34D', boxShadow: '0 4px 14px rgba(245, 158, 11, 0.15)' }}>
+                <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'white', border: '1.5px solid #F59E0B', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0, boxShadow: '0 2px 6px rgba(245, 158, 11, 0.25)' }}>
+                  <img src={totemLapin} alt="Wutal Ma Totem" style={{ width: '40px', height: '40px', objectFit: 'contain', transform: 'scale(1.35)' }} />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span style={{ color: '#78350F', fontWeight: '900', fontSize: '1rem', fontFamily: 'var(--font-heading)' }}>Wutal Ma</span>
+                  <span style={{ color: '#78350F', fontWeight: '900', fontSize: '0.95rem', fontFamily: 'var(--font-heading)' }}>Wutal Ma</span>
                   <span style={{ color: '#B45309', fontWeight: '700', fontSize: '0.78rem' }}>Demandes d'acheteurs 🔍</span>
                 </div>
               </NavLink>
