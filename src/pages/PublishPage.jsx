@@ -4,6 +4,11 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../components/AuthContext';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
+import { 
+  analyzeContentForModeration, 
+  trackViolationAttempt, 
+  checkIsUserSuspendedForModeration 
+} from '../utils/advancedModeration';
 
 const locations = ['Dakar', 'Pikine', 'Guédiawaye', 'Rufisque', 'Thiès', 'Saint-Louis', 'Touba', 'Kaolack', 'Ziguinchor', 'Mbour', 'Louga', 'Tambacounda', 'Autre'];
 const deliveries = ['Livraison Express (Tiak-Tiak)', 'Dakar uniquement', 'Point Relais (Dakar)', 'Expédition Régions', 'Aucune'];
@@ -423,20 +428,33 @@ const PublishPage = () => {
         return;
       }
 
-      // 2. Détection des devises étrangères ($, €, dollar, euro)
-      const currencyRegex = /(\$|€|\bdollars?\b|\beuros?\b)/i;
-      if (currencyRegex.test(formData.title || '') || currencyRegex.test(formData.description || '')) {
-        toast.error("Les prix doivent être en FCFA uniquement.");
+      // 2. Vérification de suspension de compte pour récidive d'infraction
+      if (user?.id && checkIsUserSuspendedForModeration(user.id)) {
+        const msg = "⛔ Votre compte est suspendu pour tentative de publication de contenu strictement interdit (2ème infraction). Contactez le support.";
+        toast.error(msg, { duration: 8000 });
+        setErrorMsg(msg);
         return;
       }
 
-      // 3. Blacklist étendue spécifique Sénégal (Modération Avancée)
-      const fullText = `${formData.title} ${formData.description}`.toLowerCase();
-      for (const term of SENEGAL_ADVANCED_BLACKLIST) {
-        if (fullText.includes(term.toLowerCase())) {
-          toast.error(`⛔ Publication bloquée : terme suspect ou interdit détecté ("${term}").`);
-          return;
-        }
+      // 3. Moteur de modération avancée Niveau 3 (Titre + Description + Category + Metadata + LeetSpeak)
+      const { title, description, ...metadata } = formData;
+      const analysis = analyzeContentForModeration({
+        title,
+        description,
+        category: selectedCategory,
+        metadata
+      });
+
+      if (analysis.isProhibited) {
+        // Enregistrement de l'infraction & vérification de la suspension
+        const violation = trackViolationAttempt(user?.id);
+        const errorMsgStr = violation.isSuspended
+          ? `⛔ Compte Suspendu : Tentative de publication de contenu interdit ("${analysis.keyword}"). Votre compte a été suspendu pour récidive.`
+          : `${analysis.reason} (Avertissement 1/2)`;
+
+        toast.error(errorMsgStr, { duration: 8000 });
+        setErrorMsg(errorMsgStr);
+        return;
       }
 
       // 4. Limite anti-spam de 2 annonces par catégorie dans les dernières 24h (compte non-premium)
@@ -541,23 +559,32 @@ const PublishPage = () => {
       return;
     }
 
-    // 2. Détection des devises étrangères ($, €, dollar, euro)
-    const currencyRegex = /(\$|€|\bdollars?\b|\beuros?\b)/i;
-    if (currencyRegex.test(formData.title || '') || currencyRegex.test(formData.description || '')) {
-      toast.error("Les prix doivent être en FCFA uniquement.");
-      setErrorMsg("Les prix doivent être en FCFA uniquement.");
+    // 2. Vérification de suspension de compte pour récidive d'infraction
+    if (user?.id && checkIsUserSuspendedForModeration(user.id)) {
+      const msg = "⛔ Votre compte est suspendu pour tentative de publication de contenu strictement interdit (2ème infraction). Contactez le support.";
+      toast.error(msg, { duration: 8000 });
+      setErrorMsg(msg);
       return;
     }
 
-    // 3. Blacklist étendue spécifique Sénégal
-    const fullText = `${formData.title} ${formData.description}`.toLowerCase();
-    for (const term of SENEGAL_ADVANCED_BLACKLIST) {
-      if (fullText.includes(term.toLowerCase())) {
-        const msg = `⛔ Publication bloquée : terme suspect ou interdit détecté ("${term}").`;
-        toast.error(msg);
-        setErrorMsg(msg);
-        return;
-      }
+    // 3. Moteur de modération avancée Niveau 3
+    const { title, description, ...metadata } = formData;
+    const analysis = analyzeContentForModeration({
+      title,
+      description,
+      category: selectedCategory,
+      metadata
+    });
+
+    if (analysis.isProhibited) {
+      const violation = trackViolationAttempt(user?.id);
+      const errorMsgStr = violation.isSuspended
+        ? `⛔ Compte Suspendu : Tentative de publication de contenu interdit ("${analysis.keyword}"). Votre compte a été suspendu pour récidive.`
+        : `${analysis.reason} (Avertissement 1/2)`;
+
+      toast.error(errorMsgStr, { duration: 8000 });
+      setErrorMsg(errorMsgStr);
+      return;
     }
 
     // 4. Anti-Spam (Max 2 annonces par catégorie dans les dernières 24h)
