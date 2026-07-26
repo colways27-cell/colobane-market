@@ -52,15 +52,15 @@ export const categories = [
   },
   {
     id: 'electronique',
-    name: 'Électronique',
+    name: 'Électronique & Électroménager',
     icon: <Tv size={28} strokeWidth={1.5} />,
     color: '#ff9500',
     fields: [
-      { name: 'type', label: 'Type', type: 'select', options: ['TV', 'Audio/Son', 'Photo & Caméra', 'Électroménager', 'Autre'] },
-      { name: 'brand', label: 'Marque', type: 'select', options: ['LG', 'Samsung', 'Sony', 'Hisense', 'Panasonic', 'TCL', 'Philips', 'Nasco', 'Autre'] },
-      { name: 'size_capacity', label: 'Taille / Capacité', type: 'text', placeholder: 'Ex: 55 pouces, 10 Kg...', showIf: { field: 'type', values: ['TV', 'Électroménager'] } },
-      { name: 'condition', label: 'État', type: 'select', options: ['Neuf', 'Très bon état', 'Bon état', 'Occasion'] },
-      { name: 'warranty', label: 'Garantie', type: 'select', options: ['Aucune', '1 mois', '3 mois', '6 mois', '1 an', 'Autre'] }
+      { name: 'type', label: 'Type d\'appareil', type: 'select', options: ['Téléviseur & Smart TV', 'Réfrigérateur & Congélateur', 'Machine à laver', 'Climatiseur & Ventilateur', 'Micro-ondes & Four', 'Cuisinière & Gazinière', 'Robots & Mixeur', 'Son, Enceinte & Home Cinéma', 'Photo & Caméra', 'Autre Électroménager', 'Autre Électronique'] },
+      { name: 'brand', label: 'Marque', type: 'select', options: ['Samsung', 'LG', 'Hisense', 'Sony', 'Panasonic', 'TCL', 'Philips', 'Nasco', 'Midea', 'Sharp', 'Whirlpool', 'Beko', 'Moulinex', 'Autre'] },
+      { name: 'size_capacity', label: 'Taille / Capacité', type: 'text', placeholder: 'Ex: 55 pouces, 250 Litres, 10 Kg...' },
+      { name: 'condition', label: 'État', type: 'select', options: ['Neuf sous carton', 'Comme neuf', 'Très bon état', 'Occasion certifiée'] },
+      { name: 'warranty', label: 'Garantie', type: 'select', options: ['Aucune', '1 mois', '3 mois', '6 mois', '1 an', '2 ans'] }
     ]
   },
   {

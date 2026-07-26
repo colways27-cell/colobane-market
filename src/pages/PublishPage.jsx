@@ -88,6 +88,69 @@ const FastTextarea = ({ value, onChange, ...props }) => {
   return <textarea value={localVal} onChange={e => setLocalVal(e.target.value)} onBlur={e => onChange({ target: { name: props.name, value: localVal } })} {...props} />;
 };
 
+const categoryDescriptionTemplates = {
+  telephones_tablettes: `📱 Modèle & Capacité : [Ex: iPhone 13 Pro 128Go]
+🔋 État Batterie : [Ex: 88%]
+📦 Accessoires inclus : [Ex: Chargeur d'origine + Coque offerte]
+✅ État général : [Ex: Très bon état, aucune rayure]
+📍 Disponible immédiatement à Dakar avec possibilité de livraison.`,
+
+  friperie: `👚 Type de friperie : [Ex: Balle entière de t-shirts / Robes fripe 1er choix]
+📦 Provenance & Qualité : [Ex: 1er Choix - Qualité supérieure]
+⚖️ Quantité : [Ex: Balle de 45kg / Vente en gros & détail]
+💰 Prix dégressif selon la quantité commandée !
+📍 Stock disponible à Dakar. Livraison rapide dans les régions.`,
+
+  alimentation: `🍲 Nom de la spécialité : [Ex: Thieboudienne Penda Mbaye / Buffet Traiteur]
+👨‍🍳 Préparation : [Ex: Fait maison avec ingrédients locaux frais]
+📦 Portion : [Ex: Par plat individuel ou Commande pour événements]
+🛵 Service de livraison rapide à domicile ou au bureau.`,
+
+  habillement: `👗 Nom du modèle : [Ex: Robe Wax sur mesure / Ensemble Tissu]
+📏 Tailles disponibles : [Ex: S, M, L, XL]
+🎨 Couleur & Tissu : [Ex: Tissu haute qualité, ne déteint pas]
+✨ Produit neuf. Possibilité d'essayage sur place.`,
+
+  vehicules: `🚗 Marque & Modèle : [Ex: Toyota Corolla 2018]
+⛽ Carburant & Boîte : [Ex: Essence / Automatique]
+流域 Kilométrage : [Ex: 85 000 km]
+📄 Papiers : [Ex: Mutation, visite technique et assurance à jour]
+🔑 Aucun frais à prévoir. Essai possible sur rendez-vous.`,
+
+  immobilier: `🏠 Type de bien : [Ex: Appartement F3 / Terrain 300m²]
+📍 Quartier : [Ex: Sacré-Cœur 3, Dakar]
+🛌 Aménagement : [Ex: 2 chambres, grand salon, 2 salles de bain]
+📄 Papiers : [Ex: Titre Foncier / Bail à jour]
+🔑 Visite guidée disponible sur rendez-vous.`,
+
+  informatique: `💻 Marque & Modèle : [Ex: HP EliteBook 840 G5]
+🧠 Processeur & RAM : [Ex: Core i5 - 16Go RAM]
+💾 Stockage SSD : [Ex: 512Go SSD ultra-rapide]
+🔋 Autonomie batterie : [Ex: 4h à 5h de travail]
+✅ Livré avec chargeur d'origine et garantie test.`,
+
+  accessoires: `⌚ Marque & Modèle : [Ex: Montre Casio Edifice / Sac Cuir]
+🎨 Matière & Couleur : [Ex: Cuir véritable / Couleur Marron]
+✨ État : [Ex: Neuf avec coffret d'origine]
+📍 Disponible avec livraison rapide sur tout le Sénégal.`,
+
+  beaute_sante: `✨ Produit : [Ex: Parfum de marque / Crème éclat teint]
+🌿 Composition & Origine : [Ex: Ingrédients naturels, certifié]
+📦 Format : [Ex: Flacon 100ml / Neuf scellé]
+📍 Stock disponible à Dakar avec livraison.`,
+
+  electronique: `📺 Marque & Modèle : [Ex: Smart TV Samsung 55" / Frigo LG 250L]
+⚡ Type : [Ex: Électroménager / Téléviseur / Climatiseur]
+📦 État & Fonctionnement : [Ex: Neuf sous carton / Très bon état, testé]
+🛡️ Garantie : [Ex: 6 mois de garantie avec facture]
+📍 Disponible à Dakar avec livraison rapide possible.`,
+
+  default: `✨ Description détaillée de l'article :
+✅ État général : [Ex: Neuf / Très bon état]
+📦 Accessoires & Détails : [Ex: Inclus avec emballage]
+📍 Localisation & Livraison : [Ex: Disponible à Dakar]`
+};
+
 const PublishPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -844,9 +907,28 @@ const PublishPage = () => {
                   <FastInput type="text" name="title" placeholder="Ex: iPhone 14 Pro Max 256Go" value={formData.title} onChange={handleInputChange} style={{ flex: 1, padding: '1rem 1rem 1rem 0', border: 'none', background: 'transparent', outline: 'none', fontSize: '0.95rem' }} />
                 </InputWrapper>
 
-                <InputWrapper label="Description" required icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginTop: '14px' }}><line x1="21" y1="10" x2="3" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="14" y1="18" x2="3" y2="18"></line></svg>}>
-                  <FastTextarea name="description" rows="4" placeholder="État, accessoires inclus, raison de la vente..." value={formData.description} onChange={handleInputChange} style={{ flex: 1, padding: '1rem 1rem 1rem 0', border: 'none', background: 'transparent', outline: 'none', fontSize: '0.95rem', resize: 'vertical' }}></FastTextarea>
-                </InputWrapper>
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '6px' }}>
+                    <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: '600' }}>
+                      Description <span style={{ color: '#e74c3c' }}>*</span>
+                    </label>
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        const template = categoryDescriptionTemplates[selectedCategory] || categoryDescriptionTemplates.default;
+                        setFormData(prev => ({ ...prev, description: template }));
+                        toast.success("Modèle de description spécifique inséré ! ✨");
+                      }}
+                      className="active-scale hover-lift"
+                      style={{ background: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)', border: '1.5px solid #FCD34D', color: '#78350F', padding: '5px 12px', borderRadius: '12px', fontSize: '0.78rem', fontWeight: '800', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px', boxShadow: '0 2px 6px rgba(245,158,11,0.15)' }}
+                    >
+                      ✨ Modèle prérempli ({categories.find(c => c.id === selectedCategory)?.name || 'Catégorie'})
+                    </button>
+                  </div>
+                  <InputWrapper icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginTop: '14px' }}><line x1="21" y1="10" x2="3" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="14" y1="18" x2="3" y2="18"></line></svg>}>
+                    <FastTextarea name="description" rows="5" placeholder="Description détaillée..." value={formData.description} onChange={handleInputChange} style={{ flex: 1, padding: '1rem 1rem 1rem 0', border: 'none', background: 'transparent', outline: 'none', fontSize: '0.95rem', resize: 'vertical' }}></FastTextarea>
+                  </InputWrapper>
+                </div>
 
                 <div style={{ marginBottom: '1.5rem' }}>
                   {(() => {
