@@ -127,39 +127,40 @@ const SubscriptionPage = () => {
           </button>
         </div>
         
-        {/* Forfait Basique */}
+        {/* Forfait Pro 5 000 FCFA */}
         <div style={{ background: 'white', color: 'var(--text-main)', border: '2px solid #E2E8F0', borderRadius: '24px', padding: '30px', position: 'relative', maxWidth: '350px', width: '100%', display: 'flex', flexDirection: 'column', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: '800', margin: '0 0 10px 0', textAlign: 'center', color: '#64748B' }}>Basique</h2>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: '800', margin: '0 0 10px 0', textAlign: 'center', color: '#64748B' }}>Forfait Pro</h2>
           <div style={{ fontSize: '2.5rem', fontWeight: '800', marginBottom: '20px', textAlign: 'center', color: 'var(--primary)' }}>
             5 000 <span style={{ fontSize: '1rem', opacity: 0.8 }}>FCFA/mois</span>
           </div>
           <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 30px 0', display: 'flex', flexDirection: 'column', gap: '15px', flex: 1 }}>
-            <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>✅ Création de votre vitrine en ligne</li>
-            <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>📸 <strong>Photos illimitées par article</strong></li>
-            <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>📊 Visibilité standard</li>
+            <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>📢 <strong>Jusqu'à 30 annonces / mois</strong></li>
+            <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>📸 <strong>4 photos par annonce</strong></li>
+            <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>🏪 Vitrine boutique personnalisée</li>
+            <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>📊 Statistiques vendeur détaillées</li>
           </ul>
           <button disabled={isProcessing} onClick={() => initiatePayment('forfait_basique', 5000)} className="active-scale" style={{ width: '100%', padding: '15px', borderRadius: '12px', fontWeight: '800', fontSize: '1.1rem', background: '#F1F5F9', color: 'var(--primary)', border: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', marginTop: 'auto', opacity: isProcessing ? 0.7 : 1, cursor: 'pointer' }}>
-            {isProcessing ? 'Traitement...' : 'S\'abonner (5000F)'}
+            {isProcessing ? 'Traitement...' : 'S\'abonner (5 000F)'}
           </button>
         </div>
 
-        {/* Forfait Premium */}
+        {/* Forfait Premium 10 000 FCFA */}
         <div style={{ background: 'var(--primary)', color: 'white', border: '2px solid var(--primary)', borderRadius: '24px', padding: '30px', position: 'relative', boxShadow: '0 10px 30px rgba(139, 28, 49, 0.2)', maxWidth: '350px', width: '100%', display: 'flex', flexDirection: 'column' }}>
           <div style={{ position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%)', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: 'white', padding: '5px 15px', borderRadius: '20px', fontWeight: '800', fontSize: '0.9rem', boxShadow: '0 4px 10px rgba(245, 158, 11, 0.3)', whiteSpace: 'nowrap' }}>
-            ⚡ RECOMMANDÉ
+            ⚡ ILLIMITÉ + BOOST
           </div>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: '800', margin: '0 0 10px 0', textAlign: 'center' }}>Premium + Boost</h2>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: '800', margin: '0 0 10px 0', textAlign: 'center' }}>Premium VIP</h2>
           <div style={{ fontSize: '2.5rem', fontWeight: '800', marginBottom: '20px', textAlign: 'center', color: '#fde68a' }}>
             10 000 <span style={{ fontSize: '1rem', opacity: 0.8, color: 'white' }}>FCFA/mois</span>
           </div>
           <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 30px 0', display: 'flex', flexDirection: 'column', gap: '15px', flex: 1 }}>
-            <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>✅ Tous les avantages Basique</li>
-            <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>⚡ <strong>Boost d'articles inclus</strong></li>
-            <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>🔥 <strong>Positionnement en Tête</strong></li>
-            <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>⭐ <strong>Apparition en Sponsorisé</strong></li>
+            <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>🚀 <strong>Annonces ILLIMITÉES par mois</strong></li>
+            <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>📸 <strong>6 photos par annonce (Max)</strong></li>
+            <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>⚡ <strong>Boost d'annonces inclus</strong></li>
+            <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>🔥 Positionnement prioritaire en Tête</li>
           </ul>
           <button disabled={isProcessing} onClick={() => initiatePayment('forfait_premium', 10000)} className="active-scale" style={{ width: '100%', padding: '15px', borderRadius: '12px', fontWeight: '800', fontSize: '1.1rem', background: 'white', color: 'var(--primary)', border: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', marginTop: 'auto', opacity: isProcessing ? 0.7 : 1, cursor: 'pointer' }}>
-            {isProcessing ? 'Traitement...' : 'S\'abonner (10000F)'}
+            {isProcessing ? 'Traitement...' : 'S\'abonner (10 000F)'}
           </button>
         </div>
 

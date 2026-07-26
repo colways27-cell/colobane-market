@@ -32,6 +32,32 @@ const categoryKeywords = {
 
 const cleanPhone = (num) => (num || '').replace(/^\+?221\s*/, '').replace(/\s+/g, '').trim();
 
+const getMaxPhotosAllowed = (plan) => {
+  if (plan === 'premium' || plan === 'forfait_premium') return 6;
+  if (
+    plan === 'pro' ||
+    plan === 'standard' ||
+    plan === '5000' ||
+    plan === 'forfait_basique' ||
+    plan === 'pass_semaine' ||
+    plan === 'pass_15jours'
+  ) return 4;
+  return 3; // Nouveaux membres / Gratuit
+};
+
+const getMaxMonthlyListingsAllowed = (plan) => {
+  if (plan === 'premium' || plan === 'forfait_premium') return 999999;
+  if (
+    plan === 'pro' ||
+    plan === 'standard' ||
+    plan === '5000' ||
+    plan === 'forfait_basique' ||
+    plan === 'pass_semaine' ||
+    plan === 'pass_15jours'
+  ) return 30;
+  return 3; // Nouveaux membres / Gratuit
+};
+
 const InputWrapper = ({ label, icon, children, required }) => (
   <div style={{ marginBottom: '1.2rem', width: '100%', boxSizing: 'border-box' }}>
     <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem', fontWeight: '500' }}>
@@ -174,8 +200,9 @@ const PublishPage = () => {
             location: data.city || 'Dakar'
           }));
 
-          // Si l'utilisateur n'a pas d'abonnement payant actif
-          if (!currentPlan || currentPlan === 'none' || currentPlan === '') {
+          // Vérification du quota d'annonces mensuelles selon l'abonnement
+          const maxMonthly = getMaxMonthlyListingsAllowed(currentPlan);
+          if (maxMonthly < 999999) {
             const startOfMonth = new Date();
             startOfMonth.setDate(1);
             startOfMonth.setHours(0, 0, 0, 0);
@@ -188,7 +215,7 @@ const PublishPage = () => {
 
             if (!countError) {
               setMonthlyCount(prodCount || 0);
-              if ((prodCount || 0) >= 3) {
+              if ((prodCount || 0) >= maxMonthly) {
                 setHasReachedLimit(true);
               }
             }
@@ -220,13 +247,18 @@ const PublishPage = () => {
   };
 
   const handleImageChange = (e) => {
-    const files = Array.from(e.target.files || e.dataTransfer.files);
+    const files = Array.from(e.target.files || e.dataTransfer?.files || []);
+    const maxAllowed = getMaxPhotosAllowed(profile?.subscription_plan);
     const totalFiles = images.length + files.length;
-    
-    const maxImages = (profile?.subscription_plan === 'seller_pro' || profile?.subscription_plan === 'boutique_premium') ? 15 : 4;
 
-    if (totalFiles > maxImages) {
-      toast.error(`Vous êtes limité à ${maxImages} photos. Optez pour un abonnement supérieur pour en ajouter plus.`);
+    if (totalFiles > maxAllowed) {
+      if (maxAllowed === 3) {
+        toast.error(`Membre gratuit : 3 photos maximum par annonce. Abonnez-vous (5 000 FCFA) pour débloquer 4 photos !`);
+      } else if (maxAllowed === 4) {
+        toast.error(`Abonnement 5 000 FCFA : 4 photos max par annonce. Passez au Premium (10 000 FCFA) pour 6 photos !`);
+      } else {
+        toast.error(`Limite maximale de 6 photos atteinte par annonce.`);
+      }
       return;
     }
     
@@ -817,33 +849,48 @@ const PublishPage = () => {
                 </InputWrapper>
 
                 <div style={{ marginBottom: '1.5rem' }}>
-                  <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.8rem', fontWeight: '500' }}>Photos (Max 6) *</label>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-                    {previews.map((src, index) => (
-                      <div key={index} style={{ position: 'relative', width: '100%', paddingTop: '100%', borderRadius: '16px', overflow: 'hidden', background: '#F1F5F9', border: '1px solid #E2E8F0', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
-                        <img src={src} alt={`preview ${index}`} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-                        <button onClick={() => removeImage(index)} style={{ position: 'absolute', top: '6px', right: '6px', background: 'rgba(0,0,0,0.6)', color: 'white', border: 'none', borderRadius: '50%', width: '26px', height: '26px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', cursor: 'pointer', backdropFilter: 'blur(4px)' }}>✕</button>
-                      </div>
-                    ))}
-                    
-                    {previews.length < 6 && (
-                      <label 
-                        className="active-scale touch-target" 
-                        onDragOver={handleDragOver}
-                        onDragLeave={handleDragLeave}
-                        onDrop={handleDrop}
-                        style={{ position: 'relative', width: '100%', paddingTop: '100%', borderRadius: '16px', border: `2px dashed ${isDragging ? 'var(--primary)' : '#CBD5E1'}`, background: isDragging ? 'var(--primary-light)' : '#F8FAFC', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', transition: 'all 0.2s' }}
-                      >
-                        <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '8px', color: 'var(--primary)' }}>
-                          <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(139, 28, 49, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14"/></svg>
-                          </div>
-                          <span style={{ fontSize: '0.8rem', fontWeight: '600', color: 'var(--text-muted)', display: 'none', '@media (min-width: 768px)': { display: 'block' } }}>Glisser ou cliquer</span>
+                  {(() => {
+                    const maxPhotos = getMaxPhotosAllowed(profile?.subscription_plan);
+                    return (
+                      <>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
+                          <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: '600' }}>Photos (Max {maxPhotos}) *</label>
+                          {maxPhotos < 6 && (
+                            <Link to="/subscription" style={{ fontSize: '0.78rem', color: 'var(--primary)', textDecoration: 'none', fontWeight: '800' }}>
+                              ⚡ Débloquer + de photos →
+                            </Link>
+                          )}
                         </div>
-                        <input type="file" multiple accept="image/*" onChange={handleImageChange} style={{ display: 'none' }} />
-                      </label>
-                    )}
-                  </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+                          {previews.map((src, index) => (
+                            <div key={index} style={{ position: 'relative', width: '100%', paddingTop: '100%', borderRadius: '16px', overflow: 'hidden', background: '#F1F5F9', border: '1px solid #E2E8F0', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+                              <img src={src} alt={`preview ${index}`} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+                              <button onClick={() => removeImage(index)} style={{ position: 'absolute', top: '6px', right: '6px', background: 'rgba(0,0,0,0.6)', color: 'white', border: 'none', borderRadius: '50%', width: '26px', height: '26px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', cursor: 'pointer', backdropFilter: 'blur(4px)' }}>✕</button>
+                            </div>
+                          ))}
+                          
+                          {previews.length < maxPhotos && (
+                            <label 
+                              className="active-scale touch-target" 
+                              onDragOver={handleDragOver}
+                              onDragLeave={handleDragLeave}
+                              onDrop={handleDrop}
+                              style={{ position: 'relative', width: '100%', paddingTop: '100%', borderRadius: '16px', border: `2px dashed ${isDragging ? 'var(--primary)' : '#CBD5E1'}`, background: isDragging ? 'var(--primary-light)' : '#F8FAFC', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', transition: 'all 0.2s' }}
+                            >
+                              <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '8px', color: 'var(--primary)' }}>
+                                <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(139, 28, 49, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14"/></svg>
+                                </div>
+                                <span style={{ fontSize: '0.8rem', fontWeight: '600', color: 'var(--text-muted)', display: 'none', '@media (min-width: 768px)': { display: 'block' } }}>Glisser ou cliquer</span>
+                              </div>
+                              <input type="file" multiple accept="image/*" onChange={handleImageChange} style={{ display: 'none' }} />
+                            </label>
+                          )}
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
 
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', marginBottom: '1.5rem' }}>
