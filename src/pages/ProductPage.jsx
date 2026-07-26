@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { categories } from '../data/categories';
-import { supabase } from '../lib/supabase';
 import { useAuth } from '../components/AuthContext';
+import { supabase } from '../lib/supabase';
+import ReportModal from '../components/ReportModal';
 import toast from 'react-hot-toast';
-import { Shield, Tag, Gauge, Settings, Fuel, MapPin } from 'lucide-react';
+import { Shield, Tag, Gauge, Settings, Fuel, MapPin, Share2, AlertTriangle, MoreVertical } from 'lucide-react';
 
 const ProductPage = () => {
   const { productId } = useParams();
@@ -19,8 +19,11 @@ const ProductPage = () => {
   const [isFavorite, setIsFavorite] = useState(false);
   const [similarProducts, setSimilarProducts] = useState([]);
   const [sameItemSellers, setSameItemSellers] = useState([]);
+  const [showShareMenu, setShowShareMenu] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
 
   const handleShare = async () => {
+    setShowShareMenu(false);
     const shareData = {
       title: `${product?.title || 'Produit'} - Colobane Market`,
       text: `Regarde ce super produit sur Colobane Market : ${product?.title} à ${(product?.price || 0).toLocaleString('fr-FR')} FCFA.`,
@@ -218,9 +221,46 @@ const ProductPage = () => {
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
         </button>
         <div style={{ display: 'flex', gap: '12px' }}>
-          <button onClick={handleShare} className="touch-target active-scale" style={{ background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(4px)', border: 'none', borderRadius: '50%', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-main)' }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
-          </button>
+          {/* Menu contextuel discret Partage & Signalement */}
+          <div style={{ position: 'relative' }}>
+            <button 
+              onClick={() => setShowShareMenu(v => !v)} 
+              className="touch-target active-scale" 
+              style={{ background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(4px)', border: 'none', borderRadius: '50%', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-main)' }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+            </button>
+
+            {showShareMenu && (
+              <div 
+                style={{
+                  position: 'absolute', top: '48px', right: 0,
+                  background: 'white', borderRadius: '14px',
+                  boxShadow: '0 10px 30px rgba(0,0,0,0.18)',
+                  border: '1px solid #E2E8F0',
+                  minWidth: '160px', zIndex: 999, overflow: 'hidden',
+                  animation: 'fadeIn 0.15s ease-out'
+                }}
+              >
+                <div 
+                  onClick={handleShare} 
+                  style={{ padding: '12px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14px', fontWeight: '600', color: 'var(--text-main)' }}
+                >
+                  <Share2 size={16} />
+                  <span>Partager</span>
+                </div>
+                <div style={{ height: '1px', background: '#F1F5F9' }} />
+                <div 
+                  onClick={() => { setShowShareMenu(false); setShowReportModal(true); }}
+                  style={{ padding: '12px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14px', fontWeight: '600', color: '#EF4444' }}
+                >
+                  <AlertTriangle size={16} />
+                  <span>Signaler</span>
+                </div>
+              </div>
+            )}
+          </div>
+
           <button onClick={toggleFavorite} className="touch-target active-scale" style={{ background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(4px)', border: 'none', borderRadius: '50%', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isFavorite ? '#e74c3c' : '#94A3B8' }}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill={isFavorite ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
           </button>
@@ -682,6 +722,12 @@ const ProductPage = () => {
         )}
       </div>
 
+      {/* Report Modal */}
+      <ReportModal 
+        isOpen={showReportModal} 
+        onClose={() => setShowReportModal(false)} 
+        productId={productId} 
+      />
     </div>
   );
 };

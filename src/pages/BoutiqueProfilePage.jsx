@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '../lib/supabase';
 import FavoriteButton from '../components/FavoriteButton';
+import ReportModal from '../components/ReportModal';
 import toast from 'react-hot-toast';
 import { useAuth } from '../components/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
@@ -21,6 +22,8 @@ const BoutiqueProfilePage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [newReview, setNewReview] = useState({ rating: 5, comment: '' });
   const [submittingReview, setSubmittingReview] = useState(false);
+  const [showVendorMenu, setShowVendorMenu] = useState(false);
+  const [showReportVendorModal, setShowReportVendorModal] = useState(false);
 
   useEffect(() => {
     const fetchBoutiqueData = async () => {
@@ -212,6 +215,42 @@ const BoutiqueProfilePage = () => {
       <div className="section-container" style={{ position: 'relative' }}>
         <div className="boutique-profile-card glass-panel" style={{ marginTop: '-80px', position: 'relative', zIndex: 10, background: 'rgba(255, 255, 255, 0.95)', borderRadius: '28px', padding: '2rem', boxShadow: '0 20px 40px rgba(0,0,0,0.08)' }}>
           
+          {/* Menu discret 3 points en haut à droite */}
+          <div style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 20 }}>
+            <button 
+              onClick={() => setShowVendorMenu(v => !v)} 
+              className="touch-target active-scale"
+              style={{
+                background: '#F1F5F9', border: 'none',
+                borderRadius: '50%', width: '36px', height: '36px',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', fontSize: '1.2rem', color: '#64748B', fontWeight: '800'
+              }}
+            >
+              ⋮
+            </button>
+
+            {showVendorMenu && (
+              <div 
+                style={{
+                  position: 'absolute', top: '44px', right: 0,
+                  background: 'white', borderRadius: '14px',
+                  boxShadow: '0 10px 30px rgba(0,0,0,0.18)',
+                  border: '1px solid #E2E8F0', minWidth: '180px', zIndex: 999,
+                  overflow: 'hidden', animation: 'fadeIn 0.15s ease-out'
+                }}
+              >
+                <div 
+                  onClick={() => { setShowVendorMenu(false); setShowReportVendorModal(true); }}
+                  style={{ padding: '12px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14px', fontWeight: '600', color: '#EF4444' }}
+                >
+                  <span>🚩</span>
+                  <span>Signaler ce vendeur</span>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Logo et Infos Principales */}
           <div className="boutique-profile-info">
             <div 
@@ -490,6 +529,13 @@ const BoutiqueProfilePage = () => {
         )}
 
       </div>
+
+      {/* Report Vendor Modal */}
+      <ReportModal 
+        isOpen={showReportVendorModal} 
+        onClose={() => setShowReportVendorModal(false)} 
+        vendorId={boutiqueId} 
+      />
     </div>
   );
 };

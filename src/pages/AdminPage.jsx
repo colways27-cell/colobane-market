@@ -61,6 +61,7 @@ const AdminPage = () => {
   const [demandesCertification, setDemandesCertification] = useState([]);
   const [buyerRequests, setBuyerRequests] = useState([]);
   const [allProducts, setAllProducts] = useState([]);
+  const [reports, setReports] = useState([]);
   const [zoomImage, setZoomImage] = useState(null);
   const [rejectModalData, setRejectModalData] = useState(null);
   const [rejectNote, setRejectNote] = useState('');
@@ -124,7 +125,7 @@ const AdminPage = () => {
   const fetchAllData = async () => {
     setLoading(true);
     try {
-      const [payRes, usersRes, boutRes, boostRes, certRes, reqRes, prodRes] = await Promise.all([
+      const [payRes, usersRes, boutRes, boostRes, certRes, reqRes, prodRes, reportsRes] = await Promise.all([
         supabase.from('payment_requests').select('*, profiles(full_name, phone_number)').order('created_at', { ascending: false }),
         supabase.from('profiles').select('*').order('created_at', { ascending: false }),
         supabase.from('profiles').select('*').eq('account_type', 'boutique').order('created_at', { ascending: false }),
@@ -132,6 +133,7 @@ const AdminPage = () => {
         supabase.from('certification_requests').select('*, profiles(full_name, whatsapp_number, avatar_url)').order('created_at', { ascending: false }),
         supabase.from('buyer_requests').select('*').order('created_at', { ascending: false }),
         supabase.from('products').select('*, profiles(full_name, boutique_name, pseudo, phone_number)').order('created_at', { ascending: false }).limit(200),
+        supabase.from('reports').select('*, products(id, title, images, is_hidden), seller:seller_id(id, full_name, boutique_name, is_suspended), reporter:reporter_id(full_name)').order('created_at', { ascending: false }),
       ]);
       if (payRes.data) setPaiements(payRes.data);
       if (usersRes.data) setUtilisateurs(usersRes.data);
@@ -139,6 +141,7 @@ const AdminPage = () => {
       if (boostRes.data) setBoosts(boostRes.data);
       if (reqRes && reqRes.data) setBuyerRequests(reqRes.data);
       if (prodRes && prodRes.data) setAllProducts(prodRes.data);
+      if (reportsRes && reportsRes.data) setReports(reportsRes.data);
       if (certRes && certRes.data) {
         setDemandesCertification(certRes.data);
       } else if (certRes && certRes.error) {
@@ -380,8 +383,47 @@ const AdminPage = () => {
     </div>
   );
 
+  const handleDeleteProductFromReport = async (productId, reportId) => {
+    try {
+      toast.loading('Suppression de l\'annonce...', { id: 'rep-action' });
+      await supabase.from('products').update({ is_hidden: true, status: 'deleted' }).eq('id', productId);
+      await supabase.from('reports').update({ status: 'resolved' }).eq('id', reportId);
+      toast.success('Annonce masquée/supprimée et signalement classé !', { id: 'rep-action' });
+      fetchAllData();
+    } catch (e) {
+      console.error(e);
+      toast.error('Erreur lors de la suppression', { id: 'rep-action' });
+    }
+  };
+
+  const handleSuspendVendorFromReport = async (vendorId, reportId) => {
+    try {
+      toast.loading('Suspension du vendeur...', { id: 'rep-action' });
+      await supabase.from('profiles').update({ is_suspended: true, subscription_status: 'suspended' }).eq('id', vendorId);
+      await supabase.from('reports').update({ status: 'resolved' }).eq('id', reportId);
+      toast.success('Compte vendeur suspendu avec succès !', { id: 'rep-action' });
+      fetchAllData();
+    } catch (e) {
+      console.error(e);
+      toast.error('Erreur lors de la suspension du compte', { id: 'rep-action' });
+    }
+  };
+
+  const handleResolveReport = async (reportId) => {
+    try {
+      toast.loading('Mise à jour...', { id: 'rep-action' });
+      await supabase.from('reports').update({ status: 'resolved' }).eq('id', reportId);
+      toast.success('Signalement marqué comme traité !', { id: 'rep-action' });
+      fetchAllData();
+    } catch (e) {
+      console.error(e);
+      toast.error('Erreur lors de la mise à jour', { id: 'rep-action' });
+    }
+  };
+
   // ── Computed ──────────────────────────────────────────────────────────────
   const pendingPayments = paiements.filter(p => p.status === 'pending');
+  const pendingReports = reports.filter(r => r.status === 'pending');
   const totalRevenue = paiements.filter(p => p.status === 'approved').reduce((acc, c) => acc + Number(c.amount), 0);
   const expiredBoosts = boosts.filter(b => isExpired(b.boost_end_date));
   const activeBoostsList = boosts.filter(b => !isExpired(b.boost_end_date));
@@ -435,6 +477,7 @@ const AdminPage = () => {
 
         <nav style={{ flex: 1, padding: '1.5rem 1rem', display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <SidebarButton icon="📊" label="Vue d'ensemble" active={activeTab === 'overview'} onClick={() => { setActiveTab('overview'); setIsSidebarOpen(false); }} />
+          <SidebarButton icon="🚩" label={`Signalements${pendingReports.length > 0 ? ` (${pendingReports.length})` : ''}`} active={activeTab === 'signalements'} onClick={() => { setActiveTab('signalements'); setIsSidebarOpen(false); }} badge={pendingReports.length > 0} />
           <SidebarButton icon="📈" label="Statistiques & Trafic" active={activeTab === 'stats'} onClick={() => { setActiveTab('stats'); setIsSidebarOpen(false); }} />
           <SidebarButton icon="📦" label={`Annonces (${allProducts.length})`} active={activeTab === 'annonces'} onClick={() => { setActiveTab('annonces'); setIsSidebarOpen(false); }} />
           <SidebarButton icon="💳" label={`Paiements${pendingPayments.length > 0 ? ` (${pendingPayments.length})` : ''}`} active={activeTab === 'paiements'} onClick={() => { setActiveTab('paiements'); setIsSidebarOpen(false); }} badge={pendingPayments.length > 0} />
@@ -461,7 +504,7 @@ const AdminPage = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
             <button className="hamburger-btn" onClick={() => setIsSidebarOpen(true)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>☰</button>
             <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '800', color: '#0F172A' }}>
-              {{ overview: "Vue d'ensemble", paiements: 'Gestion des Paiements', abonnements: 'Abonnements Actifs', boosts: 'Boosts Actifs', certifications: 'Demandes de Certification', utilisateurs: 'Base Utilisateurs', boutiques: 'Contrôle Boutiques', wutal_ma: 'Demandes Acheteurs (Wutal Ma)' }[activeTab]}
+              {{ overview: "Vue d'ensemble", signalements: "🚩 Signalements & Modération", paiements: 'Gestion des Paiements', abonnements: 'Abonnements Actifs', boosts: 'Boosts Actifs', certifications: 'Demandes de Certification', utilisateurs: 'Base Utilisateurs', boutiques: 'Contrôle Boutiques', wutal_ma: 'Demandes Acheteurs (Wutal Ma)' }[activeTab]}
             </h2>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -473,6 +516,133 @@ const AdminPage = () => {
 
         {/* Content */}
         <div style={{ padding: '2rem', flex: 1, overflowY: 'auto' }} className="admin-content">
+
+          {/* ── SIGNALEMENTS & MODÉRATION ──────────────────────────────────── */}
+          {activeTab === 'signalements' && (
+            <div style={{ animation: 'fadeIn 0.3s' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '30px' }}>
+                <StatCard icon="🚩" title="Signalements en attente" value={pendingReports.length} color="#EF4444" urgent={pendingReports.length > 0} />
+                <StatCard icon="📦" title="Annonces signalées" value={reports.filter(r => r.type === 'product').length} color="#F59E0B" />
+                <StatCard icon="🏪" title="Vendeurs signalés" value={reports.filter(r => r.type === 'vendor').length} color="#8B5CF6" />
+                <StatCard icon="✅" title="Signalements traités" value={reports.filter(r => r.status === 'resolved').length} color="#10B981" />
+              </div>
+
+              <div style={{ background: 'white', borderRadius: '16px', border: '1px solid #E2E8F0', padding: '24px', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
+                <h3 style={{ margin: '0 0 20px', fontWeight: '800', fontSize: '1.2rem', color: '#0F172A', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <span>🚩</span> Liste des Signalements ({reports.length})
+                </h3>
+
+                {reports.length === 0 ? (
+                  <div style={{ padding: '40px', textAlign: 'center', color: '#64748B' }}>
+                    <div style={{ fontSize: '3rem', marginBottom: '12px' }}>🎉</div>
+                    <div style={{ fontWeight: '700', fontSize: '1.1rem' }}>Aucun signalement en attente</div>
+                    <div style={{ fontSize: '0.9rem', marginTop: '4px' }}>Toutes les annonces et profils sont conformes.</div>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    {reports.map((report) => (
+                      <div 
+                        key={report.id} 
+                        style={{ 
+                          padding: '18px 20px', 
+                          borderRadius: '16px', 
+                          background: report.status === 'pending' ? '#FEF2F2' : '#F8FAFC',
+                          border: `1.5px solid ${report.status === 'pending' ? '#FCA5A5' : '#E2E8F0'}`,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '12px'
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '10px' }}>
+                          <div>
+                            <span style={{ 
+                              padding: '4px 10px', 
+                              borderRadius: '8px', 
+                              fontSize: '0.78rem', 
+                              fontWeight: '800', 
+                              background: report.type === 'product' ? '#DBEAFE' : '#F3E8FF',
+                              color: report.type === 'product' ? '#1E40AF' : '#6B21A8',
+                              marginRight: '8px'
+                            }}>
+                              {report.type === 'product' ? '📦 Annonce' : '🏪 Vendeur'}
+                            </span>
+                            <span style={{ 
+                              padding: '4px 10px', 
+                              borderRadius: '8px', 
+                              fontSize: '0.78rem', 
+                              fontWeight: '800',
+                              background: report.status === 'pending' ? '#FEE2E2' : '#DCFCE7',
+                              color: report.status === 'pending' ? '#DC2626' : '#16A34A'
+                            }}>
+                              {report.status === 'pending' ? '⏳ Non traité' : '✓ Traité / Classé'}
+                            </span>
+                            <span style={{ fontSize: '0.8rem', color: '#64748B', marginLeft: '10px' }}>
+                              {new Date(report.created_at).toLocaleString('fr-FR')}
+                            </span>
+                          </div>
+
+                          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                            {report.product_id && (
+                              <button 
+                                onClick={() => window.open(`/product/${report.product_id}`, '_blank')}
+                                style={{ background: '#3B82F6', color: 'white', border: 'none', padding: '8px 14px', borderRadius: '10px', fontWeight: '700', fontSize: '0.82rem', cursor: 'pointer' }}
+                              >
+                                👁️ Voir l'annonce
+                              </button>
+                            )}
+                            {report.seller_id && (
+                              <button 
+                                onClick={() => window.open(`/boutique/${report.seller_id}`, '_blank')}
+                                style={{ background: '#8B5CF6', color: 'white', border: 'none', padding: '8px 14px', borderRadius: '10px', fontWeight: '700', fontSize: '0.82rem', cursor: 'pointer' }}
+                              >
+                                🏪 Voir le profil
+                              </button>
+                            )}
+                            {report.product_id && report.status === 'pending' && (
+                              <button 
+                                onClick={() => handleDeleteProductFromReport(report.product_id, report.id)}
+                                style={{ background: '#EF4444', color: 'white', border: 'none', padding: '8px 14px', borderRadius: '10px', fontWeight: '700', fontSize: '0.82rem', cursor: 'pointer' }}
+                              >
+                                🗑️ Supprimer l'annonce
+                              </button>
+                            )}
+                            {report.seller_id && report.status === 'pending' && (
+                              <button 
+                                onClick={() => handleSuspendVendorFromReport(report.seller_id, report.id)}
+                                style={{ background: '#991B1B', color: 'white', border: 'none', padding: '8px 14px', borderRadius: '10px', fontWeight: '700', fontSize: '0.82rem', cursor: 'pointer' }}
+                              >
+                                🚫 Suspendre le compte
+                              </button>
+                            )}
+                            {report.status === 'pending' && (
+                              <button 
+                                onClick={() => handleResolveReport(report.id)}
+                                style={{ background: '#10B981', color: 'white', border: 'none', padding: '8px 14px', borderRadius: '10px', fontWeight: '700', fontSize: '0.82rem', cursor: 'pointer' }}
+                              >
+                                ✓ Classer traité
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        <div style={{ fontSize: '0.95rem', fontWeight: '700', color: '#991B1B', background: '#FFF5F5', padding: '10px 14px', borderRadius: '10px', border: '1px solid #FECDD3' }}>
+                          Motif : {report.reason}
+                        </div>
+
+                        {(report.products || report.seller) && (
+                          <div style={{ fontSize: '0.85rem', color: '#475569', display: 'flex', gap: '16px' }}>
+                            {report.products?.title && <span><strong>Produit :</strong> {report.products.title}</span>}
+                            {report.seller?.full_name && <span><strong>Vendeur :</strong> {report.seller.boutique_name || report.seller.full_name}</span>}
+                            {report.reporter?.full_name && <span><strong>Signalé par :</strong> {report.reporter.full_name}</span>}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* ── VUE D'ENSEMBLE ─────────────────────────────────────────────── */}
           {activeTab === 'overview' && (
