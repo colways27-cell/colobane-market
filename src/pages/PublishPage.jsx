@@ -22,7 +22,7 @@ const categoryKeywords = {
   construction: ['ciment', 'sable', 'brique', 'fer', 'peinture', 'plomberie', 'électricité', 'quincaillerie', 'outil', 'menuiserie', 'carrelage'],
   agriculture: ['semence', 'engrais', 'tracteur', 'récolte', 'culture', 'plant', 'aliment animal', 'ferme'],
   animaux: ['chien', 'chat', 'mouton', 'chèvre', 'poule', 'volaille', 'oiseau', 'poisson', 'animal', 'ladoum', 'berger', 'bovin', 'vache'],
-  alimentation: ['nourriture', 'plat', 'repas', 'boisson', 'jus', 'gâteau', 'pâtisserie', 'épice', 'thiébou', 'riz', 'fruit', 'légume'],
+  alimentation: ['restauration', 'cuisine', 'traiteur', 'plat', 'repas', 'patisserie', 'gâteau', 'gateau', 'bissap', 'bouye', 'fast food', 'burger', 'pizza', 'thiebou', 'yassa', 'fataya', 'dibiterie', 'nourriture', 'boisson', 'jus', 'épice', 'gâteau'],
   education: ['livre', 'cahier', 'fourniture', 'cours', 'formation', 'scolaire', 'école', 'université', 'stylo'],
   jeux_loisirs: ['jeux', 'console', 'ps5', 'ps4', 'xbox', 'nintendo', 'ballon', 'sport', 'guitare', 'musique', 'jouet'],
   pro: ['machine', 'professionnel', 'couture', 'coiffure', 'restauration', 'médical', 'industrie', 'bureau'],
@@ -611,6 +611,7 @@ const PublishPage = () => {
             {/* Quick Helper Suggestion Pills */}
             <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '8px', scrollbarWidth: 'none', marginBottom: '16px' }}>
               {[
+                { label: '🍲 Restauration & Traiteur', catId: 'alimentation' },
                 { label: '👚 Friperie & Balles', catId: 'friperie' },
                 { label: '📱 iPhone & Samsung', catId: 'telephones_tablettes' },
                 { label: '👗 Robes & Baskets', catId: 'habillement' },
@@ -659,7 +660,7 @@ const PublishPage = () => {
                 vehicules: 'Voitures, Motos, Pièces...',
                 immobilier: 'Appartements, Terrains...',
                 animaux: 'Moutons, Chiens, Ladoum...',
-                alimentation: 'Produits locaux, Jus...',
+                alimentation: 'Plats cuisinés, Traiteur, Gâteaux, Jus...',
                 pro: 'Équipements & Machines...'
               };
 

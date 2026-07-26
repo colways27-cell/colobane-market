@@ -197,15 +197,14 @@ export const categories = [
   },
   {
     id: 'alimentation',
-    name: 'Alimentation',
+    name: 'Restauration & Cuisine',
     icon: <Utensils size={28} strokeWidth={1.5} />,
-    color: '#ff3b30',
+    color: '#10b981',
     fields: [
-      { name: 'type', label: 'Type', type: 'select', options: ['Plat préparé', 'Produits frais', 'Produits locaux', 'Boissons', 'Épicerie', 'Pâtisserie', 'Autre'] },
-      { name: 'quantity', label: 'Poids / Quantité', type: 'text', placeholder: 'Ex: 1 Kg, 10 bouteilles...' },
-      { name: 'certification', label: 'Certification / Diététique', type: 'text', placeholder: 'Ex: Halal, Bio, Sans gluten...' },
-      { name: 'expiration_date', label: 'DLC / DLUO', type: 'text', placeholder: 'Ex: 31/12/2026 (si applicable)' },
-      { name: 'origin', label: 'Origine', type: 'text', placeholder: 'Ex: Fait maison, Importé...' }
+      { name: 'type', label: 'Sous-catégorie', type: 'select', options: ['Plats cuisinés / Commandes', 'Service Traiteur & Cérémonies', 'Fast-Food / Snack', 'Pâtisserie & Gâteaux', 'Jus naturels & Boissons', 'Produits locaux & Épices', 'Équipements & Ustensiles cuisine', 'Autre'] },
+      { name: 'quantity', label: 'Portion / Quantité', type: 'text', placeholder: 'Ex: Par plat, Balle de 50 personnes, Litre...' },
+      { name: 'delivery_option', label: 'Option de livraison', type: 'select', options: ['Livraison à domicile', 'A emporter sur place', 'Les deux'] },
+      { name: 'origin', label: 'Origine / Spécialité', type: 'text', placeholder: 'Ex: Fait maison, Sénégalaise, Européenne...' }
     ]
   },
   {

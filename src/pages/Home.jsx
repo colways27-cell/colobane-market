@@ -351,35 +351,38 @@ const Home = () => {
             ))}
           </div>
 
-          {/* Banner Wutal Ma (Simple, Épuré & Élégant) */}
+          {/* Banner Wutal Ma (Modern, Premium & Élégant) */}
           <div 
             onClick={() => navigate('/wutal-ma')}
             className="active-scale hover-lift"
             style={{ 
               cursor: 'pointer', 
               marginTop: '12px', 
-              background: '#FFFBEB', 
-              border: '1.5px solid #FDE68A', 
+              background: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)', 
+              border: '1.5px solid #FCD34D', 
               borderRadius: '20px', 
-              padding: '10px 16px', 
+              padding: '12px 18px', 
               display: 'flex', 
               alignItems: 'center', 
-              justify: 'space-between', 
+              justifyContent: 'space-between', 
               gap: '12px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.04)' 
+              boxShadow: '0 4px 14px rgba(245, 158, 11, 0.15)' 
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, overflow: 'hidden' }}>
-              <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'white', border: '1px solid #F59E0B', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 }}>
-                <img src={totemLapin} alt="Totem Lapin" style={{ width: '38px', height: '38px', objectFit: 'contain', transform: 'scale(1.3)' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0, overflow: 'hidden' }}>
+              <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', boxShadow: '0 3px 8px rgba(245, 158, 11, 0.35)', flexShrink: 0 }}>
+                🙋‍♂️
               </div>
-              <div style={{ fontWeight: '800', fontSize: '0.88rem', color: '#92400E', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                Wutal Ma <span style={{ fontWeight: '500', color: '#B45309', opacity: 0.9 }}>• Demandes d'achats</span>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontWeight: '900', fontSize: '0.95rem', color: '#78350F', fontFamily: 'var(--font-heading)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  Wutal Ma <span style={{ fontWeight: '600', fontSize: '0.8rem', color: '#B45309' }}>• Demandes d'achats</span>
+                </div>
+                <div style={{ fontSize: '0.76rem', color: '#B45309', fontWeight: '500', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Trouvez des clients qui cherchent vos articles</div>
               </div>
             </div>
 
-            <div style={{ background: '#F59E0B', color: 'white', fontWeight: '800', fontSize: '0.78rem', padding: '6px 14px', borderRadius: '14px', whiteSpace: 'nowrap', flexShrink: 0 }}>
-              Voir →
+            <div style={{ background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)', color: 'white', fontWeight: '800', fontSize: '0.8rem', padding: '8px 16px', borderRadius: '16px', whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 3px 10px rgba(245, 158, 11, 0.3)' }}>
+              Voir les demandes →
             </div>
           </div>
         </div>

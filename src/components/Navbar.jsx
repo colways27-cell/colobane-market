@@ -59,11 +59,10 @@ const Navbar = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <Link 
               to="/wutal-ma" 
-              className="hide-on-mobile active-scale" 
-              style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: '#FEF3C7', color: '#92400E', padding: '0.6rem 1.1rem', borderRadius: 'var(--radius-pill)', fontWeight: '800', textDecoration: 'none', border: '1px solid #FDE68A', fontSize: '0.9rem' }}
+              className="hide-on-mobile active-scale hover-lift" 
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)', color: '#78350F', padding: '0.6rem 1.1rem', borderRadius: 'var(--radius-pill)', fontWeight: '900', textDecoration: 'none', border: '1.5px solid #FCD34D', fontSize: '0.88rem', boxShadow: '0 2px 8px rgba(245, 158, 11, 0.15)' }}
             >
-              <img src="/totem-lapin.png" alt="" style={{ width: '22px', height: '22px', objectFit: 'contain' }} />
-              Wutal Ma 🙋‍♂️
+              <span style={{ fontSize: '1.1rem' }}>🙋‍♂️</span> Wutal Ma
             </Link>
 
             <button 
@@ -101,9 +100,14 @@ const Navbar = () => {
             </div>
             
             <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <NavLink to="/wutal-ma" onClick={closeMenu} className="active-scale" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.8rem 1rem', borderRadius: '12px', textDecoration: 'none', color: '#92400E', fontWeight: '800', background: '#FEF3C7' }}>
-                <img src="/totem-lapin.png" alt="" style={{ width: '26px', height: '26px', objectFit: 'contain' }} />
-                <span>Wutal Ma (Demandes)</span>
+              <NavLink to="/wutal-ma" onClick={closeMenu} className="active-scale hover-lift" style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '0.9rem 1.1rem', borderRadius: '16px', textDecoration: 'none', background: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)', border: '1.5px solid #FCD34D', boxShadow: '0 4px 14px rgba(245, 158, 11, 0.15)' }}>
+                <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', boxShadow: '0 3px 8px rgba(245, 158, 11, 0.35)', flexShrink: 0 }}>
+                  🙋‍♂️
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span style={{ color: '#78350F', fontWeight: '900', fontSize: '1rem', fontFamily: 'var(--font-heading)' }}>Wutal Ma</span>
+                  <span style={{ color: '#B45309', fontWeight: '700', fontSize: '0.78rem' }}>Demandes d'acheteurs 🔍</span>
+                </div>
               </NavLink>
             </nav>
 
