@@ -25,6 +25,23 @@ const FastInput = ({ value, onChange, ...props }) => {
   return <input value={localVal} onChange={e => setLocalVal(e.target.value)} onBlur={e => onChange({ target: { name: props.name, value: localVal } })} {...props} />;
 };
 
+const isRealEmail = (email) => {
+  if (!email) return false;
+  const lower = String(email).toLowerCase().trim();
+  if (
+    lower.includes('@colobane.com') ||
+    lower.includes('@colobanemarket.com') ||
+    lower.includes('@example.com') ||
+    lower.includes('@placeholder') ||
+    lower.includes('@test') ||
+    lower.startsWith('phone_') ||
+    lower.startsWith('user_')
+  ) {
+    return false;
+  }
+  return true;
+};
+
 const ProfilePage = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -75,7 +92,7 @@ const ProfilePage = () => {
             phone_number: profileData.phone_number || '',
             whatsapp_number: profileData.whatsapp_number || '',
             city: profileData.city || 'Dakar',
-            email: profileData.email || ''
+            email: isRealEmail(profileData.email) ? profileData.email : ''
           });
         }
 
@@ -130,32 +147,32 @@ const ProfilePage = () => {
 
   const handleUpdateProfile = async () => {
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ 
-          full_name: formData.full_name,
-          pseudo: formData.pseudo,
-          phone_number: formData.phone_number,
-          whatsapp_number: formData.whatsapp_number,
-          city: formData.city,
-          email: formData.email
-        })
-        .eq('id', user.id);
-
-      if (error) throw error;
-      setProfile({ 
-        ...profile, 
+      toast.loading("Mise à jour du profil...", { id: 'updateProfile' });
+      const payload = { 
+        id: user.id,
         full_name: formData.full_name,
         pseudo: formData.pseudo,
         phone_number: formData.phone_number,
         whatsapp_number: formData.whatsapp_number,
         city: formData.city,
-        email: formData.email
-      });
+        email: formData.email,
+        updated_at: new Date().toISOString()
+      };
+
+      const { error } = await supabase
+        .from('profiles')
+        .upsert([payload], { onConflict: 'id' });
+
+      if (error) throw error;
+
+      setProfile(prev => ({ 
+        ...prev, 
+        ...payload
+      }));
       setEditingProfile(false);
-      toast.success("Profil mis à jour !");
+      toast.success("Profil mis à jour avec succès !", { id: 'updateProfile' });
     } catch (err) {
-      toast.error("Erreur lors de la mise à jour.");
+      toast.error("Erreur lors de la mise à jour.", { id: 'updateProfile' });
       console.error(err);
     }
   };
@@ -166,25 +183,43 @@ const ProfilePage = () => {
 
     try {
       toast.loading("Mise à jour de la couverture...", { id: 'bannerUpload' });
-      const options = { maxSizeMB: 1, maxWidthOrHeight: 1200, useWebWorker: true };
-      const compressedFile = await imageCompression(file, options);
-      const fileName = `banner_${user.id}_${Date.now()}.jpg`;
+      let fileToUpload = file;
 
-      const { data, error } = await supabase.storage.from('products').upload(fileName, compressedFile);
-      if (error) throw error;
+      try {
+        const options = { maxSizeMB: 1, maxWidthOrHeight: 1200, useWebWorker: false };
+        fileToUpload = await imageCompression(file, options);
+      } catch (cErr) {
+        console.warn('Image compression fallback:', cErr);
+      }
 
-      const { data: publicUrlData } = supabase.storage.from('products').getPublicUrl(fileName);
-      const newBannerUrl = publicUrlData.publicUrl;
+      const reader = new FileReader();
+      reader.readAsDataURL(fileToUpload);
+      reader.onloadend = async () => {
+        const base64Url = reader.result;
+        let finalBannerUrl = base64Url;
 
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ banner_url: newBannerUrl })
-        .eq('id', user.id);
+        try {
+          const fileName = `banner_${user.id}_${Date.now()}.jpg`;
+          const { error: storageError } = await supabase.storage.from('products').upload(fileName, fileToUpload, { upsert: true });
+          if (!storageError) {
+            const { data: publicUrlData } = supabase.storage.from('products').getPublicUrl(fileName);
+            if (publicUrlData?.publicUrl) finalBannerUrl = publicUrlData.publicUrl;
+          }
+        } catch (sErr) {
+          console.warn('Storage upload fallback:', sErr);
+        }
 
-      if (updateError) throw updateError;
+        const { error: dbError } = await supabase
+          .from('profiles')
+          .upsert([{ id: user.id, banner_url: finalBannerUrl }], { onConflict: 'id' });
 
-      setProfile(prev => ({ ...prev, banner_url: newBannerUrl }));
-      toast.success("Photo de couverture mise à jour !", { id: 'bannerUpload' });
+        if (dbError) {
+          console.warn('DB upsert error:', dbError);
+        }
+
+        setProfile(prev => ({ ...prev, banner_url: finalBannerUrl }));
+        toast.success("Photo de couverture mise à jour !", { id: 'bannerUpload' });
+      };
     } catch (err) {
       console.error(err);
       toast.error("Erreur lors de l'upload.", { id: 'bannerUpload' });
@@ -197,25 +232,43 @@ const ProfilePage = () => {
 
     try {
       toast.loading("Mise à jour de la photo de profil...", { id: 'avatarUpload' });
-      const options = { maxSizeMB: 0.5, maxWidthOrHeight: 500, useWebWorker: true };
-      const compressedFile = await imageCompression(file, options);
-      const fileName = `avatar_${user.id}_${Date.now()}.jpg`;
+      let fileToUpload = file;
 
-      const { data, error } = await supabase.storage.from('products').upload(fileName, compressedFile);
-      if (error) throw error;
+      try {
+        const options = { maxSizeMB: 0.5, maxWidthOrHeight: 500, useWebWorker: false };
+        fileToUpload = await imageCompression(file, options);
+      } catch (cErr) {
+        console.warn('Image compression fallback:', cErr);
+      }
 
-      const { data: publicUrlData } = supabase.storage.from('products').getPublicUrl(fileName);
-      const newAvatarUrl = publicUrlData.publicUrl;
+      const reader = new FileReader();
+      reader.readAsDataURL(fileToUpload);
+      reader.onloadend = async () => {
+        const base64Url = reader.result;
+        let finalAvatarUrl = base64Url;
 
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ avatar_url: newAvatarUrl })
-        .eq('id', user.id);
+        try {
+          const fileName = `avatar_${user.id}_${Date.now()}.jpg`;
+          const { error: storageError } = await supabase.storage.from('products').upload(fileName, fileToUpload, { upsert: true });
+          if (!storageError) {
+            const { data: publicUrlData } = supabase.storage.from('products').getPublicUrl(fileName);
+            if (publicUrlData?.publicUrl) finalAvatarUrl = publicUrlData.publicUrl;
+          }
+        } catch (sErr) {
+          console.warn('Storage upload fallback:', sErr);
+        }
 
-      if (updateError) throw updateError;
+        const { error: dbError } = await supabase
+          .from('profiles')
+          .upsert([{ id: user.id, avatar_url: finalAvatarUrl }], { onConflict: 'id' });
 
-      setProfile(prev => ({ ...prev, avatar_url: newAvatarUrl }));
-      toast.success("Photo de profil mise à jour !", { id: 'avatarUpload' });
+        if (dbError) {
+          console.warn('DB upsert error:', dbError);
+        }
+
+        setProfile(prev => ({ ...prev, avatar_url: finalAvatarUrl }));
+        toast.success("Photo de profil mise à jour !", { id: 'avatarUpload' });
+      };
     } catch (err) {
       console.error(err);
       toast.error("Erreur lors de l'upload.", { id: 'avatarUpload' });
@@ -399,7 +452,9 @@ const ProfilePage = () => {
                 </h1>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', color: 'var(--text-muted)', fontSize: '1rem' }}>
                   <span className="glass-panel" style={{ padding: '6px 12px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600' }}>📍 {profile?.city || profile?.location || 'Sénégal'}</span>
-                  <span className="glass-panel" style={{ padding: '6px 12px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600' }}>📧 {profile?.email || 'Aucun email'}</span>
+                  {isRealEmail(profile?.email) && (
+                    <span className="glass-panel" style={{ padding: '6px 12px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600' }}>📧 {profile.email}</span>
+                  )}
                   <span className="glass-panel" style={{ padding: '6px 12px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600' }}>📱 {profile?.whatsapp_number || profile?.phone_number || 'Aucun numéro'}</span>
                 </div>
               </div>

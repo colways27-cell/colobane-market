@@ -68,7 +68,7 @@ const Footer = () => {
             </Link>
           </h4>
           <p className="footer-desc" style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: '1.6' }}>
-            La première marketplace sénégalaise pour acheter et vendre la mode, la fripe et les accessoires en toute simplicité.
+            La première marketplace sénégalaise pour acheter et vendre la mode, l'électronique et tous vos articles en toute simplicité.
           </p>
           
           <div className="footer-socials" style={{ display: 'flex', gap: '12px', marginTop: '1rem' }}>
@@ -99,7 +99,7 @@ const Footer = () => {
             <li><Link to="/explore">Toutes les annonces</Link></li>
             <li><Link to="/category/habillement">Vêtements</Link></li>
             <li><Link to="/category/chaussures">Chaussures</Link></li>
-            <li><Link to="/category/friperie">Friperie</Link></li>
+            <li><Link to="/category/telephones-accessoires">Électronique</Link></li>
           </ul>
         </div>
         

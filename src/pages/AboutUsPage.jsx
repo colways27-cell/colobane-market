@@ -397,7 +397,7 @@ const AboutUsPage = () => {
             L'esprit de <span>Colobane</span>, réinventé en ligne
           </h1>
           <p className="about-subtitle">
-            Colobane Market digitalise et dynamise le commerce de proximité et de friperie au Sénégal pour connecter directement acheteurs et vendeurs.
+            Colobane Market digitalise et dynamise le commerce de proximité et la vente en ligne au Sénégal pour connecter directement acheteurs et vendeurs.
           </p>
         </section>
 
@@ -483,7 +483,7 @@ const AboutUsPage = () => {
                 <Heart size={20} style={{ color: '#ec4899' }} /> Économie Circulaire
               </h3>
               <p>
-                En encourageant la revente d'articles de friperie et de seconde main, nous participons activement à un modèle économique plus durable, écologique et accessible à tous les budgets.
+                En encourageant le commerce local et la revente responsable, nous participons activement à un modèle économique plus durable, dynamique et accessible à tous les budgets.
               </p>
             </div>
           </div>
