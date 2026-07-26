@@ -2,7 +2,7 @@ import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
-import totemLapin from '../assets/totem-lapin.png';
+import totemLapin from '../assets/totem-lapin.webp';
 
 const Navbar = () => {
   const { user, signOut } = useAuth();

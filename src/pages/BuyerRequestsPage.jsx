@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../components/AuthContext';
 import toast from 'react-hot-toast';
 import { MapPin, Phone, Plus, Search, MessageSquare, ArrowLeft } from 'lucide-react';
-import totemLapin from '../assets/totem-lapin.png';
+import totemLapin from '../assets/totem-lapin.webp';
 
 const BuyerRequestsPage = () => {
   const navigate = useNavigate();

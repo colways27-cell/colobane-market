@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import totemLapin from '../assets/totem-lapin.png';
+import totemLapin from '../assets/totem-lapin.webp';
 
 const BottomNav = () => {
   const location = useLocation();

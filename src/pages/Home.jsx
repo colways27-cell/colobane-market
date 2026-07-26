@@ -7,7 +7,7 @@ import SkeletonCard from '../components/SkeletonCard';
 import FavoriteButton from '../components/FavoriteButton';
 import toast from 'react-hot-toast';
 import { Store, ChevronDown, ChevronUp, Search, MapPin } from 'lucide-react';
-import totemLapin from '../assets/totem-lapin.png';
+import totemLapin from '../assets/totem-lapin.webp';
 
 const Home = () => {
   const [products, setProducts] = useState([]);

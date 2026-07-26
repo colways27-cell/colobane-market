@@ -157,16 +157,52 @@ const ProductPage = () => {
   const rawPhone = product.profiles?.phone_number || product.profiles?.whatsapp_number || product.metadata?.contact_whatsapp || product.contact || '';
   const phoneNumber = rawPhone.replace(/[^\d+]/g, '');
 
+  const canonicalUrl = `https://colobanemarket.vercel.app/product/${productId}`;
+  const schemaProduct = {
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    "name": product.title,
+    "image": product.images && product.images.length > 0 ? product.images : [imageUrl],
+    "description": product.description || product.title,
+    "offers": {
+      "@type": "Offer",
+      "priceCurrency": "XOF",
+      "price": product.price || 0,
+      "availability": "https://schema.org/InStock",
+      "url": canonicalUrl,
+      "seller": {
+        "@type": "Organization",
+        "name": product.profiles?.boutique_name || product.profiles?.full_name || "Colobane Market"
+      }
+    }
+  };
+
   return (
     <div className="product-page" style={{ paddingBottom: '120px', maxWidth: '600px', margin: '0 auto', background: 'var(--bg-color)', minHeight: '100vh', position: 'relative' }}>
       
       <Helmet>
-        <title>{product.title} - Colobane Market</title>
-        <meta name="description" content={product.description?.substring(0, 150) || 'Découvrez cet article sur Colobane Market'} />
+        <title>{product.title} - Colobane Market 🇸🇳</title>
+        <meta name="description" content={product.description?.substring(0, 160) || `Achetez ${product.title} à ${(product.price || 0).toLocaleString('fr-FR')} FCFA sur Colobane Market.`} />
+        <link rel="canonical" href={canonicalUrl} />
+        
+        {/* OpenGraph pour Facebook, WhatsApp, LinkedIn */}
+        <meta property="og:type" content="product" />
         <meta property="og:title" content={`${product.title} - ${(product.price || 0).toLocaleString('fr-FR')} FCFA`} />
-        <meta property="og:description" content={product.description?.substring(0, 150)} />
+        <meta property="og:description" content={product.description?.substring(0, 160) || `Annonce publiée sur Colobane Market à ${product.location || 'Dakar'}.`} />
         <meta property="og:image" content={imageUrl} />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:site_name" content="Colobane Market" />
+        
+        {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`${product.title} - Colobane Market`} />
+        <meta name="twitter:description" content={product.description?.substring(0, 160)} />
+        <meta name="twitter:image" content={imageUrl} />
+
+        {/* Schema.org Microdata Google Product */}
+        <script type="application/ld+json">
+          {JSON.stringify(schemaProduct)}
+        </script>
       </Helmet>
 
       {/* Top Bar Floating */}
