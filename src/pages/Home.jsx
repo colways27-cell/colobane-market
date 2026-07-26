@@ -370,8 +370,8 @@ const Home = () => {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0, overflow: 'hidden' }}>
-              <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', boxShadow: '0 3px 8px rgba(245, 158, 11, 0.35)', flexShrink: 0 }}>
-                🙋‍♂️
+              <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: 'white', border: '1.5px solid #F59E0B', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0, boxShadow: '0 3px 8px rgba(245, 158, 11, 0.25)' }}>
+                <img src={totemLapin} alt="Wutal Ma Totem" style={{ width: '46px', height: '46px', objectFit: 'contain', transform: 'scale(1.35)' }} />
               </div>
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontWeight: '900', fontSize: '0.95rem', color: '#78350F', fontFamily: 'var(--font-heading)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
