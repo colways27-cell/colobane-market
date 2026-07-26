@@ -4,6 +4,7 @@ import { useAuth } from '../components/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import imageCompression from 'browser-image-compression';
+import { isBoutiqueExpired, getTrialDaysRemaining } from '../utils/boutiqueHelpers';
 
 const locations = ['Dakar', 'Pikine', 'Guédiawaye', 'Rufisque', 'Thiès', 'Saint-Louis', 'Touba', 'Kaolack', 'Ziguinchor', 'Mbour', 'Louga', 'Tambacounda', 'Autre'];
 
@@ -504,13 +505,22 @@ const ProfilePage = () => {
                     )}
                     
                     {/* Trial & Subscription Status */}
-                    {isTrialExpired && profile?.subscription_plan === 'none' ? (
-                       <Link to="/subscription" className="active-scale hover-lift" style={{ background: '#fef2f2', color: '#ef4444', padding: '12px', borderRadius: '16px', fontSize: '0.9rem', textAlign: 'center', textDecoration: 'none', fontWeight: '800', border: '2px solid #fecaca', display: 'block' }}>
-                         ⚠️ Essai terminé. S'abonner
-                       </Link>
-                    ) : trialDaysLeft !== null && profile?.subscription_plan === 'none' ? (
-                       <Link to="/subscription" className="active-scale hover-lift" style={{ background: '#ecfdf5', color: '#10b981', padding: '12px', borderRadius: '16px', fontSize: '0.9rem', textAlign: 'center', textDecoration: 'none', fontWeight: '800', border: '2px solid #a7f3d0', display: 'block' }}>
-                         🚀 {trialDaysLeft} jours d'essai restants
+                    {isBoutiqueExpired(profile) ? (
+                       <div style={{ background: '#FEF2F2', border: '2px solid #FCA5A5', borderRadius: '20px', padding: '20px', textAlign: 'center', width: '100%', boxSizing: 'border-box' }}>
+                         <div style={{ fontSize: '2rem', marginBottom: '6px' }}>🔒</div>
+                         <h4 style={{ color: '#991B1B', fontSize: '1.1rem', fontWeight: '900', margin: '0 0 6px 0' }}>
+                           Période d'essai 15 jours expirée
+                         </h4>
+                         <p style={{ color: '#7F1D1D', fontSize: '0.85rem', margin: '0 0 14px 0', lineHeight: '1.4' }}>
+                           Votre boutique n'est plus accessible au public. Abonnez-vous (5 000F ou 10 000F/mois) pour réactiver votre vitrine.
+                         </p>
+                         <Link to="/subscription" className="active-scale hover-lift" style={{ background: '#DC2626', color: 'white', padding: '12px 20px', borderRadius: '14px', fontSize: '0.9rem', textAlign: 'center', textDecoration: 'none', fontWeight: '800', display: 'inline-block', boxShadow: '0 4px 14px rgba(220,38,38,0.3)' }}>
+                           💳 Activer mon Abonnement →
+                         </Link>
+                       </div>
+                    ) : profile?.account_type === 'boutique' && profile?.subscription_plan === 'none' ? (
+                       <Link to="/subscription" className="active-scale hover-lift" style={{ background: '#ecfdf5', color: '#10b981', padding: '12px', borderRadius: '16px', fontSize: '0.9rem', textAlign: 'center', textDecoration: 'none', fontWeight: '800', border: '2px solid #a7f3d0', display: 'block', width: '100%', boxSizing: 'border-box' }}>
+                         🚀 Essai boutique gratuit : {getTrialDaysRemaining(profile)} jours restants
                        </Link>
                     ) : null}
 

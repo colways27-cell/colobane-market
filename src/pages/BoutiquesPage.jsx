@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { Link } from 'react-router-dom';
 import { BadgeCheck, MapPin, Star, Search, Store, ShoppingBag, ArrowRight, Phone, Filter } from 'lucide-react';
 import { senegalRegions } from '../data/locations';
+import { isBoutiqueExpired } from '../utils/boutiqueHelpers';
 
 const BoutiquesPage = () => {
   const [boutiques, setBoutiques] = useState([]);
@@ -63,6 +64,8 @@ const BoutiquesPage = () => {
   }, []);
 
   const filteredBoutiques = boutiques.filter(b => {
+    if (isBoutiqueExpired(b)) return false;
+
     const nameMatch = (b.boutique_name || b.full_name || '').toLowerCase().includes(searchQuery.toLowerCase());
     const descMatch = (b.boutique_description || '').toLowerCase().includes(searchQuery.toLowerCase());
     const locationMatch = (b.location || b.region || '').toLowerCase().includes(searchQuery.toLowerCase());

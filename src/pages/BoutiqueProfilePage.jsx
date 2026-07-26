@@ -7,6 +7,7 @@ import { useAuth } from '../components/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Store, BadgeCheck, MapPin, Star } from 'lucide-react';
+import { isBoutiqueExpired } from '../utils/boutiqueHelpers';
 
 const BoutiqueProfilePage = () => {
   const { boutiqueId } = useParams();
@@ -128,6 +129,23 @@ const BoutiqueProfilePage = () => {
       <div className="section-container" style={{ minHeight: '60vh', textAlign: 'center', paddingTop: '4rem' }}>
         <h2>Boutique introuvable</h2>
         <Link to="/boutiques" className="btn-primary" style={{ display: 'inline-block', marginTop: '2rem' }}>Retour aux boutiques</Link>
+      </div>
+    );
+  }
+
+  if (profile && isBoutiqueExpired(profile) && user?.id !== boutiqueId) {
+    return (
+      <div className="section-container" style={{ padding: '80px 20px', textAlign: 'center', maxWidth: '500px', margin: '0 auto' }}>
+        <div style={{ fontSize: '4rem', marginBottom: '16px' }}>🔒</div>
+        <h2 style={{ fontSize: '1.5rem', fontWeight: '900', color: 'var(--text-main)', marginBottom: '12px' }}>
+          Boutique temporairement suspendue
+        </h2>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', lineHeight: '1.5', marginBottom: '24px' }}>
+          La période d'essai gratuite de 15 jours de cette boutique est arrivée à son terme. Le catalogue sera de nouveau accessible dès le renouvellement de son abonnement vendeur.
+        </p>
+        <Link to="/boutiques" className="btn-primary active-scale" style={{ padding: '12px 24px', borderRadius: '16px', textDecoration: 'none', fontWeight: '800' }}>
+          🏪 Découvrir les autres boutiques →
+        </Link>
       </div>
     );
   }
