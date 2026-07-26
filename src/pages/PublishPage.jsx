@@ -88,6 +88,43 @@ const FastTextarea = ({ value, onChange, ...props }) => {
   return <textarea value={localVal} onChange={e => setLocalVal(e.target.value)} onBlur={e => onChange({ target: { name: props.name, value: localVal } })} {...props} />;
 };
 
+// ══════════════════════════════════════════════════════════════════════════════
+// BLACKLIST ÉTENDUE SPÉCIFIQUE SÉNÉGAL (MODÉRATION AVANCÉE NIVEAU 2)
+// ══════════════════════════════════════════════════════════════════════════════
+const SENEGAL_ADVANCED_BLACKLIST = [
+  // Arnaques & Paiement à l'avance / Faux
+  'arnaque', 'faux', 'fake', 'escroquerie', 'avance', 'acompte',
+  'western union', 'moneygram', 'bitcoin', 'crypto', 'paypal',
+  'virement', 'envoyer argent', 'send money', 'transfert',
+  'code de vérification', 'code wave', 'code orange',
+  'reçu wave', 'reçu orange', 'capture wave',
+  'payer avant', 'paiement avant', 'avance obligatoire',
+  'envoyer d\'abord', 'envoyer avant de voir',
+  'frais de livraison à avancer', 'frais de dossier',
+  'frais de déblocage', 'frais de transfert',
+  'caution remboursable', 'dépôt de garantie urgent',
+
+  // Contenu Inapproprié / Adulte
+  'send nudes', 'gratuit contre', 'photo contre',
+  'video contre', 'échange service', 'massage tantrique',
+  'escort', 'accompagnatrice',
+
+  // Mots de Pression & Fausse Urgence
+  'urgent urgent', 'urgent urgent urgent', 'besoin cash urgent',
+  'départ définitif', 'quitte le sénégal',
+  'quitte dakar', 'voyage imminent',
+  'liquidation totale', 'tout doit partir',
+  'prix choc', 'incroyable', 'opportunité unique',
+
+  // Arnaques Immobilier / Véhicules / Dons suspects
+  'propriétaire absent', 'clés disponibles',
+  'visite sans rendez-vous', 'payer pour visiter',
+  'frais de réservation', 'bloquer le bien',
+  'vendu pour raisons médicales', 'décès du propriétaire',
+  'héritage à vendre', 'ambassade vend',
+  'ONG vend', 'association vend'
+];
+
 const categoryDescriptionTemplates = {
   telephones_tablettes: `📱 Modèle & Capacité : [Ex: iPhone 13 Pro 128Go]
 🔋 État Batterie : [Ex: 88%]
@@ -355,7 +392,7 @@ const PublishPage = () => {
     setPreviews(newPreviews);
   };
 
-  const nextStep = () => {
+  const nextStep = async () => {
     if (step === 1 && !selectedCategory) {
       toast.error("Veuillez sélectionner une catégorie.");
       return;
@@ -379,9 +416,48 @@ const PublishPage = () => {
         toast.error("Veuillez remplir le titre et la description.");
         return;
       }
-      if (images.length === 0) {
-        toast.error("Veuillez ajouter au moins une photo.");
+
+      // 1. Bloquer la soumission si aucune photo n'est ajoutée
+      if (!images || images.length === 0) {
+        toast.error("Au moins une photo est obligatoire pour publier une annonce.");
         return;
+      }
+
+      // 2. Détection des devises étrangères ($, €, dollar, euro)
+      const currencyRegex = /(\$|€|\bdollars?\b|\beuros?\b)/i;
+      if (currencyRegex.test(formData.title || '') || currencyRegex.test(formData.description || '')) {
+        toast.error("Les prix doivent être en FCFA uniquement.");
+        return;
+      }
+
+      // 3. Blacklist étendue spécifique Sénégal (Modération Avancée)
+      const fullText = `${formData.title} ${formData.description}`.toLowerCase();
+      for (const term of SENEGAL_ADVANCED_BLACKLIST) {
+        if (fullText.includes(term.toLowerCase())) {
+          toast.error(`⛔ Publication bloquée : terme suspect ou interdit détecté ("${term}").`);
+          return;
+        }
+      }
+
+      // 4. Limite anti-spam de 2 annonces par catégorie dans les dernières 24h (compte non-premium)
+      const isPremium = profile?.subscription_plan === 'premium' || profile?.subscription_plan === 'forfait_premium';
+      if (!isPremium && user?.id && selectedCategory) {
+        try {
+          const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+          const { count: catCount, error: countErr } = await supabase
+            .from('products')
+            .select('*', { count: 'exact', head: true })
+            .eq('seller_id', user.id)
+            .eq('category', selectedCategory)
+            .gte('created_at', twentyFourHoursAgo);
+
+          if (!countErr && (catCount || 0) >= 2) {
+            toast.error("Vous avez déjà publié 2 annonces dans cette catégorie aujourd'hui. Passez en premium pour publier sans limite.");
+            return;
+          }
+        } catch (e) {
+          console.warn("Anti-spam check error", e);
+        }
       }
     }
     setStep(step + 1);
@@ -457,6 +533,56 @@ const PublishPage = () => {
       toast.error("Vous avez atteint la limite de 3 annonces gratuites ce mois-ci. Veuillez vous abonner.");
       return;
     }
+
+    // 1. Bloquer la soumission si images.length === 0
+    if (!images || images.length === 0) {
+      toast.error("Au moins une photo est obligatoire pour publier une annonce.");
+      setErrorMsg("Au moins une photo est obligatoire pour publier une annonce.");
+      return;
+    }
+
+    // 2. Détection des devises étrangères ($, €, dollar, euro)
+    const currencyRegex = /(\$|€|\bdollars?\b|\beuros?\b)/i;
+    if (currencyRegex.test(formData.title || '') || currencyRegex.test(formData.description || '')) {
+      toast.error("Les prix doivent être en FCFA uniquement.");
+      setErrorMsg("Les prix doivent être en FCFA uniquement.");
+      return;
+    }
+
+    // 3. Blacklist étendue spécifique Sénégal
+    const fullText = `${formData.title} ${formData.description}`.toLowerCase();
+    for (const term of SENEGAL_ADVANCED_BLACKLIST) {
+      if (fullText.includes(term.toLowerCase())) {
+        const msg = `⛔ Publication bloquée : terme suspect ou interdit détecté ("${term}").`;
+        toast.error(msg);
+        setErrorMsg(msg);
+        return;
+      }
+    }
+
+    // 4. Anti-Spam (Max 2 annonces par catégorie dans les dernières 24h)
+    const isPremium = profile?.subscription_plan === 'premium' || profile?.subscription_plan === 'forfait_premium';
+    if (!isPremium && user?.id && selectedCategory) {
+      try {
+        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+        const { count: catCount, error: countErr } = await supabase
+          .from('products')
+          .select('*', { count: 'exact', head: true })
+          .eq('seller_id', user.id)
+          .eq('category', selectedCategory)
+          .gte('created_at', twentyFourHoursAgo);
+
+        if (!countErr && (catCount || 0) >= 2) {
+          const msg = "Vous avez déjà publié 2 annonces dans cette catégorie aujourd'hui. Passez en premium pour publier sans limite.";
+          toast.error(msg);
+          setErrorMsg(msg);
+          return;
+        }
+      } catch (e) {
+        console.warn("Anti-spam check error", e);
+      }
+    }
+
     setLoading(true);
     setErrorMsg('');
 
@@ -928,6 +1054,14 @@ const PublishPage = () => {
                   <InputWrapper icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginTop: '14px' }}><line x1="21" y1="10" x2="3" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="14" y1="18" x2="3" y2="18"></line></svg>}>
                     <FastTextarea name="description" rows="5" placeholder="Description détaillée..." value={formData.description} onChange={handleInputChange} style={{ flex: 1, padding: '1rem 1rem 1rem 0', border: 'none', background: 'transparent', outline: 'none', fontSize: '0.95rem', resize: 'vertical' }}></FastTextarea>
                   </InputWrapper>
+                  
+                  {/* Détection numéro de téléphone dans la description */}
+                  {/(\+?221|0)?[7][0-9]{8}/g.test(formData.description || '') && (
+                    <div style={{ marginTop: '8px', padding: '10px 14px', borderRadius: '12px', background: '#FEF3C7', border: '1px solid #FDE68A', color: '#92400E', fontSize: '0.83rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '1rem' }}>⚠️</span>
+                      <span>Évitez de mettre votre numéro dans la description. Utilisez le champ WhatsApp prévu à cet effet.</span>
+                    </div>
+                  )}
                 </div>
 
                 <div style={{ marginBottom: '1.5rem' }}>
