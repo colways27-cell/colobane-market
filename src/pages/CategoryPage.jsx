@@ -14,8 +14,8 @@ const CategoryPage = () => {
     if (!c) return false;
     const cleanParam = (categoryId || '').toLowerCase().replace(/-/g, '_');
     if (c.id === cleanParam) return true;
-    if (cleanParam === 'restauration' && c.id === 'alimentation') return true;
-    if (cleanParam === 'cuisine' && c.id === 'alimentation') return true;
+    if (['restauration', 'cuisine', 'traiteur', 'nourriture'].includes(cleanParam) && c.id === 'alimentation') return true;
+    if (['friperie', 'fripe', 'balles'].includes(cleanParam) && c.id === 'friperie') return true;
     return false;
   });
 
@@ -33,10 +33,10 @@ const CategoryPage = () => {
           .select('*')
           .order('created_at', { ascending: false });
 
-        if (catTargetId === 'alimentation') {
-          query = query.in('category', ['alimentation', 'restauration', 'cuisine']);
-        } else if (catTargetId === 'friperie') {
-          query = query.in('category', ['friperie']);
+        if (['alimentation', 'restauration', 'cuisine', 'traiteur'].includes(catTargetId)) {
+          query = query.in('category', ['alimentation', 'restauration', 'cuisine', 'traiteur']);
+        } else if (['friperie', 'fripe', 'balles'].includes(catTargetId)) {
+          query = query.in('category', ['friperie', 'fripe', 'balles']);
         } else {
           query = query.eq('category', catTargetId);
         }

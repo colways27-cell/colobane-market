@@ -136,7 +136,14 @@ const ExplorePage = () => {
 
       // 1. Filtre par Catégorie
       if (activeCategory !== 'all') {
-        query = query.eq('category', activeCategory);
+        const cleanCat = (activeCategory || '').toLowerCase().replace(/-/g, '_');
+        if (['alimentation', 'restauration', 'cuisine', 'traiteur'].includes(cleanCat)) {
+          query = query.in('category', ['alimentation', 'restauration', 'cuisine', 'traiteur']);
+        } else if (['friperie', 'fripe', 'balles'].includes(cleanCat)) {
+          query = query.in('category', ['friperie', 'fripe', 'balles']);
+        } else {
+          query = query.eq('category', activeCategory);
+        }
       }
 
       // 1b. Filtre par Sous-catégorie
