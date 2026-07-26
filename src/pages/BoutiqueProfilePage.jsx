@@ -213,63 +213,79 @@ const BoutiqueProfilePage = () => {
                 {profile.boutique_description || 'Bienvenue dans notre boutique officielle sur ColobaneMarket.'}
               </p>
               <div className="boutique-profile-badges" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '1rem' }}>
-                <span className="boutique-badge" style={{ padding: '6px 14px', background: '#F1F5F9', borderRadius: '12px', fontSize: '0.9rem', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '6px' }}><MapPin size={16} color="#64748b" /> {profile.location || profile.region || 'Sénégal'}</span>
-                {profile.business_hours && <span className="boutique-badge" style={{ padding: '6px 14px', background: '#F1F5F9', borderRadius: '12px', fontSize: '0.9rem', fontWeight: '700' }}>🕒 {profile.business_hours}</span>}
-                <div className="boutique-badge boutique-badge-rating hover-lift" style={{ cursor: 'pointer', padding: '6px 14px', background: '#FEF3C7', color: '#B45309', borderRadius: '12px', fontSize: '0.9rem', fontWeight: '800', display: 'inline-flex', alignItems: 'center', gap: '6px' }} onClick={() => setActiveTab('avis')}>
-                  <Star size={16} fill="#f59e0b" color="#f59e0b" />
+                <span className="boutique-badge" style={{ padding: '8px 14px', background: '#F8FAFC', border: '1px solid #E2E8F0', color: 'var(--text-main)', borderRadius: '14px', fontSize: '0.88rem', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  <MapPin size={15} color="var(--primary)" /> {profile.location || profile.region || 'Sénégal'}
+                </span>
+                {profile.business_hours && (
+                  <span className="boutique-badge" style={{ padding: '8px 14px', background: '#F8FAFC', border: '1px solid #E2E8F0', color: 'var(--text-main)', borderRadius: '14px', fontSize: '0.88rem', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    🕒 {profile.business_hours}
+                  </span>
+                )}
+                <div className="boutique-badge boutique-badge-rating hover-lift" style={{ cursor: 'pointer', padding: '8px 14px', background: '#FFFBEB', border: '1px solid #FCD34D', color: '#B45309', borderRadius: '14px', fontSize: '0.88rem', fontWeight: '800', display: 'inline-flex', alignItems: 'center', gap: '6px' }} onClick={() => setActiveTab('avis')}>
+                  <Star size={15} fill="#f59e0b" color="#f59e0b" />
                   <span>{avgRating > 0 ? avgRating : 'Nouveau'}</span>
                   <span style={{ fontWeight: '600', opacity: 0.8 }}>({reviews.length} avis)</span>
                 </div>
-                {/* Badge Certifié ou Bouton de demande de certification */}
-                {profile.is_verified ? (
-                  <span style={{ padding: '6px 14px', background: 'linear-gradient(135deg, #10B981, #059669)', color: 'white', borderRadius: '12px', fontSize: '0.85rem', fontWeight: '800', display: 'inline-flex', alignItems: 'center', gap: '6px', boxShadow: '0 4px 12px rgba(16,185,129,0.3)' }}>
-                    🛡️ Vendeur Certifié & De Confiance
+                {profile.is_verified && (
+                  <span style={{ padding: '8px 14px', background: 'linear-gradient(135deg, #10B981, #059669)', color: 'white', borderRadius: '14px', fontSize: '0.85rem', fontWeight: '800', display: 'inline-flex', alignItems: 'center', gap: '6px', boxShadow: '0 4px 12px rgba(16,185,129,0.25)' }}>
+                    🛡️ Vendeur Certifié
                   </span>
-                ) : user && user.id === profile.id ? (
-                  <Link 
-                    to="/certification"
-                    className="active-scale hover-lift"
-                    style={{ padding: '6px 14px', background: 'linear-gradient(135deg, #3B82F6, #1D4ED8)', color: 'white', textDecoration: 'none', border: 'none', borderRadius: '12px', fontSize: '0.85rem', fontWeight: '800', display: 'inline-flex', alignItems: 'center', gap: '6px', boxShadow: '0 4px 12px rgba(59,130,246,0.3)' }}
-                  >
-                    🛡️ Certifier ma boutique (CNI + Selfie)
-                  </Link>
-                ) : null}
+                )}
               </div>
+
+              {/* Banniere de demande de certification si proprio non vérifié */}
+              {user && user.id === profile.id && !profile.is_verified && (
+                <div style={{ marginTop: '1.2rem', padding: '14px 18px', background: 'linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)', border: '1.5px solid #93C5FD', borderRadius: '18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <span style={{ fontSize: '1.5rem' }}>🛡️</span>
+                    <div>
+                      <div style={{ fontWeight: '800', color: '#1E40AF', fontSize: '0.92rem' }}>Certifier ma boutique (CNI + Selfie)</div>
+                      <div style={{ fontSize: '0.78rem', color: '#3B82F6', fontWeight: '500' }}>Obtenez le badge officiel Vendeur Vérifié & De Confiance</div>
+                    </div>
+                  </div>
+                  <Link to="/certification" className="active-scale hover-lift" style={{ padding: '8px 18px', background: 'linear-gradient(135deg, #2563EB, #1D4ED8)', color: 'white', textDecoration: 'none', borderRadius: '12px', fontSize: '0.85rem', fontWeight: '800', whiteSpace: 'nowrap', boxShadow: '0 4px 12px rgba(37,99,235,0.3)' }}>
+                    Demander Certification →
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Boutons de Contact */}
-          <div className="boutique-profile-actions">
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <div className="boutique-profile-actions" style={{ marginTop: '1.5rem' }}>
+            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
               <a 
                 href={whatsappNumber ? whatsappUrl : '#'} 
                 onClick={(e) => { if (!whatsappNumber) { e.preventDefault(); toast.error("Cette boutique n'a pas renseigné son WhatsApp."); } }}
                 target={whatsappNumber ? "_blank" : ""} 
                 rel="noopener noreferrer" 
                 className={`active-scale touch-target hover-lift ${whatsappNumber ? 'btn-whatsapp' : ''}`}
-                style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', background: whatsappNumber ? 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)' : '#e2e8f0', color: whatsappNumber ? 'white' : '#94a3b8', padding: '1rem', borderRadius: '16px', textDecoration: 'none', fontWeight: '800', fontSize: '1.05rem', cursor: whatsappNumber ? 'pointer' : 'not-allowed', border: 'none', boxShadow: whatsappNumber ? '0 8px 20px rgba(37, 211, 102, 0.3)' : 'none' }} 
+                style={{ flex: 1, minWidth: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.6rem', background: whatsappNumber ? 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)' : '#e2e8f0', color: whatsappNumber ? 'white' : '#94a3b8', padding: '0.9rem 1.4rem', borderRadius: '18px', textDecoration: 'none', fontWeight: '800', fontSize: '1rem', cursor: whatsappNumber ? 'pointer' : 'not-allowed', border: 'none', boxShadow: whatsappNumber ? '0 8px 20px rgba(37, 211, 102, 0.3)' : 'none' }} 
               >
-                WhatsApp
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+                Contacter par WhatsApp
               </a>
+              {callNumber && (
+                <a 
+                  href={`tel:${callNumber}`} 
+                  className="active-scale touch-target hover-lift" 
+                  style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '0.9rem 1.2rem', borderRadius: '18px', textDecoration: 'none', fontWeight: '800', background: '#F8FAFC', border: '1.5px solid #E2E8F0', color: 'var(--text-main)', fontSize: '0.95rem' }}
+                >
+                  📞 Appeler ({callNumber})
+                </a>
+              )}
               <button 
                 onClick={() => {
                   navigator.clipboard.writeText(window.location.href);
                   toast.success('Lien de la boutique copié !');
                 }}
                 className="btn-secondary active-scale touch-target hover-lift" 
-                style={{ width: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'white', color: 'var(--text-main)', border: '2px solid #e2e8f0', borderRadius: '16px', cursor: 'pointer' }}
+                style={{ width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'white', color: 'var(--text-main)', border: '1.5px solid #E2E8F0', borderRadius: '18px', cursor: 'pointer' }}
+                title="Partager le lien de la boutique"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
               </button>
             </div>
-            <a 
-              href={callNumber ? `tel:${callNumber}` : '#'} 
-              onClick={(e) => { if (!callNumber) { e.preventDefault(); toast.error("Aucun numéro de téléphone renseigné."); } }}
-              className="active-scale touch-target hide-on-mobile hover-lift" 
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '1rem', borderRadius: '16px', textDecoration: 'none', fontWeight: '800', background: 'white', border: '2px solid #e2e8f0', color: callNumber ? 'var(--text-main)' : '#9ca3af', cursor: callNumber ? 'pointer' : 'not-allowed', fontSize: '1.05rem' }}
-            >
-              📞 Appeler la boutique
-            </a>
           </div>
         </div>
 
