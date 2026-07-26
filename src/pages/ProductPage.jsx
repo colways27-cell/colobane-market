@@ -57,8 +57,10 @@ const ProductPage = () => {
         if (error) throw error;
         setProduct(data);
         
-        // Incrémenter le compteur de vues de façon silencieuse si le visiteur n'est pas le vendeur
-        if (!user || user.id !== data.seller_id) {
+        // Déduplication des vues avec sessionStorage : s'incrémente uniquement lors de la première visite de session
+        const viewKey = `viewed_${productId}`;
+        if (!sessionStorage.getItem(viewKey) && (!user || user.id !== data.seller_id)) {
+          sessionStorage.setItem(viewKey, 'true');
           const newViews = (data.views_count || 0) + 1;
           supabase
             .from('products')
@@ -68,39 +70,44 @@ const ProductPage = () => {
             .catch(console.error);
         }
 
-        // Fetch similar products
-        const { data: similarData } = await supabase
-          .from('products')
-          .select('*')
-          .eq('category', data.category)
-          .neq('id', data.id)
-          .limit(4);
-        setSimilarProducts(similarData || []);
-
-        // Fetch other sellers offering the same/similar item (Price Comparator)
-        const titleTokens = data.title.toLowerCase().replace(/[^a-z0-9]/g, ' ').split(/\s+/).filter(w => w.length > 2 && !['de','du','des','le','la','les','en','pour','avec','sans','un','une','vends','vend'].includes(w));
+        // Tokenisation pour la recherche de vendeurs du même produit
+        const titleTokens = (data.title || '').toLowerCase().replace(/[^a-z0-9]/g, ' ').split(/\s+/).filter(w => w.length > 2 && !['de','du','des','le','la','les','en','pour','avec','sans','un','une','vends','vend'].includes(w));
         const searchKeyword = titleTokens[0] || '';
-        if (searchKeyword) {
-          const { data: sameData } = await supabase
-            .from('products')
-            .select(`*, profiles:seller_id (id, full_name, pseudo, boutique_name, whatsapp_number, phone_number)`)
-            .neq('id', data.id)
-            .ilike('title', `%${searchKeyword}%`)
-            .limit(5);
-          setSameItemSellers(sameData || []);
-        }
 
-        // Check if favorite
-        if (user) {
-          const { data: favData } = await supabase
-            .from('favorites')
+        // Exécution en parallèle de toutes les requêtes secondaires avec Promise.all()
+        const [similarRes, sameItemRes, favRes] = await Promise.all([
+          // 1. Produit similaires (même catégorie)
+          supabase
+            .from('products')
             .select('*')
-            .eq('user_id', user.id)
-            .eq('product_id', productId)
-            .single();
-          
-          if (favData) setIsFavorite(true);
-        }
+            .eq('category', data.category)
+            .neq('id', data.id)
+            .limit(4),
+
+          // 2. Vendeurs du même produit
+          searchKeyword
+            ? supabase
+                .from('products')
+                .select(`*, profiles:seller_id (id, full_name, pseudo, boutique_name, whatsapp_number, phone_number)`)
+                .neq('id', data.id)
+                .ilike('title', `%${searchKeyword}%`)
+                .limit(5)
+            : Promise.resolve({ data: [] }),
+
+          // 3. Statut favori de l'utilisateur
+          user
+            ? supabase
+                .from('favorites')
+                .select('*')
+                .eq('user_id', user.id)
+                .eq('product_id', productId)
+                .maybeSingle()
+            : Promise.resolve({ data: null })
+        ]);
+
+        setSimilarProducts(similarRes.data || []);
+        setSameItemSellers(sameItemRes.data || []);
+        if (favRes.data) setIsFavorite(true);
 
       } catch (err) {
         console.error('Error fetching product:', err);
