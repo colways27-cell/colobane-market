@@ -30,18 +30,22 @@ const categoryKeywords = {
   emploi: ['emploi', 'travail', 'job', 'stage', 'cdi', 'cdd', 'recrutement', 'offre', 'salaire']
 };
 
+const cleanPhone = (num) => (num || '').replace(/^\+?221\s*/, '').replace(/\s+/g, '').trim();
+
 const InputWrapper = ({ label, icon, children, required }) => (
-  <div style={{ marginBottom: '1.2rem' }}>
+  <div style={{ marginBottom: '1.2rem', width: '100%', boxSizing: 'border-box' }}>
     <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem', fontWeight: '500' }}>
       {label} {required && '*'}
     </label>
-    <div style={{ display: 'flex', border: '1px solid #E2E8F0', borderRadius: '12px', overflow: 'hidden', background: '#FAFAF9' }}>
+    <div style={{ display: 'flex', border: '1px solid #E2E8F0', borderRadius: '12px', overflow: 'hidden', background: '#FAFAF9', width: '100%', boxSizing: 'border-box' }}>
       {icon && (
-        <div style={{ padding: '0 12px', color: '#94A3B8', display: 'flex', alignItems: 'center' }}>
+        <div style={{ padding: '0 12px', color: '#94A3B8', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
           {icon}
         </div>
       )}
-      {children}
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center' }}>
+        {children}
+      </div>
     </div>
   </div>
 );
@@ -166,7 +170,7 @@ const PublishPage = () => {
           setProfile(updatedProfile);
           setFormData(prev => ({
             ...prev,
-            contact_whatsapp: data.whatsapp_number || '',
+            contact_whatsapp: cleanPhone(data.whatsapp_number || ''),
             location: data.city || 'Dakar'
           }));
 
@@ -604,6 +608,36 @@ const PublishPage = () => {
               )}
             </div>
 
+            {/* Quick Helper Suggestion Pills */}
+            <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '8px', scrollbarWidth: 'none', marginBottom: '16px' }}>
+              {[
+                { label: '📱 iPhone & Samsung', catId: 'telephones_tablettes' },
+                { label: '👗 Robes & Baskets', catId: 'habillement' },
+                { label: '🚗 Voitures & Motos', catId: 'vehicules' },
+                { label: '💻 Ordinateurs & PC', catId: 'informatique' },
+                { label: '💄 Parfums & Soins', catId: 'beaute_sante' },
+                { label: '🏠 Meubles & Lits', catId: 'maison_jardin' },
+                { label: '🐑 Moutons & Animaux', catId: 'animaux' }
+              ].map((pill) => (
+                <button
+                  key={pill.label}
+                  type="button"
+                  onClick={() => {
+                    setSelectedCategory(pill.catId);
+                    setCategorySearch('');
+                    const selectedCatObj = categories.find((c) => c.id === pill.catId);
+                    const subcat = getSubcategoryField(selectedCatObj);
+                    if (subcat) setStep(2);
+                    else setStep(3);
+                  }}
+                  className="active-scale"
+                  style={{ flexShrink: 0, padding: '8px 14px', borderRadius: '20px', background: '#FEF3C7', color: '#B45309', border: '1px solid #FDE68A', fontSize: '0.82rem', fontWeight: '800', cursor: 'pointer' }}
+                >
+                  {pill.label}
+                </button>
+              ))}
+            </div>
+
             {(() => {
               const query = categorySearch.toLowerCase().trim();
               const filtered = query ? categories.filter(cat => {
@@ -611,6 +645,21 @@ const PublishPage = () => {
                 const keywords = categoryKeywords[cat.id] || [];
                 return keywords.some(kw => kw.includes(query) || query.includes(kw));
               }) : categories;
+
+              const categorySubExamples = {
+                telephones_tablettes: 'iPhone, Samsung, iPad...',
+                informatique: 'Laptops, Écrans, PC...',
+                electronique: 'TV, Frigo, Climatiseur...',
+                maison_jardin: 'Canapés, Lits, Cuisine...',
+                habillement: 'Robes, Baskets, Sacs...',
+                accessoires: 'Montres, Lunettes, Bijoux...',
+                beaute_sante: 'Parfums, Soins, Perruques...',
+                vehicules: 'Voitures, Motos, Pièces...',
+                immobilier: 'Appartements, Terrains...',
+                animaux: 'Moutons, Chiens, Ladoum...',
+                alimentation: 'Produits locaux, Jus...',
+                pro: 'Équipements & Machines...'
+              };
 
               return filtered.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)' }}>
@@ -634,14 +683,19 @@ const PublishPage = () => {
                         }, 300); 
                       }}
                       className="touch-target active-scale"
-                      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', background: selectedCategory === cat.id ? 'var(--primary)' : '#FAFAF9', border: selectedCategory === cat.id ? 'none' : '1px solid #E2E8F0', borderRadius: '20px', padding: '20px 10px', gap: '12px', boxShadow: selectedCategory === cat.id ? '0 8px 20px rgba(139, 28, 49, 0.2)' : 'none', transition: 'all 0.2s' }}
+                      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', background: selectedCategory === cat.id ? 'var(--primary)' : '#FAFAF9', border: selectedCategory === cat.id ? 'none' : '1px solid #E2E8F0', borderRadius: '20px', padding: '18px 10px', gap: '8px', boxShadow: selectedCategory === cat.id ? '0 8px 20px rgba(139, 28, 49, 0.2)' : 'none', transition: 'all 0.2s' }}
                     >
-                      <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: selectedCategory === cat.id ? 'rgba(255,255,255,0.2)' : `${cat.color}15`, color: selectedCategory === cat.id ? 'white' : cat.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px' }}>
+                      <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: selectedCategory === cat.id ? 'rgba(255,255,255,0.2)' : `${cat.color}15`, color: selectedCategory === cat.id ? 'white' : cat.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px' }}>
                         {cat.icon}
                       </div>
-                      <span style={{ fontWeight: selectedCategory === cat.id ? '700' : '600', color: selectedCategory === cat.id ? 'white' : 'var(--text-main)', textAlign: 'center', fontSize: '0.9rem' }}>
+                      <span style={{ fontWeight: selectedCategory === cat.id ? '800' : '700', color: selectedCategory === cat.id ? 'white' : 'var(--text-main)', textAlign: 'center', fontSize: '0.92rem' }}>
                         {cat.name}
                       </span>
+                      {categorySubExamples[cat.id] && (
+                        <span style={{ fontSize: '0.72rem', color: selectedCategory === cat.id ? 'rgba(255,255,255,0.85)' : '#64748B', textAlign: 'center', fontWeight: '500', lineHeight: '1.2' }}>
+                          {categorySubExamples[cat.id]}
+                        </span>
+                      )}
                     </button>
                   ))}
                 </div>
@@ -930,13 +984,22 @@ const PublishPage = () => {
                   <div style={{ padding: '0 16px', color: '#94A3B8', display: 'flex', alignItems: 'center', pointerEvents: 'none' }}>▼</div>
                 </InputWrapper>
 
-                <div style={{ marginBottom: '1.5rem' }}>
+                <div style={{ marginBottom: '1.5rem', width: '100%', boxSizing: 'border-box' }}>
                   <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem', fontWeight: '500' }}>Numéro WhatsApp <span style={{ opacity: 0.7 }}>(optionnel)</span></label>
-                  <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #E2E8F0', borderRadius: '12px', overflow: 'hidden', background: '#FAFAF9' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', padding: '0 12px', background: '#F8FAFC', borderRight: '1px solid #E2E8F0', color: 'var(--text-main)', fontWeight: '600', fontSize: '0.9rem', height: '100%' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #E2E8F0', borderRadius: '12px', overflow: 'hidden', background: '#FAFAF9', width: '100%', boxSizing: 'border-box' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', padding: '0 12px', background: '#F8FAFC', borderRight: '1px solid #E2E8F0', color: 'var(--text-main)', fontWeight: '600', fontSize: '0.9rem', flexShrink: 0 }}>
                       <span style={{ color: '#94A3B8', marginRight: '6px', fontSize: '0.8rem' }}>SN</span> +221
                     </div>
-                    <FastInput type="tel" name="contact_whatsapp" value={formData.contact_whatsapp} onChange={handleInputChange} placeholder="77 123 45 67" style={{ flex: 1, padding: '1rem', border: 'none', background: 'transparent', outline: 'none', fontSize: '1rem', letterSpacing: '1px' }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <FastInput 
+                        type="tel" 
+                        name="contact_whatsapp" 
+                        value={cleanPhone(formData.contact_whatsapp)} 
+                        onChange={(e) => setFormData({ ...formData, contact_whatsapp: cleanPhone(e.target.value) })} 
+                        placeholder="77 123 45 67" 
+                        style={{ width: '100%', padding: '1rem', border: 'none', background: 'transparent', outline: 'none', fontSize: '1rem', letterSpacing: '1px', boxSizing: 'border-box' }} 
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -945,7 +1008,7 @@ const PublishPage = () => {
                   {!loading && <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>}
                 </button>
               </div>
-              <div style={{ position: 'sticky', top: '100px' }}>
+              <div className="hide-on-mobile" style={{ position: 'sticky', top: '100px' }}>
                 {renderLivePreview()}
               </div>
             </div>

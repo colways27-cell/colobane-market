@@ -145,7 +145,7 @@ const BoutiqueProfilePage = () => {
   }
 
   return (
-    <div className="boutique-profile-page animate-fade-in-up">
+    <div className="boutique-profile-page animate-fade-in-up" style={{ paddingBottom: '140px' }}>
       {/* Immersive Banner */}
       <div 
         className="boutique-banner" 
@@ -393,14 +393,16 @@ const BoutiqueProfilePage = () => {
                   <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>Soyez le premier à partager votre expérience !</p>
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
                   {reviews.map((review, index) => (
-                    <div key={review.id} className={`animate-fade-in-up stagger-${(index % 4) + 1} glass-panel`} style={{ padding: '2rem', borderRadius: '20px', border: '1px solid rgba(226,232,240,0.6)' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '1rem' }}>
-                        <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#E2E8F0', backgroundImage: `url(${review.reviewer?.avatar_url || ''})`, backgroundSize: 'cover', backgroundPosition: 'center', border: '2px solid white', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}></div>
+                    <div key={review.id} className={`animate-fade-in-up stagger-${(index % 4) + 1} glass-panel`} style={{ padding: '1.25rem 1.5rem', borderRadius: '20px', border: '1px solid #E2E8F0', background: 'white', boxShadow: '0 4px 16px rgba(0,0,0,0.03)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '0.8rem' }}>
+                        <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: '#F1F5F9', backgroundImage: review.reviewer?.avatar_url ? `url(${review.reviewer.avatar_url})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center', border: '2px solid white', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', color: 'var(--primary)', flexShrink: 0 }}>
+                          {!review.reviewer?.avatar_url && (review.reviewer?.full_name || 'U').charAt(0).toUpperCase()}
+                        </div>
                         <div>
-                          <div style={{ fontWeight: '800', fontSize: '1.05rem', color: 'var(--text-main)' }}>{review.reviewer?.full_name || 'Utilisateur'}</div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                          <div style={{ fontWeight: '800', fontSize: '1.05rem', color: '#0F172A' }}>{review.reviewer?.full_name || review.reviewer?.pseudo || 'Acheteur'}</div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: '#64748B', marginTop: '2px' }}>
                             <span style={{ color: '#f59e0b', fontSize: '14px', letterSpacing: '2px' }}>{'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}</span>
                             <span>•</span>
                             <span style={{ fontWeight: '500' }}>{formatDistanceToNow(new Date(review.created_at), { addSuffix: true, locale: fr })}</span>
@@ -408,7 +410,9 @@ const BoutiqueProfilePage = () => {
                         </div>
                       </div>
                       {review.comment && (
-                        <p style={{ margin: 0, fontSize: '1.05rem', color: 'var(--text-main)', lineHeight: '1.6', paddingLeft: '64px' }}>{review.comment}</p>
+                        <div style={{ margin: '0.6rem 0 0 0', fontSize: '1.05rem', color: '#0F172A', fontWeight: '700', lineHeight: '1.5', background: '#F8FAFC', padding: '12px 16px', borderRadius: '14px', borderLeft: '4px solid var(--primary)', wordBreak: 'break-word' }}>
+                          "{review.comment}"
+                        </div>
                       )}
                     </div>
                   ))}

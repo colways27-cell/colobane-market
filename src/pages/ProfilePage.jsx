@@ -34,12 +34,25 @@ const isRealEmail = (email) => {
     lower.includes('@example.com') ||
     lower.includes('@placeholder') ||
     lower.includes('@test') ||
+    lower.includes('aucun') ||
     lower.startsWith('phone_') ||
     lower.startsWith('user_')
   ) {
     return false;
   }
   return true;
+};
+
+const formatPhone = (num) => {
+  if (!num) return '';
+  const clean = String(num).replace(/\D/g, '');
+  if (clean.length === 9) {
+    return `+221 ${clean.slice(0, 2)} ${clean.slice(2, 5)} ${clean.slice(5, 7)} ${clean.slice(7, 9)}`;
+  }
+  if (clean.length === 12 && clean.startsWith('221')) {
+    return `+221 ${clean.slice(3, 5)} ${clean.slice(5, 8)} ${clean.slice(8, 10)} ${clean.slice(10, 12)}`;
+  }
+  return num.startsWith('+') ? num : `+221 ${num}`;
 };
 
 const ProfilePage = () => {
@@ -450,12 +463,14 @@ const ProfilePage = () => {
                 <h1 style={{ fontSize: '2rem', margin: '0 0 0.5rem 0', fontWeight: '900', fontFamily: 'var(--font-heading)', color: 'var(--text-main)' }}>
                   {profile?.pseudo || profile?.full_name || 'Utilisateur sans nom'}
                 </h1>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', color: 'var(--text-muted)', fontSize: '1rem' }}>
-                  <span className="glass-panel" style={{ padding: '6px 12px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600' }}>📍 {profile?.city || profile?.location || 'Sénégal'}</span>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem', color: 'var(--text-muted)', fontSize: '0.92rem', marginTop: '0.5rem' }}>
+                  <span className="glass-panel" style={{ padding: '6px 14px', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '700', background: '#F8FAFC', border: '1px solid #E2E8F0', color: '#334155' }}>📍 {profile?.city || profile?.location || 'Sénégal'}</span>
                   {isRealEmail(profile?.email) && (
-                    <span className="glass-panel" style={{ padding: '6px 12px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600' }}>📧 {profile.email}</span>
+                    <span className="glass-panel" style={{ padding: '6px 14px', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '700', background: '#F8FAFC', border: '1px solid #E2E8F0', color: '#334155' }}>📧 {profile.email}</span>
                   )}
-                  <span className="glass-panel" style={{ padding: '6px 12px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600' }}>📱 {profile?.whatsapp_number || profile?.phone_number || 'Aucun numéro'}</span>
+                  {(profile?.whatsapp_number || profile?.phone_number) && (
+                    <span className="glass-panel" style={{ padding: '6px 14px', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '700', background: '#F8FAFC', border: '1px solid #E2E8F0', color: '#334155' }}>📱 {formatPhone(profile?.whatsapp_number || profile?.phone_number)}</span>
+                  )}
                 </div>
               </div>
 
@@ -649,7 +664,7 @@ const ProfilePage = () => {
                           </div>
                           
                           <div style={{ padding: '1rem 1rem 0.8rem 1rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                            <div style={{ fontSize: '1.2rem', fontWeight: '900', color: 'var(--primary)', marginBottom: '4px', fontFamily: 'var(--font-heading)' }}>
+                            <div style={{ fontSize: (product.price || 0) > 999999 ? '0.95rem' : '1.15rem', fontWeight: '900', color: 'var(--primary)', marginBottom: '4px', fontFamily: 'var(--font-heading)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                               {product.price > 0 ? `${product.price.toLocaleString('fr-FR')} FCFA` : product.metadata?.price_type || 'Sur demande'}
                             </div>
                             <div style={{ fontSize: '0.95rem', color: 'var(--text-main)', fontWeight: '600', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: '1.35', marginBottom: '8px' }}>
@@ -669,11 +684,11 @@ const ProfilePage = () => {
                             {!product.is_boosted ? (
                               <button 
                                 onClick={() => openBoostMarketing(product.id, product.title)} 
-                                className="active-scale" 
-                                style={{ width: '100%', padding: '10px 8px', background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', border: 'none', borderRadius: '12px', cursor: 'pointer', color: 'white', fontSize: '0.82rem', fontWeight: '900', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px', boxShadow: '0 4px 14px rgba(245, 158, 11, 0.35)', letterSpacing: '0.2px' }}
+                                className="active-scale hover-lift" 
+                                style={{ width: '100%', padding: '10px 8px', background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', border: 'none', borderRadius: '12px', cursor: 'pointer', color: 'white', fontSize: '0.82rem', fontWeight: '900', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px', boxShadow: '0 4px 14px rgba(245, 158, 11, 0.35)', whiteSpace: 'nowrap' }}
                               >
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
-                                ⚡ BOOSTER (+10x de vues 🔥)
+                                ⚡ BOOSTER (+10x vues)
                               </button>
                             ) : (
                               <div style={{ width: '100%', padding: '8px', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', borderRadius: '12px', color: 'white', fontSize: '0.78rem', fontWeight: '800', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>

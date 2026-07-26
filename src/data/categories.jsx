@@ -82,24 +82,12 @@ export const categories = [
     icon: <Shirt size={28} strokeWidth={1.5} />,
     color: '#ff3b30',
     fields: [
-      { name: 'type', label: 'Sous-catégorie', type: 'select', options: ['Prêt-à-porter', 'Friperie', 'Chaussures', 'Sacs / Bagagerie', 'Sous-vêtements', 'Autre'] },
-      { name: 'size', label: 'Taille / Pointure', type: 'select', options: ['XS', 'S', 'M', 'L', 'XL', 'XXL', '38', '39', '40', '41', '42', '43', '44', '45', 'Autre'], showIf: { field: 'type', values: ['Prêt-à-porter', 'Friperie', 'Chaussures', 'Sous-vêtements'] } },
+      { name: 'type', label: 'Sous-catégorie', type: 'select', options: ['Prêt-à-porter', 'Vêtements', 'Chaussures', 'Sacs / Bagagerie', 'Sous-vêtements', 'Autre'] },
+      { name: 'size', label: 'Taille / Pointure', type: 'select', options: ['XS', 'S', 'M', 'L', 'XL', 'XXL', '38', '39', '40', '41', '42', '43', '44', '45', 'Autre'], showIf: { field: 'type', values: ['Prêt-à-porter', 'Vêtements', 'Chaussures', 'Sous-vêtements'] } },
       { name: 'gender', label: 'Genre', type: 'select', options: ['Homme', 'Femme', 'Enfant', 'Mixte'] },
       { name: 'color', label: 'Couleur(s)', type: 'select', options: ['Noir', 'Blanc', 'Bleu', 'Rouge', 'Jaune', 'Vert', 'Gris', 'Marron', 'Multicolore', 'Autre'] },
       { name: 'brand', label: 'Marque', type: 'select', options: ['Nike', 'Adidas', 'Zara', 'H&M', 'Puma', 'Gucci', 'Balenciaga', 'Louis Vuitton', 'Lacoste', 'Autre'] },
       { name: 'condition', label: 'État', type: 'select', options: ['Neuf avec étiquette', 'Neuf sans étiquette', 'Très bon état', 'Bon état', 'Usagé'] }
-    ]
-  },
-  {
-    id: 'friperie',
-    name: 'Friperie',
-    icon: <ShoppingBag size={28} strokeWidth={1.5} />,
-    color: '#e91e63',
-    fields: [
-      { name: 'type', label: 'Sous-catégorie', type: 'select', options: ['Vêtements', 'Chaussures', 'Robes', 'T-shirts', 'Shorts', 'Sacs', 'Draps', 'Tissus', 'Autre'] },
-      { name: 'sale_type', label: 'Type de vente', type: 'select', options: ['Détail (Pièce)', 'Gros (Balle entière)', 'Demi-balle'] },
-      { name: 'gender', label: 'Genre', type: 'select', options: ['Homme', 'Femme', 'Enfant', 'Mixte'] },
-      { name: 'origin', label: 'Provenance (Qualité)', type: 'select', options: ['1er Choix', '2ème Choix', 'Tout-venant', 'Non précisé'] }
     ]
   },
   {
