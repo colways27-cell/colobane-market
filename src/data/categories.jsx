@@ -91,6 +91,18 @@ export const categories = [
     ]
   },
   {
+    id: 'friperie',
+    name: 'Friperie',
+    icon: <ShoppingBag size={28} strokeWidth={1.5} />,
+    color: '#e91e63',
+    fields: [
+      { name: 'type', label: 'Sous-catégorie', type: 'select', options: ['Vêtements', 'Friperie 1er Choix', 'Balle de fripe', 'Demi-balle', 'Chaussures', 'Robes', 'T-shirts', 'Shorts', 'Sacs', 'Draps / Tissus', 'Autre'] },
+      { name: 'sale_type', label: 'Type de vente', type: 'select', options: ['Détail (Pièce)', 'Gros (Balle entière)', 'Demi-balle'] },
+      { name: 'gender', label: 'Genre', type: 'select', options: ['Homme', 'Femme', 'Enfant', 'Mixte'] },
+      { name: 'origin', label: 'Provenance (Qualité)', type: 'select', options: ['1er Choix (Premier choix)', '2ème Choix', 'Tout-venant', 'Non précisé'] }
+    ]
+  },
+  {
     id: 'accessoires',
     name: 'Accessoires',
     icon: <Glasses size={28} strokeWidth={1.5} />,

@@ -611,6 +611,7 @@ const PublishPage = () => {
             {/* Quick Helper Suggestion Pills */}
             <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '8px', scrollbarWidth: 'none', marginBottom: '16px' }}>
               {[
+                { label: '👚 Friperie & Balles', catId: 'friperie' },
                 { label: '📱 iPhone & Samsung', catId: 'telephones_tablettes' },
                 { label: '👗 Robes & Baskets', catId: 'habillement' },
                 { label: '🚗 Voitures & Motos', catId: 'vehicules' },
@@ -647,6 +648,7 @@ const PublishPage = () => {
               }) : categories;
 
               const categorySubExamples = {
+                friperie: 'Vêtements, Balles 1er Choix, Robes...',
                 telephones_tablettes: 'iPhone, Samsung, iPad...',
                 informatique: 'Laptops, Écrans, PC...',
                 electronique: 'TV, Frigo, Climatiseur...',
@@ -661,7 +663,35 @@ const PublishPage = () => {
                 pro: 'Équipements & Machines...'
               };
 
-              return filtered.length === 0 ? (
+              return (
+                <>
+                  {query && filtered.length > 0 && (
+                    <div style={{ background: 'linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)', border: '1.5px solid #93C5FD', borderRadius: '16px', padding: '14px 16px', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', animation: 'fadeIn 0.2s ease-out' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{ fontSize: '1.3rem' }}>✨</span>
+                        <div>
+                          <div style={{ fontSize: '0.78rem', color: '#1E40AF', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Catégorie suggérée</div>
+                          <div style={{ fontSize: '1rem', fontWeight: '900', color: '#1E3A8A' }}>{filtered[0].name}</div>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedCategory(filtered[0].id);
+                          setCategorySearch('');
+                          const subcat = getSubcategoryField(filtered[0]);
+                          if (subcat) setStep(2);
+                          else setStep(3);
+                        }}
+                        className="active-scale hover-lift"
+                        style={{ padding: '8px 16px', borderRadius: '12px', background: '#2563EB', color: 'white', border: 'none', fontWeight: '800', fontSize: '0.85rem', cursor: 'pointer', boxShadow: '0 4px 12px rgba(37,99,235,0.3)' }}
+                      >
+                        ⚡ Sélectionner
+                      </button>
+                    </div>
+                  )}
+
+                  {filtered.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)' }}>
                   <div style={{ fontSize: '2.5rem', marginBottom: '12px' }}>🔍</div>
                   <p style={{ fontWeight: '600', fontSize: '1rem', margin: '0 0 6px 0' }}>Aucune catégorie trouvée</p>
@@ -699,6 +729,8 @@ const PublishPage = () => {
                     </button>
                   ))}
                 </div>
+              )}
+                </>
               );
             })()}
             
