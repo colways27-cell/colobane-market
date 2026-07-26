@@ -51,6 +51,7 @@ const CartPage           = lazyWithRetry(() => import('./pages/CartPage'));
 const FavoritesPage      = lazyWithRetry(() => import('./pages/FavoritesPage'));
 const SubscriptionPage   = lazyWithRetry(() => import('./pages/SubscriptionPage'));
 const CertificationPage  = lazyWithRetry(() => import('./pages/CertificationPage'));
+const BuyerRequestsPage  = lazyWithRetry(() => import('./pages/BuyerRequestsPage'));
 
 // Pages statiques (rarement visitées)
 const HowItWorksPage     = lazyWithRetry(() => import('./pages/HowItWorksPage'));
@@ -90,7 +91,7 @@ const PageLoader = () => (
 // ─── Layout principal ────────────────────────────────────────────────────────
 const LayoutWrapper = () => {
   const location = useLocation();
-  const isAdminRoute = location.pathname.startsWith('/adminsaer');
+  const isAdminRoute = location.pathname.startsWith('/admin') || location.pathname.startsWith('/adminsaer') || location.pathname.startsWith('/backoffice');
 
   if (isAdminRoute) {
     return (
@@ -98,7 +99,9 @@ const LayoutWrapper = () => {
         <Toaster position="top-center" />
         <Suspense fallback={<PageLoader />}>
           <Routes>
+            <Route path="/admin" element={<AdminPage />} />
             <Route path="/adminsaer" element={<AdminPage />} />
+            <Route path="/backoffice" element={<AdminPage />} />
           </Routes>
         </Suspense>
       </div>
@@ -114,6 +117,7 @@ const LayoutWrapper = () => {
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/"                          element={<Home />} />
+            <Route path="/wutal-ma"                  element={<BuyerRequestsPage />} />
             <Route path="/explore"                   element={<ExplorePage />} />
             <Route path="/boutiques"                 element={<BoutiquesPage />} />
             <Route path="/boutique/:boutiqueId"      element={<BoutiqueProfilePage />} />

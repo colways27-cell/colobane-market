@@ -89,6 +89,44 @@ const SubscriptionPage = () => {
 
       <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginBottom: '40px', flexWrap: 'wrap' }}>
         
+        {/* Pass Semaine - Yomb Na Lool */}
+        <div style={{ background: 'white', color: 'var(--text-main)', border: '2px solid #3B82F6', borderRadius: '24px', padding: '24px', position: 'relative', maxWidth: '320px', width: '100%', display: 'flex', flexDirection: 'column', boxShadow: '0 4px 20px rgba(59,130,246,0.1)' }}>
+          <div style={{ position: 'absolute', top: '-14px', left: '50%', transform: 'translateX(-50%)', background: '#3B82F6', color: 'white', padding: '3px 12px', borderRadius: '20px', fontWeight: '800', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+            🎉 YOMB NA LOOL (7 jours)
+          </div>
+          <h2 style={{ fontSize: '1.4rem', fontWeight: '800', margin: '10px 0 6px 0', textAlign: 'center', color: '#1E40AF' }}>Pass Semaine</h2>
+          <div style={{ fontSize: '2.2rem', fontWeight: '900', marginBottom: '16px', textAlign: 'center', color: '#2563EB' }}>
+            1 000 <span style={{ fontSize: '0.9rem', opacity: 0.8 }}>FCFA/7j</span>
+          </div>
+          <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 20px 0', display: 'flex', flexDirection: 'column', gap: '12px', flex: 1, fontSize: '0.95rem' }}>
+            <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>✅ Accès vitrine boutique 7 jours</li>
+            <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>📸 Photos illimitées</li>
+            <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>⚡ Idéal pour tester sans engagement</li>
+          </ul>
+          <button disabled={isProcessing} onClick={() => initiatePayment('pass_semaine', 1000)} className="active-scale" style={{ width: '100%', padding: '12px', borderRadius: '12px', fontWeight: '800', fontSize: '1rem', background: '#2563EB', color: 'white', border: 'none', cursor: 'pointer' }}>
+            {isProcessing ? 'Envoi...' : 'Pass 7 Jours (1 000F)'}
+          </button>
+        </div>
+
+        {/* Pass 15 Jours - Yomb Na Lool */}
+        <div style={{ background: 'white', color: 'var(--text-main)', border: '2px solid #10B981', borderRadius: '24px', padding: '24px', position: 'relative', maxWidth: '320px', width: '100%', display: 'flex', flexDirection: 'column', boxShadow: '0 4px 20px rgba(16,185,129,0.1)' }}>
+          <div style={{ position: 'absolute', top: '-14px', left: '50%', transform: 'translateX(-50%)', background: '#10B981', color: 'white', padding: '3px 12px', borderRadius: '20px', fontWeight: '800', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+            🔥 POPULAIRE (15 jours)
+          </div>
+          <h2 style={{ fontSize: '1.4rem', fontWeight: '800', margin: '10px 0 6px 0', textAlign: 'center', color: '#065F46' }}>Pass 15 Jours</h2>
+          <div style={{ fontSize: '2.2rem', fontWeight: '900', marginBottom: '16px', textAlign: 'center', color: '#059669' }}>
+            2 500 <span style={{ fontSize: '0.9rem', opacity: 0.8 }}>FCFA/15j</span>
+          </div>
+          <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 20px 0', display: 'flex', flexDirection: 'column', gap: '12px', flex: 1, fontSize: '0.95rem' }}>
+            <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>✅ Accès vitrine 15 jours</li>
+            <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>🚀 Visibilité garantie</li>
+            <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>⭐ Excellent rapport qualité/prix</li>
+          </ul>
+          <button disabled={isProcessing} onClick={() => initiatePayment('pass_15jours', 2500)} className="active-scale" style={{ width: '100%', padding: '12px', borderRadius: '12px', fontWeight: '800', fontSize: '1rem', background: '#059669', color: 'white', border: 'none', cursor: 'pointer' }}>
+            {isProcessing ? 'Envoi...' : 'Pass 15 Jours (2 500F)'}
+          </button>
+        </div>
+        
         {/* Forfait Basique */}
         <div style={{ background: 'white', color: 'var(--text-main)', border: '2px solid #E2E8F0', borderRadius: '24px', padding: '30px', position: 'relative', maxWidth: '350px', width: '100%', display: 'flex', flexDirection: 'column', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
           <h2 style={{ fontSize: '1.5rem', fontWeight: '800', margin: '0 0 10px 0', textAlign: 'center', color: '#64748B' }}>Basique</h2>

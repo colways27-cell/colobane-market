@@ -202,6 +202,20 @@ const BoutiqueProfilePage = () => {
                   <span>{avgRating > 0 ? avgRating : 'Nouveau'}</span>
                   <span style={{ fontWeight: '600', opacity: 0.8 }}>({reviews.length} avis)</span>
                 </div>
+                {/* Badge Certifié ou Bouton de demande de certification */}
+                {profile.is_verified ? (
+                  <span style={{ padding: '6px 14px', background: 'linear-gradient(135deg, #10B981, #059669)', color: 'white', borderRadius: '12px', fontSize: '0.85rem', fontWeight: '800', display: 'inline-flex', alignItems: 'center', gap: '6px', boxShadow: '0 4px 12px rgba(16,185,129,0.3)' }}>
+                    🛡️ Vendeur Certifié & De Confiance
+                  </span>
+                ) : user && user.id === profile.id ? (
+                  <Link 
+                    to="/certification"
+                    className="active-scale hover-lift"
+                    style={{ padding: '6px 14px', background: 'linear-gradient(135deg, #3B82F6, #1D4ED8)', color: 'white', textDecoration: 'none', border: 'none', borderRadius: '12px', fontSize: '0.85rem', fontWeight: '800', display: 'inline-flex', alignItems: 'center', gap: '6px', boxShadow: '0 4px 12px rgba(59,130,246,0.3)' }}
+                  >
+                    🛡️ Certifier ma boutique (CNI + Selfie)
+                  </Link>
+                ) : null}
               </div>
             </div>
           </div>

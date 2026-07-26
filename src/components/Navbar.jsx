@@ -57,6 +57,15 @@ const Navbar = () => {
 
           {/* Right: Publish Button & Profile */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <Link 
+              to="/wutal-ma" 
+              className="hide-on-mobile active-scale" 
+              style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: '#FEF3C7', color: '#92400E', padding: '0.6rem 1.1rem', borderRadius: 'var(--radius-pill)', fontWeight: '800', textDecoration: 'none', border: '1px solid #FDE68A', fontSize: '0.9rem' }}
+            >
+              <img src="/totem-lapin.png" alt="" style={{ width: '22px', height: '22px', objectFit: 'contain' }} />
+              Wutal Ma 🙋‍♂️
+            </Link>
+
             <button 
               className="hide-on-mobile active-scale" 
               onClick={() => navigate('/publish')}
@@ -91,7 +100,14 @@ const Navbar = () => {
               </button>
             </div>
             
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem', marginTop: '1.5rem' }}>
+            <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <NavLink to="/wutal-ma" onClick={closeMenu} className="active-scale" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.8rem 1rem', borderRadius: '12px', textDecoration: 'none', color: '#92400E', fontWeight: '800', background: '#FEF3C7' }}>
+                <img src="/totem-lapin.png" alt="" style={{ width: '26px', height: '26px', objectFit: 'contain' }} />
+                <span>Wutal Ma (Demandes)</span>
+              </NavLink>
+            </nav>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem', marginTop: '1rem' }}>
               <Link to="/" onClick={closeMenu} style={{ textDecoration: 'none', color: 'var(--text-main)', fontSize: '1.1rem', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                 Annonces

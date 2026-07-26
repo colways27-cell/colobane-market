@@ -41,9 +41,11 @@ const ProfilePage = () => {
   const [selectedProductToBoost, setSelectedProductToBoost] = useState(null);
   const [paymentPhone, setPaymentPhone] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [certPending, setCertPending] = useState(false);
 
   const [formData, setFormData] = useState({
     full_name: '',
+    pseudo: '',
     phone_number: '',
     whatsapp_number: '',
     city: '',
@@ -69,6 +71,7 @@ const ProfilePage = () => {
           setProfile(profileData);
           setFormData({
             full_name: profileData.full_name || '',
+            pseudo: profileData.pseudo || '',
             phone_number: profileData.phone_number || '',
             whatsapp_number: profileData.whatsapp_number || '',
             city: profileData.city || 'Dakar',
@@ -106,6 +109,15 @@ const ProfilePage = () => {
         
         setMyProducts(productsWithFavs);
 
+        const { data: certReq } = await supabase
+          .from('certification_requests')
+          .select('id, status')
+          .eq('user_id', user.id)
+          .eq('status', 'pending')
+          .maybeSingle();
+
+        if (certReq) setCertPending(true);
+
       } catch (err) {
         console.error('Error fetching profile data:', err);
       } finally {
@@ -122,6 +134,7 @@ const ProfilePage = () => {
         .from('profiles')
         .update({ 
           full_name: formData.full_name,
+          pseudo: formData.pseudo,
           phone_number: formData.phone_number,
           whatsapp_number: formData.whatsapp_number,
           city: formData.city,
@@ -133,6 +146,7 @@ const ProfilePage = () => {
       setProfile({ 
         ...profile, 
         full_name: formData.full_name,
+        pseudo: formData.pseudo,
         phone_number: formData.phone_number,
         whatsapp_number: formData.whatsapp_number,
         city: formData.city,
@@ -320,7 +334,19 @@ const ProfilePage = () => {
             <div style={{ animation: 'fadeIn 0.3s' }}>
                <h2 style={{ fontSize: '1.5rem', fontWeight: '900', marginBottom: '2rem', fontFamily: 'var(--font-heading)', color: 'var(--text-main)' }}>Modifier mon profil</h2>
                <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: '0 2.5rem' }}>
-                  <InputWrapper label="Nom complet" icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>}>
+                  {/* Pseudo : uniquement pour les anciens comptes sans pseudo */}
+                  {!profile?.pseudo && (
+                    <>
+                      <InputWrapper label="Choisissez votre pseudo (nom visible sur le marketplace)" icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"></path></svg>}>
+                        <FastInput type="text" name="pseudo" value={formData.pseudo} onChange={(e) => setFormData({...formData, pseudo: e.target.value})} placeholder="Ex: Boutique_Aminata" style={{ flex: 1, padding: '1.2rem 1.2rem 1.2rem 0', border: 'none', background: 'transparent', outline: 'none', fontSize: '1rem', color: 'var(--text-main)', fontWeight: '500' }} />
+                      </InputWrapper>
+                      <p style={{ fontSize: '0.78rem', color: '#f59e0b', gridColumn: 'span 2', marginTop: '-1rem', marginBottom: '0.5rem' }}>
+                        👁️ Ce pseudo sera visible par tous. Vous ne pourrez plus le changer après.
+                      </p>
+                    </>
+                  )}
+
+                  <InputWrapper label="Nom complet (privé — sécurité)" icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>}>
                     <FastInput type="text" name="full_name" value={formData.full_name} onChange={(e) => setFormData({...formData, full_name: e.target.value})} style={{ flex: 1, padding: '1.2rem 1.2rem 1.2rem 0', border: 'none', background: 'transparent', outline: 'none', fontSize: '1rem', color: 'var(--text-main)', fontWeight: '500' }} />
                   </InputWrapper>
                   
@@ -357,7 +383,7 @@ const ProfilePage = () => {
                   {profile?.avatar_url ? (
                     <img src={profile.avatar_url} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   ) : (
-                    profile?.boutique_name ? profile.boutique_name.charAt(0).toUpperCase() : (profile?.full_name ? profile.full_name.charAt(0).toUpperCase() : 'U')
+                    profile?.boutique_name ? profile.boutique_name.charAt(0).toUpperCase() : (profile?.pseudo || profile?.full_name || 'U').charAt(0).toUpperCase()
                   )}
                 </div>
                 {/* Upload Avatar */}
@@ -369,7 +395,7 @@ const ProfilePage = () => {
               
               <div style={{ flex: 1, minWidth: '250px' }}>
                 <h1 style={{ fontSize: '2rem', margin: '0 0 0.5rem 0', fontWeight: '900', fontFamily: 'var(--font-heading)', color: 'var(--text-main)' }}>
-                  {profile?.full_name || 'Utilisateur sans nom'}
+                  {profile?.pseudo || profile?.full_name || 'Utilisateur sans nom'}
                 </h1>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', color: 'var(--text-muted)', fontSize: '1rem' }}>
                   <span className="glass-panel" style={{ padding: '6px 12px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600' }}>📍 {profile?.city || profile?.location || 'Sénégal'}</span>
@@ -387,6 +413,25 @@ const ProfilePage = () => {
                     <Link to={`/boutique/${profile.id}`} className="active-scale touch-target hover-lift" style={{ width: '100%', padding: '1rem', borderRadius: '16px', background: 'var(--primary-gradient)', color: 'white', textDecoration: 'none', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', fontWeight: '800' }}>
                       Voir ma vitrine 🏪
                     </Link>
+                    {!profile.is_verified ? (
+                      <button 
+                        onClick={() => {
+                          const adminPhone = "221773713175";
+                          const name = profile.boutique_name || profile.pseudo || profile.full_name || profile.id;
+                          const msg = encodeURIComponent(`Bonjour Administrateur, je souhaite faire vérifier et certifier ma boutique "${name}" sur Colobane Market.`);
+                          window.open(`https://wa.me/${adminPhone}?text=${msg}`, '_blank');
+                          toast.success("Demande de certification ouverte sur WhatsApp !");
+                        }}
+                        className="active-scale touch-target hover-lift"
+                        style={{ width: '100%', padding: '0.8rem', borderRadius: '16px', background: 'linear-gradient(135deg, #3B82F6, #1D4ED8)', color: 'white', border: 'none', fontWeight: '800', fontSize: '0.9rem', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px', boxShadow: '0 4px 14px rgba(59,130,246,0.3)' }}
+                      >
+                        🛡️ Certifier ma boutique
+                      </button>
+                    ) : (
+                      <div style={{ width: '100%', padding: '0.8rem', borderRadius: '16px', background: 'linear-gradient(135deg, #10B981, #059669)', color: 'white', fontWeight: '800', fontSize: '0.85rem', textAlign: 'center', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px' }}>
+                        🛡️ Vendeur Certifié & De Confiance
+                      </div>
+                    )}
                     
                     {/* Trial & Subscription Status */}
                     {isTrialExpired && profile?.subscription_plan === 'none' ? (
@@ -414,15 +459,23 @@ const ProfilePage = () => {
                       </div>
                     )}
 
-                    {/* Certification Badge */}
-                    {!profile?.is_verified ? (
-                       <Link to="/certification" className="active-scale hover-lift" style={{ background: '#FEF3C7', color: '#B45309', padding: '12px', borderRadius: '16px', fontSize: '0.9rem', textAlign: 'center', textDecoration: 'none', fontWeight: '800', border: '2px solid #FDE68A', display: 'block' }}>
-                         👑 Demander Certification
-                       </Link>
-                    ) : (
+                    {/* Certification Badge & Direct Link */}
+                    {profile?.is_verified ? (
                        <div style={{ background: '#E0F2FE', color: '#0284C7', padding: '12px', borderRadius: '16px', fontSize: '0.9rem', textAlign: 'center', fontWeight: '800', border: '2px solid #BAE6FD' }}>
                          ✅ Boutique Certifiée
                        </div>
+                    ) : certPending ? (
+                       <div style={{ background: '#FFFBEB', color: '#B45309', padding: '12px', borderRadius: '16px', fontSize: '0.88rem', textAlign: 'center', fontWeight: '800', border: '2px solid #FDE68A' }}>
+                         ⏳ Certification en cours d'examen
+                       </div>
+                    ) : (
+                       <Link 
+                         to="/certification" 
+                         className="active-scale hover-lift" 
+                         style={{ width: '100%', background: '#FEF3C7', color: '#B45309', padding: '12px', borderRadius: '16px', fontSize: '0.9rem', textAlign: 'center', border: '2px solid #FDE68A', fontWeight: '800', textDecoration: 'none', display: 'block', boxSizing: 'border-box' }}
+                       >
+                         👑 Demander Certification (CNI + Selfie)
+                       </Link>
                     )}
                   </>
                 ) : (
@@ -508,45 +561,58 @@ const ProfilePage = () => {
                         <div key={product.id} className={`product-card animate-fade-in-up stagger-${(index % 4) + 1} hover-lift`} style={{ padding: 0, display: 'flex', flexDirection: 'column', background: 'var(--card-bg)', borderRadius: '20px', overflow: 'hidden', border: '1px solid rgba(226, 232, 240, 0.8)', boxShadow: '0 8px 24px rgba(0,0,0,0.04)' }}>
                           <div style={{ position: 'relative', paddingTop: '100%', background: '#F8FAFC' }}>
                             <img src={imageUrl} alt={product.title} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-                            <div className="glass-panel" style={{ position: 'absolute', top: '12px', right: '12px', padding: '6px 12px', borderRadius: '16px', fontSize: '0.8rem', fontWeight: '800', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+                            
+                            {/* Badge En Ligne (Haut Gauche) */}
+                            <div style={{ position: 'absolute', top: '8px', left: '8px', zIndex: 10, background: 'rgba(16, 185, 129, 0.95)', color: 'white', padding: '3px 8px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: '800', backdropFilter: 'blur(4px)', boxShadow: '0 2px 6px rgba(0,0,0,0.15)' }}>
                               ● En ligne
+                            </div>
+                            
+                            {/* Quick Action Icons (Bas Droite de l'image) */}
+                            <div style={{ position: 'absolute', bottom: '8px', right: '8px', zIndex: 10, display: 'flex', gap: '5px' }}>
+                              <Link to={`/product/${product.id}`} title="Voir" className="active-scale" style={{ width: '30px', height: '30px', borderRadius: '50%', background: 'rgba(255,255,255,0.95)', color: '#1e293b', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,0.2)', textDecoration: 'none' }}>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                              </Link>
+                              <Link to={`/edit-product/${product.id}`} title="Modifier" className="active-scale" style={{ width: '30px', height: '30px', borderRadius: '50%', background: 'rgba(255,255,255,0.95)', color: '#0ea5e9', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,0.2)', textDecoration: 'none' }}>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                              </Link>
+                              <button onClick={() => handleDeleteProduct(product.id)} title="Supprimer" className="active-scale" style={{ width: '30px', height: '30px', borderRadius: '50%', background: 'rgba(254, 242, 242, 0.95)', border: 'none', color: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 6px rgba(0,0,0,0.2)' }}>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                              </button>
                             </div>
                           </div>
                           
-                          <div style={{ padding: '1.25rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                            <div style={{ fontSize: '1.25rem', fontWeight: '900', color: 'var(--primary)', marginBottom: '8px', fontFamily: 'var(--font-heading)' }}>
+                          <div style={{ padding: '1rem 1rem 0.8rem 1rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                            <div style={{ fontSize: '1.2rem', fontWeight: '900', color: 'var(--primary)', marginBottom: '4px', fontFamily: 'var(--font-heading)' }}>
                               {product.price > 0 ? `${product.price.toLocaleString('fr-FR')} FCFA` : product.metadata?.price_type || 'Sur demande'}
                             </div>
-                            <div style={{ fontSize: '1.05rem', color: 'var(--text-main)', fontWeight: '600', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: '1.4', marginBottom: '12px' }}>
+                            <div style={{ fontSize: '0.95rem', color: 'var(--text-main)', fontWeight: '600', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: '1.35', marginBottom: '8px' }}>
                               {product.title}
                             </div>
-                            <div style={{ fontSize: '0.9rem', color: '#94A3B8', marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: '600' }}>
+                            <div style={{ fontSize: '0.82rem', color: '#94A3B8', marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: '600', marginBottom: '8px' }}>
                               <span>{new Date(product.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-                              <div style={{ display: 'flex', gap: '12px' }}>
-                                {(product.views_count > 0 || product.views_count === 0) && <span style={{ color: '#64748b', display: 'flex', alignItems: 'center', gap: '4px' }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> {product.views_count || 0}</span>}
-                                {product.favorites_count > 0 && <span style={{ color: '#e74c3c', display: 'flex', alignItems: 'center', gap: '4px' }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> {product.favorites_count}</span>}
+                              <div style={{ display: 'flex', gap: '10px' }}>
+                                {(product.views_count > 0 || product.views_count === 0) && <span style={{ color: '#64748b', display: 'flex', alignItems: 'center', gap: '4px' }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> {product.views_count || 0}</span>}
+                                {product.favorites_count > 0 && <span style={{ color: '#e74c3c', display: 'flex', alignItems: 'center', gap: '4px' }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> {product.favorites_count}</span>}
                               </div>
                             </div>
                           </div>
                           
-                          <div style={{ display: 'flex', borderTop: '1px solid #E2E8F0', background: 'white' }}>
-                            <Link to={`/product/${product.id}`} className="active-scale touch-target" style={{ flex: 1, padding: '1rem', textAlign: 'center', textDecoration: 'none', color: 'var(--text-main)', borderRight: '1px solid #E2E8F0', fontSize: '0.9rem', fontWeight: '700', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px' }}>
-                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                              Voir
-                            </Link>
-                            <Link to={`/edit-product/${product.id}`} className="active-scale touch-target" style={{ flex: 1, padding: '1rem', textAlign: 'center', textDecoration: 'none', color: '#0ea5e9', borderRight: '1px solid #E2E8F0', fontSize: '0.9rem', fontWeight: '700', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px' }}>
-                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                              Modifier
-                            </Link>
-                            {!product.is_boosted && (
-                              <button onClick={() => openBoostMarketing(product.id, product.title)} className="active-scale touch-target" style={{ flex: 1, padding: '1rem', background: 'var(--primary-light)', border: 'none', borderRight: '1px solid rgba(190,18,60,0.1)', cursor: 'pointer', color: 'var(--primary)', fontSize: '0.9rem', fontWeight: '800', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px' }}>
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
-                                Booster
+                          {/* Powerful High-Converting Booster CTA Button */}
+                          <div style={{ padding: '0 8px 8px 8px', background: 'white' }}>
+                            {!product.is_boosted ? (
+                              <button 
+                                onClick={() => openBoostMarketing(product.id, product.title)} 
+                                className="active-scale" 
+                                style={{ width: '100%', padding: '10px 8px', background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', border: 'none', borderRadius: '12px', cursor: 'pointer', color: 'white', fontSize: '0.82rem', fontWeight: '900', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px', boxShadow: '0 4px 14px rgba(245, 158, 11, 0.35)', letterSpacing: '0.2px' }}
+                              >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+                                ⚡ BOOSTER (+10x de vues 🔥)
                               </button>
+                            ) : (
+                              <div style={{ width: '100%', padding: '8px', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', borderRadius: '12px', color: 'white', fontSize: '0.78rem', fontWeight: '800', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                                ⚡ SPONSORISÉ (ACTIF)
+                              </div>
                             )}
-                            <button onClick={() => handleDeleteProduct(product.id)} className="active-scale touch-target" style={{ flex: 1, padding: '1rem', background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', fontSize: '0.9rem', fontWeight: '700', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px' }}>
-                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                            </button>
                           </div>
                         </div>
                       );
@@ -631,43 +697,53 @@ const ProfilePage = () => {
 
       {/* Marketing Modal pour le Boost */}
       {showBoostMarketingModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(8px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-          <div className="glass-panel" style={{ background: 'rgba(255,255,255,0.95)', borderRadius: '32px', padding: '40px', width: '100%', maxWidth: '480px', position: 'relative', animation: 'scaleUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)', border: '2px solid #f59e0b', boxShadow: '0 20px 60px rgba(245, 158, 11, 0.2)' }}>
-            <button onClick={() => setShowBoostMarketingModal(false)} className="hover-lift" style={{ position: 'absolute', top: '20px', right: '20px', background: '#fef3c7', border: 'none', width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#b45309' }}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(8px)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px' }}>
+          <div className="glass-panel" style={{ background: 'white', borderRadius: '24px', padding: '24px 18px', width: '100%', maxWidth: '420px', maxHeight: '90vh', overflowY: 'auto', position: 'relative', animation: 'scaleUp 0.3s ease-out', border: '2px solid #F59E0B', boxShadow: '0 20px 50px rgba(0,0,0,0.2)' }}>
+            <button onClick={() => setShowBoostMarketingModal(false)} style={{ position: 'absolute', top: '16px', right: '16px', background: '#FEF3C7', border: 'none', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#B45309' }}>
+              ✕
+            </button>
             
-            <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-              <div style={{ position: 'absolute', top: '-18px', left: '50%', transform: 'translateX(-50%)', background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', color: 'white', padding: '8px 24px', borderRadius: '24px', fontWeight: '900', fontSize: '0.95rem', whiteSpace: 'nowrap', boxShadow: '0 4px 15px rgba(245, 158, 11, 0.4)', letterSpacing: '1px' }}>
-                VISIBILITÉ MAXIMALE
+            <div style={{ textAlign: 'center', marginBottom: '20px', marginTop: '10px' }}>
+              <div style={{ display: 'inline-block', background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)', color: 'white', padding: '4px 16px', borderRadius: '20px', fontWeight: '900', fontSize: '0.8rem', letterSpacing: '0.5px' }}>
+                ⚡ VISIBILITÉ MAXIMALE
               </div>
-              <div style={{ fontSize: '4rem', marginBottom: '15px', marginTop: '10px', animation: 'float 3s ease-in-out infinite' }}>🚀</div>
-              <h3 style={{ fontSize: '1.8rem', fontWeight: '900', margin: '0 0 8px 0', fontFamily: 'var(--font-heading)', color: 'var(--text-main)' }}>Propulsez votre annonce</h3>
-              <div style={{ fontSize: '1.15rem', fontWeight: '800', color: '#f59e0b', marginBottom: '25px' }}>
-                Choisissez votre option
+              <h3 style={{ fontSize: '1.4rem', fontWeight: '900', margin: '12px 0 4px 0', fontFamily: 'var(--font-heading)', color: 'var(--text-main)' }}>Propulsez votre annonce</h3>
+              <div style={{ fontSize: '0.95rem', fontWeight: '800', color: '#D97706' }}>
+                Choisissez votre formule
               </div>
             </div>
             
-            <ul style={{ listStyle: 'none', margin: '0 0 35px 0', display: 'flex', flexDirection: 'column', gap: '16px', background: '#fef3c7', padding: '20px', borderRadius: '20px' }}>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '12px', fontWeight: '700', color: '#92400e', fontSize: '1.05rem' }}><div style={{ background: '#f59e0b', color: 'white', borderRadius: '50%', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem' }}>✓</div> 10x plus de vues sur votre annonce</li>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '12px', fontWeight: '700', color: '#92400e', fontSize: '1.05rem' }}><div style={{ background: '#f59e0b', color: 'white', borderRadius: '50%', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem' }}>✓</div> Apparaissez en tête des résultats</li>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '12px', fontWeight: '700', color: '#92400e', fontSize: '1.05rem' }}><div style={{ background: '#f59e0b', color: 'white', borderRadius: '50%', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem' }}>✓</div> Vendez beaucoup plus rapidement</li>
+            <ul style={{ listStyle: 'none', margin: '0 0 20px 0', display: 'flex', flexDirection: 'column', gap: '10px', background: '#FEF3C7', padding: '14px', borderRadius: '16px' }}>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '700', color: '#92400E', fontSize: '0.9rem' }}>
+                <span style={{ background: '#F59E0B', color: 'white', borderRadius: '50%', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', flexShrink: 0 }}>✓</span>
+                10x plus de vues sur votre annonce
+              </li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '700', color: '#92400E', fontSize: '0.9rem' }}>
+                <span style={{ background: '#F59E0B', color: 'white', borderRadius: '50%', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', flexShrink: 0 }}>✓</span>
+                Apparaissez en tête des résultats
+              </li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '700', color: '#92400E', fontSize: '0.9rem' }}>
+                <span style={{ background: '#F59E0B', color: 'white', borderRadius: '50%', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', flexShrink: 0 }}>✓</span>
+                Vendez beaucoup plus rapidement
+              </li>
             </ul>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <button onClick={() => initiateBoost(productToBoostMarketing.id, productToBoostMarketing.title, 500, 2)} className="active-scale touch-target hover-lift" style={{ width: '100%', padding: '16px 20px', borderRadius: '16px', fontWeight: '800', fontSize: '1.1rem', background: 'white', color: '#f59e0b', border: '2px solid #f59e0b', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>⚡ Boost 2 Jours</span>
-                <span style={{ background: '#fef3c7', padding: '4px 12px', borderRadius: '12px' }}>500 FCFA</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <button onClick={() => initiateBoost(productToBoostMarketing.id, productToBoostMarketing.title, 500, 2)} className="active-scale" style={{ width: '100%', padding: '12px 16px', borderRadius: '14px', fontWeight: '800', fontSize: '0.95rem', background: 'white', color: '#B45309', border: '1.5px solid #F59E0B', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
+                <span>⚡ Boost 2 Jours</span>
+                <span style={{ background: '#FEF3C7', padding: '3px 10px', borderRadius: '10px', fontWeight: '900', color: '#B45309' }}>500 FCFA</span>
               </button>
-              <button onClick={() => initiateBoost(productToBoostMarketing.id, productToBoostMarketing.title, 1500, 7)} className="active-scale touch-target hover-lift" style={{ width: '100%', padding: '16px 20px', borderRadius: '16px', fontWeight: '800', fontSize: '1.1rem', background: 'white', color: '#f59e0b', border: '2px solid #f59e0b', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>⚡ Boost 7 Jours</span>
-                <span style={{ background: '#fef3c7', padding: '4px 12px', borderRadius: '12px' }}>1500 FCFA</span>
+              <button onClick={() => initiateBoost(productToBoostMarketing.id, productToBoostMarketing.title, 1500, 7)} className="active-scale" style={{ width: '100%', padding: '12px 16px', borderRadius: '14px', fontWeight: '800', fontSize: '0.95rem', background: 'white', color: '#B45309', border: '1.5px solid #F59E0B', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
+                <span>⚡ Boost 7 Jours</span>
+                <span style={{ background: '#FEF3C7', padding: '3px 10px', borderRadius: '10px', fontWeight: '900', color: '#B45309' }}>1 500 FCFA</span>
               </button>
-              <button onClick={() => initiateBoost(productToBoostMarketing.id, productToBoostMarketing.title, 2500, 15)} className="active-scale touch-target hover-lift" style={{ width: '100%', padding: '16px 20px', borderRadius: '16px', fontWeight: '800', fontSize: '1.1rem', background: 'white', color: '#f59e0b', border: '2px solid #f59e0b', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>⚡ Boost 15 Jours</span>
-                <span style={{ background: '#fef3c7', padding: '4px 12px', borderRadius: '12px' }}>2500 FCFA</span>
+              <button onClick={() => initiateBoost(productToBoostMarketing.id, productToBoostMarketing.title, 2500, 15)} className="active-scale" style={{ width: '100%', padding: '12px 16px', borderRadius: '14px', fontWeight: '800', fontSize: '0.95rem', background: 'white', color: '#B45309', border: '1.5px solid #F59E0B', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
+                <span>⚡ Boost 15 Jours</span>
+                <span style={{ background: '#FEF3C7', padding: '3px 10px', borderRadius: '10px', fontWeight: '900', color: '#B45309' }}>2 500 FCFA</span>
               </button>
-              <button onClick={() => initiateBoost(productToBoostMarketing.id, productToBoostMarketing.title, 5000, 30)} className="active-scale touch-target hover-lift" style={{ width: '100%', padding: '16px 20px', borderRadius: '16px', fontWeight: '900', fontSize: '1.15rem', background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', color: 'white', border: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', boxShadow: '0 8px 20px rgba(245, 158, 11, 0.4)' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>⚡ Mensuel (30 Jours)</span>
-                <span style={{ background: 'rgba(255,255,255,0.2)', padding: '4px 12px', borderRadius: '12px' }}>5000 FCFA</span>
+              <button onClick={() => initiateBoost(productToBoostMarketing.id, productToBoostMarketing.title, 5000, 30)} className="active-scale" style={{ width: '100%', padding: '14px 16px', borderRadius: '14px', fontWeight: '900', fontSize: '1rem', background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)', color: 'white', border: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', boxShadow: '0 4px 15px rgba(245,158,11,0.3)' }}>
+                <span>⚡ Mensuel (30 Jours)</span>
+                <span style={{ background: 'rgba(255,255,255,0.25)', padding: '3px 10px', borderRadius: '10px' }}>5 000 FCFA</span>
               </button>
             </div>
           </div>

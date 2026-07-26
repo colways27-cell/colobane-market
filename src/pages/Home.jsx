@@ -6,7 +6,8 @@ import { supabase } from '../lib/supabase';
 import SkeletonCard from '../components/SkeletonCard';
 import FavoriteButton from '../components/FavoriteButton';
 import toast from 'react-hot-toast';
-import { Store, ChevronDown, ChevronUp, Search } from 'lucide-react';
+import { Store, ChevronDown, ChevronUp, Search, MapPin } from 'lucide-react';
+import totemLapin from '../assets/totem-lapin.png';
 
 const Home = () => {
   const [products, setProducts] = useState([]);
@@ -32,6 +33,98 @@ const Home = () => {
   const [touchEnd, setTouchEnd] = useState(null);
   const PAGE_SIZE = 15;
   const navigate = useNavigate();
+
+  // Smart Search & Autocomplete State for Homepage
+  const [homeSearchQuery, setHomeSearchQuery] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
+  const [suggestionIndex, setSuggestionIndex] = useState(-1);
+  const suggestionTimer = useRef(null);
+
+  // Grouping State for Homepage
+  const [groupedView, setGroupedView] = useState(false);
+  const [selectedGroupModal, setSelectedGroupModal] = useState(null);
+
+  const handleSuggestionSearch = (value) => {
+    clearTimeout(suggestionTimer.current);
+    if (value.length < 2) { setSuggestions([]); setSuggestionsOpen(false); return; }
+    suggestionTimer.current = setTimeout(async () => {
+      const { data } = await supabase
+        .from('products')
+        .select('id, title, price, location, images')
+        .ilike('title', `%${value}%`)
+        .limit(6);
+      if (data && data.length > 0) {
+        setSuggestions(data);
+        setSuggestionsOpen(true);
+        setSuggestionIndex(-1);
+      } else {
+        setSuggestions([]);
+        setSuggestionsOpen(false);
+      }
+    }, 250);
+  };
+
+  const handleSuggestionKeyDown = (e) => {
+    if (!suggestionsOpen) return;
+    if (e.key === 'ArrowDown') { e.preventDefault(); setSuggestionIndex(i => Math.min(i + 1, suggestions.length - 1)); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); setSuggestionIndex(i => Math.max(i - 1, -1)); }
+    else if (e.key === 'Enter' && suggestionIndex >= 0) {
+      e.preventDefault();
+      navigate(`/product/${suggestions[suggestionIndex].id}`);
+    } else if (e.key === 'Escape') { setSuggestionsOpen(false); }
+  };
+
+  const recentProductsRef = useRef(null);
+
+  // Smart Grouping logic for products
+  const groupProducts = (prods) => {
+    if (!prods || prods.length === 0) return [];
+    const stopWords = new Set([
+      'de', 'du', 'des', 'le', 'la', 'les', 'en', 'pour', 'avec', 'sans', 'a', 'au', 'aux',
+      'un', 'une', 'taille', 'pointure', 'couleur', 'etat', 'neuf', 'bon', 'tres', 'vends',
+      'vend', 'vendre', 'prix', 'dakar', 'sn', 'senegal', 'homme', 'femme'
+    ]);
+
+    const getTokens = (title) => {
+      return (title || '').toLowerCase()
+        .replace(/[^a-z0-9\u00e0-\u00fc]/gi, ' ')
+        .split(/\s+/)
+        .filter(w => w.length > 1 && !stopWords.has(w));
+    };
+
+    const getGroupKey = (p) => {
+      const tokens = getTokens(p.title);
+      if (tokens.length === 0) return (p.title || '').toLowerCase().trim();
+
+      const keyBrands = ['iphone', 'samsung', 'nike', 'adidas', 'toyota', 'mercedes', 'bmw', 'casio', 'zara', 'macbook', 'ps5', 'ps4', 'xbox', 'airpods', 'hp', 'dell', 'lenovo', 'hyundai', 'kia', 'honda', 'peugeot', 'renault', 'robe', 'chemise', 'pantalon', 'chaussure', 'montre', 'sac', 'appartement', 'maison', 'terrain', 'scooter', 'moto'];
+      
+      const brandToken = tokens.find(t => keyBrands.includes(t));
+      if (brandToken) {
+        const otherToken = tokens.find(t => t !== brandToken) || '';
+        return `${brandToken}_${otherToken}`;
+      }
+
+      return tokens.slice(0, 2).sort().join('_');
+    };
+
+    const groups = {};
+    prods.forEach(p => {
+      const key = getGroupKey(p);
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(p);
+    });
+
+    return Object.values(groups).map(group => ({
+      ...group[0],
+      _count: group.length,
+      _minPrice: Math.min(...group.map(p => p.price || 0)),
+      _maxPrice: Math.max(...group.map(p => p.price || 0)),
+      _group: group
+    }));
+  };
+
+  const displayProducts = groupedView ? groupProducts(products) : products;
 
   const handleTouchStart = (e) => {
     setTouchEnd(null);
@@ -181,26 +274,115 @@ const Home = () => {
 
   return (
     <div className="home-page" style={{ paddingTop: '0.5rem', paddingBottom: '6rem' }}>
-      {/* Search Bar */}
-      <section style={{ padding: '0 16px', marginTop: '1rem', marginBottom: '1rem', maxWidth: '1200px', margin: '1rem auto' }}>
-        <form onSubmit={(e) => {
-          e.preventDefault();
-          const q = e.target.search.value;
-          if (q.trim()) navigate(`/explore?q=${encodeURIComponent(q.trim())}`);
-        }} className="search-input-wrapper" style={{ position: 'relative', display: 'flex', alignItems: 'center', borderRadius: '16px', overflow: 'hidden', border: '1px solid #E2E8F0', background: '#F8FAFC', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
-          <div style={{ position: 'absolute', left: '16px', color: '#94A3B8', display: 'flex', pointerEvents: 'none' }}>
-            <Search size={20} strokeWidth={2} />
+      {/* Search Bar avec Autocomplete intelligent */}
+      <section style={{ padding: '0 16px', marginTop: '1rem', marginBottom: '1rem', maxWidth: '1200px', margin: '1rem auto', position: 'relative', zIndex: 100 }}>
+        <div style={{ position: 'relative', width: '100%' }}>
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            if (homeSearchQuery.trim()) navigate(`/explore?q=${encodeURIComponent(homeSearchQuery.trim())}`);
+          }} className="search-input-wrapper" style={{ position: 'relative', display: 'flex', alignItems: 'center', borderRadius: '16px', border: '2px solid #E2E8F0', background: 'white', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', transition: 'border-color 0.2s' }}>
+            <div style={{ position: 'absolute', left: '16px', color: '#94A3B8', display: 'flex', pointerEvents: 'none' }}>
+              <Search size={20} strokeWidth={2} />
+            </div>
+            <input 
+              type="text" 
+              name="search"
+              value={homeSearchQuery}
+              onChange={(e) => { setHomeSearchQuery(e.target.value); handleSuggestionSearch(e.target.value); }}
+              onKeyDown={handleSuggestionKeyDown}
+              onFocus={() => homeSearchQuery.length >= 2 && setSuggestionsOpen(true)}
+              onBlur={() => setTimeout(() => setSuggestionsOpen(false), 200)}
+              placeholder="Lan nga bëgg wut ? (robe wax, iPhone, appartement...)" 
+              style={{ flex: 1, padding: '16px 16px 16px 44px', border: 'none', background: 'transparent', fontSize: '0.95rem', outline: 'none', width: '100%', boxSizing: 'border-box' }} 
+            />
+            <button type="submit" className="active-scale" style={{ flexShrink: 0, background: 'var(--primary)', color: 'white', border: 'none', padding: '16px 22px', fontWeight: '700', fontSize: '0.9rem', cursor: 'pointer', height: '100%', whiteSpace: 'nowrap', borderRadius: '0 14px 14px 0' }}>
+              Wër 🔍
+            </button>
+          </form>
+
+          {/* Dropdown Suggestions */}
+          {suggestionsOpen && suggestions.length > 0 && (
+            <div style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, background: 'white', borderRadius: '16px', boxShadow: '0 12px 36px rgba(0,0,0,0.15)', border: '1px solid #E2E8F0', zIndex: 999, overflow: 'hidden' }}>
+              {suggestions.map((s, i) => {
+                const img = s.images && s.images.length > 0 ? s.images[0] : '/hero.png';
+                return (
+                  <div
+                    key={s.id}
+                    onClick={() => { setSuggestionsOpen(false); navigate(`/product/${s.id}`); }}
+                    style={{ padding: '0.8rem 1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', background: i === suggestionIndex ? '#FEF2F2' : 'white', borderBottom: i < suggestions.length - 1 ? '1px solid #F1F5F9' : 'none', transition: 'background 0.15s' }}
+                    onMouseEnter={e => e.currentTarget.style.background = '#FEF2F2'}
+                    onMouseLeave={e => e.currentTarget.style.background = i === suggestionIndex ? '#FEF2F2' : 'white'}
+                  >
+                    <img src={img} alt="" style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover' }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: '700', fontSize: '0.9rem', color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {s.title}
+                      </div>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--primary)', fontWeight: '800' }}>
+                        {(s.price || 0).toLocaleString('fr-FR')} FCFA <span style={{ color: '#94A3B8', fontWeight: '400' }}>• {s.location || 'Dakar'}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+              <div
+                onClick={() => { setSuggestionsOpen(false); navigate(`/explore?q=${encodeURIComponent(homeSearchQuery.trim())}`); }}
+                style={{ padding: '0.8rem', background: '#F8FAFC', cursor: 'pointer', textAlign: 'center', fontSize: '0.85rem', fontWeight: '700', color: 'var(--primary)' }}
+              >
+                Voir tous les résultats pour "{homeSearchQuery}" →
+              </div>
+            </div>
+          )}
+
+          {/* Quick City Location Pills avec Icône Capsule */}
+          <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch', marginTop: '12px' }}>
+            {['Dakar', 'Thiès', 'Touba', 'Saint-Louis', 'Mbour', 'Pikine', 'Rufisque', 'Kaolack', 'Ziguinchor'].map(city => (
+              <button
+                key={city}
+                onClick={() => navigate(`/explore?location=${encodeURIComponent(city)}`)}
+                className="active-scale hover-lift"
+                style={{ padding: '6px 14px 6px 8px', borderRadius: '20px', background: 'white', border: '1.5px solid #E2E8F0', color: 'var(--text-main)', fontWeight: '700', fontSize: '0.82rem', whiteSpace: 'nowrap', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}
+              >
+                <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: 'linear-gradient(135deg, #d97706, #92400e)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', flexShrink: 0, boxShadow: '0 2px 4px rgba(217,119,6,0.3)' }}>
+                  <MapPin size={12} strokeWidth={2.8} />
+                </div>
+                {city}
+              </button>
+            ))}
           </div>
-          <input 
-            type="text" 
-            name="search"
-            placeholder="Lan nga bëgg wut ? (téléphones, voitures, habits...)" 
-            style={{ flex: 1, padding: '16px 16px 16px 44px', border: 'none', background: 'transparent', fontSize: '0.95rem', outline: 'none', width: '100%', boxSizing: 'border-box' }} 
-          />
-          <button type="submit" className="active-scale" style={{ flexShrink: 0, background: 'var(--primary)', color: 'white', border: 'none', padding: '16px 20px', fontWeight: '700', fontSize: '0.9rem', cursor: 'pointer', height: '100%', whiteSpace: 'nowrap' }}>
-            Wër 🔍
-          </button>
-        </form>
+
+          {/* Banner Wutal Ma (Simple, Épuré & Élégant) */}
+          <div 
+            onClick={() => navigate('/wutal-ma')}
+            className="active-scale hover-lift"
+            style={{ 
+              cursor: 'pointer', 
+              marginTop: '12px', 
+              background: '#FFFBEB', 
+              border: '1.5px solid #FDE68A', 
+              borderRadius: '20px', 
+              padding: '10px 16px', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justify: 'space-between', 
+              gap: '12px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.04)' 
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, overflow: 'hidden' }}>
+              <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'white', border: '1px solid #F59E0B', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 }}>
+                <img src={totemLapin} alt="Totem Lapin" style={{ width: '38px', height: '38px', objectFit: 'contain', transform: 'scale(1.3)' }} />
+              </div>
+              <div style={{ fontWeight: '800', fontSize: '0.88rem', color: '#92400E', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                Wutal Ma <span style={{ fontWeight: '500', color: '#B45309', opacity: 0.9 }}>• Demandes d'achats</span>
+              </div>
+            </div>
+
+            <div style={{ background: '#F59E0B', color: 'white', fontWeight: '800', fontSize: '0.78rem', padding: '6px 14px', borderRadius: '14px', whiteSpace: 'nowrap', flexShrink: 0 }}>
+              Voir →
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* Hero Banners Section */}
@@ -343,7 +525,7 @@ const Home = () => {
                   Ubbi sa boutique,<br/>jaay sa bagage!
                 </h2>
                 <p style={{ color: '#64748b', fontSize: '0.78rem', margin: 0, lineHeight: '1.4' }}>
-                  Yomb na lool te amul frais.
+                  Yomb na lool, abonnements you kheweulé.
                 </p>
               </div>
             </div>
@@ -812,8 +994,11 @@ const Home = () => {
                         {(product.price || 0).toLocaleString('fr-FR')} FCFA
                       </div>
                       {product.location && (
-                        <div style={{ fontSize: '10px', color: '#94a3b8', marginTop: '3px', display: 'flex', alignItems: 'center', gap: '2px' }}>
-                          📍 {product.location}
+                        <div style={{ fontSize: '10px', color: '#94a3b8', marginTop: '3px', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                          <span style={{ width: '13px', height: '13px', borderRadius: '50%', background: 'linear-gradient(135deg, #d97706, #92400e)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'white', flexShrink: 0 }}>
+                            <MapPin size={8} strokeWidth={3} />
+                          </span>
+                          {product.location}
                         </div>
                       )}
                     </div>
@@ -846,27 +1031,58 @@ const Home = () => {
       )}
 
       {/* Annonces Récentes */}
-      <section className="section-container" style={{ margin: '0', padding: '0 16px' }}>
+      <section ref={recentProductsRef} className="section-container" style={{ margin: '0', padding: '0 16px' }}>
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', paddingBottom: '12px', borderBottom: '2px solid #F1F5F9' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', paddingBottom: '12px', borderBottom: '2px solid #F1F5F9', flexWrap: 'wrap', gap: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{ width: '4px', height: '22px', background: 'linear-gradient(180deg, var(--primary), #C0392B)', borderRadius: '4px' }} />
             <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '800', color: 'var(--text-main)' }}>Annonces récentes</h2>
           </div>
-          <button
-            onClick={() => navigate('/explore')}
-            style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: '700', fontSize: '0.82rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
-          >
-            Voir tout <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
-          </button>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {/* Toggle groupement sur la page d'accueil */}
+            <button
+              onClick={() => setGroupedView(v => !v)}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.45rem 0.9rem', borderRadius: '16px', border: `1.5px solid ${groupedView ? 'var(--primary)' : '#CBD5E1'}`, background: groupedView ? 'var(--primary)' : 'white', color: groupedView ? 'white' : 'var(--text-main)', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer', transition: 'all 0.2s', boxShadow: groupedView ? '0 4px 12px rgba(138,28,28,0.2)' : 'none' }}
+            >
+              <span>{groupedView ? '🗂️' : '📋'}</span>
+              {groupedView ? 'Mode Groupé Actif' : 'Grouper les annonces'}
+            </button>
+
+            <button
+              onClick={() => {
+                if (hasMore) {
+                  const nextPage = page + 1;
+                  setPage(nextPage);
+                  fetchProducts(nextPage, true);
+                }
+                recentProductsRef.current?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ background: 'var(--primary-light)', border: 'none', color: 'var(--primary)', fontWeight: '800', fontSize: '0.82rem', padding: '6px 14px', borderRadius: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+            >
+              {loadingMore ? 'Chargement...' : 'Voir plus (+)'}
+            </button>
+          </div>
         </div>
         <div className="grid grid-cols-2">
-          {products.map((product) => {
+          {displayProducts.map((product) => {
             const imageUrl = product.images && product.images.length > 0 ? product.images[0] : '/hero.png';
             const condition = product.condition || (product.metadata && product.metadata.condition) || 'Occasion';
+            const isMultiGroup = groupedView && product._count > 1;
 
             return (
-              <div key={product.id} onClick={() => navigate(`/product/${product.id}`)} className="product-card active-scale" style={{ cursor: 'pointer', border: '1px solid transparent', background: 'var(--card-bg)', borderRadius: 'var(--radius-md)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+              <div 
+                key={product.id} 
+                onClick={() => {
+                  if (isMultiGroup) {
+                    setSelectedGroupModal(product);
+                  } else {
+                    navigate(`/product/${product.id}`);
+                  }
+                }} 
+                className="product-card active-scale" 
+                style={{ cursor: 'pointer', border: '1px solid transparent', background: 'var(--card-bg)', borderRadius: 'var(--radius-md)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
+              >
                 {/* Image 1:1 Swipeable */}
                 <div style={{ position: 'relative', width: '100%', paddingTop: '100%', background: '#F1F5F9', overflow: 'hidden' }}>
                   <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', overflowX: 'auto', scrollSnapType: 'x mandatory', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
@@ -886,15 +1102,27 @@ const Home = () => {
                     </div>
                   )}
 
+                  {/* Badge nombre de vendeurs (mode groupé) */}
+                  {groupedView && product._count > 1 && (
+                    <span style={{ position: 'absolute', top: '8px', left: '8px', background: 'var(--primary)', color: 'white', padding: '3px 8px', borderRadius: '10px', fontSize: '10px', fontWeight: '800', zIndex: 12 }}>
+                      👥 {product._count} vendeurs
+                    </span>
+                  )}
+                  {product.is_boosted && (
+                    <span style={{ position: 'absolute', top: groupedView && product._count > 1 ? '30px' : '8px', left: '8px', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: 'white', padding: '3px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.3px', boxShadow: '0 2px 6px rgba(217,119,6,0.4)', zIndex: 11 }}>
+                      ⚡ Sponsorisé
+                    </span>
+                  )}
+
                   {/* Condition Badge Pill */}
-                  <span style={{ position: 'absolute', top: '8px', left: '8px', background: 'rgba(255,255,255,0.9)', color: 'var(--text-main)', fontSize: '10px', fontWeight: '700', padding: '4px 8px', borderRadius: 'var(--radius-pill)', backdropFilter: 'blur(4px)', zIndex: 10 }}>
+                  <span style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(255,255,255,0.9)', color: 'var(--text-main)', fontSize: '10px', fontWeight: '700', padding: '4px 8px', borderRadius: 'var(--radius-pill)', backdropFilter: 'blur(4px)', zIndex: 10 }}>
                     {condition}
                   </span>
                   
                   {/* Favorite button */}
                   <FavoriteButton 
                     productId={product.id} 
-                    style={{ position: 'absolute', top: '8px', right: '8px', width: '32px', height: '32px', zIndex: 10 }} 
+                    style={{ position: 'absolute', top: '40px', right: '8px', width: '32px', height: '32px', zIndex: 10 }} 
                   />
                 </div>
 
@@ -903,13 +1131,21 @@ const Home = () => {
                   <h3 style={{ fontSize: '13px', fontWeight: '500', lineHeight: '1.4', margin: '0', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', color: 'var(--text-main)' }}>
                     {product.title}
                   </h3>
-                  <div style={{ fontSize: '15px', fontWeight: '800', color: 'var(--text-main)', marginBottom: 'auto' }}>
-                    {(product.price || 0).toLocaleString('fr-FR')} FCFA
+                  <div style={{ fontSize: '15px', fontWeight: '800', color: 'var(--primary)', marginBottom: 'auto' }}>
+                    {groupedView && product._count > 1
+                      ? `${(product._minPrice || 0).toLocaleString('fr-FR')} – ${(product._maxPrice || 0).toLocaleString('fr-FR')} FCFA`
+                      : `${(product.price || 0).toLocaleString('fr-FR')} FCFA`
+                    }
                   </div>
                   <div className="text-meta" style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px', fontSize: '11px' }}>
-                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '80px', color: 'var(--text-muted)' }}>{product.profiles?.boutique_name || product.profiles?.full_name || 'Vendeur'}</span>
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '80px', color: 'var(--text-muted)' }}>{product.profiles?.boutique_name || product.profiles?.pseudo || product.profiles?.full_name || 'Vendeur'}</span>
                     <span>•</span>
-                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{product.location || 'Dakar'}</span>
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                      <span style={{ width: '13px', height: '13px', borderRadius: '50%', background: 'linear-gradient(135deg, #d97706, #92400e)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'white', flexShrink: 0 }}>
+                        <MapPin size={8} strokeWidth={3} />
+                      </span>
+                      {product.location || 'Dakar'}
+                    </span>
                   </div>
                 </div>
                 {/* Bouton WhatsApp */}
@@ -950,6 +1186,67 @@ const Home = () => {
           </div>
         )}
       </section>
+      {/* Modal pour afficher la liste des annonces groupées */}
+      {selectedGroupModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+          <div style={{ background: 'white', borderRadius: '24px', width: '100%', maxWidth: '580px', maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 20px 50px rgba(0,0,0,0.25)', animation: 'scaleUp 0.25s ease-out' }}>
+            {/* Header Modal */}
+            <div style={{ padding: '1.2rem 1.5rem', borderBottom: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F8FAFC' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '800', color: 'var(--text-main)' }}>
+                  🗂️ Offres similaires disponibles ({selectedGroupModal._group?.length || 0})
+                </h3>
+                <p style={{ margin: '2px 0 0 0', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                  {selectedGroupModal.title}
+                </p>
+              </div>
+              <button 
+                onClick={() => setSelectedGroupModal(null)} 
+                style={{ background: '#E2E8F0', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', cursor: 'pointer', color: '#475569' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* List of Offers */}
+            <div style={{ padding: '1rem 1.5rem', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {selectedGroupModal._group?.map((item) => {
+                const img = item.images && item.images.length > 0 ? item.images[0] : '/hero.png';
+                return (
+                  <div key={item.id} style={{ display: 'flex', gap: '12px', background: '#F8FAFC', padding: '12px', borderRadius: '16px', border: '1px solid #E2E8F0', alignItems: 'center' }}>
+                    <img src={img} alt="" style={{ width: '70px', height: '70px', borderRadius: '12px', objectFit: 'cover' }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: '700', fontSize: '0.92rem', color: 'var(--text-main)', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                        {item.title}
+                      </div>
+                      <div style={{ color: 'var(--primary)', fontWeight: '800', fontSize: '1.05rem', marginTop: '2px' }}>
+                        {(item.price || 0).toLocaleString('fr-FR')} {item.currency || 'FCFA'}
+                      </div>
+                      <div style={{ fontSize: '0.78rem', color: '#64748B', marginTop: '2px', display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                          <span style={{ width: '14px', height: '14px', borderRadius: '50%', background: 'linear-gradient(135deg, #d97706, #92400e)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'white', flexShrink: 0 }}>
+                            <MapPin size={8} strokeWidth={3} />
+                          </span>
+                          {item.location || 'Dakar'}
+                        </span>
+                        <span>•</span>
+                        <span>{new Date(item.created_at).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => { setSelectedGroupModal(null); navigate(`/product/${item.id}`); }} 
+                      className="active-scale" 
+                      style={{ background: 'var(--primary)', color: 'white', border: 'none', padding: '10px 14px', borderRadius: '12px', fontWeight: '700', fontSize: '0.82rem', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                    >
+                      Voir l'offre →
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

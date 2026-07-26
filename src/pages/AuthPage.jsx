@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 
@@ -34,11 +34,15 @@ const InputWrapper = ({ icon, children, label }) => (
 const AuthPage = () => {
   const [isRegister, setIsRegister] = useState(true);
   const [isResetMode, setIsResetMode] = useState(false);
+  const [isRecoveryMode, setIsRecoveryMode] = useState(false);
   const [prenom, setPrenom] = useState('');
   const [nom, setNom] = useState('');
   const [phone, setPhone] = useState('');
+  const [pseudo, setPseudo] = useState('');
   const [email, setEmail] = useState('');
-  const [resetEmail, setResetEmail] = useState('');
+
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [city, setCity] = useState('');
   const [password, setPassword] = useState('');
   const [acceptTerms, setAcceptTerms] = useState(false);
@@ -50,20 +54,110 @@ const AuthPage = () => {
   const [phoneWarning, setPhoneWarning] = useState('');
   const navigate = useNavigate();
 
-  const handleResetSubmit = async (e) => {
+  // Detect Supabase recovery event (when user clicks reset link from email)
+  useEffect(() => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsRecoveryMode(true);
+        setIsResetMode(false);
+        setIsRegister(false);
+        setSuccessMsg('');
+        setErrorMsg('');
+      }
+    });
+    return () => {
+      authListener?.subscription?.unsubscribe();
+    };
+  }, []);
+
+  // Handle new password submission after clicking reset link
+  const handleNewPasswordSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setErrorMsg('');
     setSuccessMsg('');
     try {
-      if (!resetEmail) throw new Error("Veuillez saisir votre adresse email.");
-      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: `${window.location.origin}/auth`
-      });
+      if (!newPassword || newPassword.length < 8) throw new Error("Le mot de passe doit contenir au moins 8 caractères.");
+      if (newPassword !== confirmPassword) throw new Error("Les deux mots de passe ne correspondent pas.");
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
       if (error) throw error;
-      setSuccessMsg("Un lien de réinitialisation automatique a été envoyé à votre adresse e-mail !");
+      setSuccessMsg("✅ Mot de passe modifié avec succès ! Vous pouvez maintenant vous connecter.");
+      setIsRecoveryMode(false);
+      setIsRegister(false);
+      setNewPassword('');
+      setConfirmPassword('');
     } catch (error) {
-      setErrorMsg(error.message || "Impossible d'envoyer l'e-mail de réinitialisation.");
+      setErrorMsg(error.message || "Impossible de changer le mot de passe.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const [resetPhone, setResetPhone] = useState('');
+  const [resetStep, setResetStep] = useState(1);
+  const [verifyName, setVerifyName] = useState('');
+  const [newResetPassword, setNewResetPassword] = useState('');
+  const [confirmResetPassword, setConfirmResetPassword] = useState('');
+
+  const handleResetIdentity = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setErrorMsg('');
+    try {
+      const digits = resetPhone.replace(/\s+/g, '').replace(/^0+/, '');
+      if (digits.length !== 9) throw new Error('Le numéro doit contenir 9 chiffres.');
+      if (!verifyName.trim()) throw new Error('Veuillez entrer votre nom complet.');
+
+      // Vérifier que le numéro existe
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id')
+        .or(`whatsapp_number.eq.+221${digits},phone_number.eq.+221${digits}`)
+        .limit(1);
+
+      if (!profiles || profiles.length === 0)
+        throw new Error("Aucun compte trouvé avec ce numéro.");
+
+      setResetStep(2);
+    } catch (error) {
+      setErrorMsg(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setErrorMsg('');
+    setSuccessMsg('');
+    try {
+      if (newResetPassword.length < 6) throw new Error('Le mot de passe doit contenir au moins 6 caractères.');
+      if (newResetPassword !== confirmResetPassword) throw new Error('Les deux mots de passe ne correspondent pas.');
+
+      const digits = resetPhone.replace(/\s+/g, '').replace(/^0+/, '');
+
+      const { data, error } = await supabase.rpc('reset_password_by_phone', {
+        p_phone: `+221${digits}`,
+        p_full_name: verifyName.trim(),
+        p_new_password: newResetPassword
+      });
+
+      if (error) throw error;
+
+      if (data && data.success) {
+        setSuccessMsg('✅ ' + data.message + ' Vous pouvez maintenant vous connecter.');
+        setTimeout(() => {
+          setIsResetMode(false);
+          setResetStep(1);
+          setResetPhone(''); setVerifyName('');
+          setNewResetPassword(''); setConfirmResetPassword('');
+        }, 2500);
+      } else {
+        throw new Error(data?.message || 'Vérification échouée.');
+      }
+    } catch (error) {
+      setErrorMsg(error.message || 'Erreur lors de la réinitialisation.');
     } finally {
       setLoading(false);
     }
@@ -78,12 +172,15 @@ const AuthPage = () => {
     try {
       const digits = phone.replace(/\s+/g, '').replace(/^0+/, '');
       const formattedPhone = phone.startsWith('+') ? phone : `+221${digits}`;
-      const authEmail = `${formattedPhone.replace('+', '')}@colobanemarket.local`;
+      const fakeEmail = `${formattedPhone.replace('+', '')}@colobanemarket.local`;
 
       if (isRegister) {
         if (!acceptTerms) {
           throw new Error("Vous devez accepter les conditions d'utilisation.");
         }
+        
+        // Use real email as auth email if provided, otherwise use fake phone email
+        const authEmail = email ? email.trim().toLowerCase() : fakeEmail;
         
         const { data, error } = await supabase.auth.signUp({
           email: authEmail,
@@ -91,9 +188,11 @@ const AuthPage = () => {
           options: {
             data: {
               full_name: `${prenom} ${nom}`.trim(),
+              pseudo: pseudo.trim() || `${prenom}`.trim(),
               whatsapp_number: formattedPhone,
               city: city,
-              real_email: email || undefined
+              real_email: email || undefined,
+              phone_auth_email: fakeEmail
             }
           }
         });
@@ -103,16 +202,33 @@ const AuthPage = () => {
         setSuccessMsg("Inscription réussie ! Vous pouvez maintenant vous connecter.");
         setIsRegister(false);
       } else {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: authEmail,
+        // LOGIN: try with fake phone email first (backward compatible with old accounts)
+        let loginResult = await supabase.auth.signInWithPassword({
+          email: fakeEmail,
           password: password
         });
         
-        if (error) {
-          if (error.message.includes('Invalid login credentials')) {
+        // If failed, try looking up real email from profiles
+        if (loginResult.error) {
+          const { data: profiles } = await supabase
+            .from('profiles')
+            .select('email')
+            .or(`whatsapp_number.eq.${formattedPhone},phone_number.eq.${formattedPhone}`)
+            .limit(1);
+          
+          if (profiles && profiles.length > 0 && profiles[0].email && !profiles[0].email.endsWith('@colobanemarket.local')) {
+            loginResult = await supabase.auth.signInWithPassword({
+              email: profiles[0].email,
+              password: password
+            });
+          }
+        }
+        
+        if (loginResult.error) {
+          if (loginResult.error.message.includes('Invalid login credentials')) {
             throw new Error('Numéro de téléphone ou mot de passe incorrect.');
           }
-          throw error;
+          throw loginResult.error;
         }
         navigate('/');
       }
@@ -131,10 +247,10 @@ const AuthPage = () => {
           <img src="/image marque.jpg" alt="Colobane Market" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </div>
         <h1 style={{ fontSize: '1.5rem', fontWeight: '800', marginBottom: '0.25rem', fontFamily: 'var(--font-heading)' }}>
-          {isResetMode ? 'Réinitialisation du mot de passe' : isRegister ? 'Créer un compte' : 'Bon retour'}
+          {isResetMode ? 'Mot de passe oublié' : isRegister ? 'Créer un compte' : 'Bon retour'}
         </h1>
         <p style={{ fontSize: '0.9rem', opacity: 0.9 }}>
-          {isResetMode ? "Recevez un lien par e-mail ou contactez l'assistance" : isRegister ? "Rejoins le plus grand marché du Sénégal" : "Connecte-toi pour continuer tes achats"}
+          {isResetMode ? 'Réinitialisez votre mot de passe en 3 étapes' : isRegister ? "Rejoins le plus grand marché du Sénégal" : "Connecte-toi pour continuer tes achats"}
         </p>
       </div>
 
@@ -142,7 +258,7 @@ const AuthPage = () => {
         
         <div style={{ maxWidth: '400px', margin: '0 auto' }}>
           
-          {!isResetMode ? (
+          {!isResetMode && !isRecoveryMode ? (
             <div style={{ background: '#F1F5F9', padding: '4px', borderRadius: '99px', display: 'flex', marginBottom: '2rem', position: 'relative' }}>
               <div style={{ 
                 position: 'absolute', 
@@ -173,7 +289,7 @@ const AuthPage = () => {
           ) : (
             <button 
               type="button" 
-              onClick={() => { setIsResetMode(false); setErrorMsg(''); setSuccessMsg(''); }} 
+              onClick={() => { setIsResetMode(false); setResetStep(1); setResetPhone(''); setVerifyName(''); setNewResetPassword(''); setConfirmResetPassword(''); setErrorMsg(''); setSuccessMsg(''); }} 
               style={{ background: '#F1F5F9', border: 'none', padding: '8px 16px', borderRadius: '20px', color: 'var(--text-main)', fontWeight: '600', fontSize: '0.85rem', cursor: 'pointer', marginBottom: '1.5rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
             >
               ← Retour à la connexion
@@ -191,30 +307,61 @@ const AuthPage = () => {
 
           {isResetMode ? (
             <div>
-              <form onSubmit={handleResetSubmit}>
-                <InputWrapper label="Votre adresse e-mail" icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>}>
-                  <input type="email" value={resetEmail} onChange={e => setResetEmail(e.target.value)} required placeholder="exemple@gmail.com" className="clean-input" />
-                </InputWrapper>
-
-                <button type="submit" className="active-scale" disabled={loading} style={{ width: '100%', background: 'var(--primary)', color: 'white', padding: '1.1rem', borderRadius: '16px', border: 'none', fontWeight: '700', fontSize: '1rem', marginTop: '0.5rem', cursor: 'pointer', boxShadow: '0 8px 25px rgba(138, 28, 28, 0.25)' }}>
-                  {loading ? 'Envoi en cours...' : 'Réinitialiser automatiquement par e-mail'}
-                </button>
-              </form>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '1.5rem 0', color: '#94A3B8', fontSize: '0.85rem' }}>
-                <div style={{ flex: 1, height: '1px', background: '#E2E8F0' }}></div>
-                <span>OU ASSISTANCE DIRECTE</span>
-                <div style={{ flex: 1, height: '1px', background: '#E2E8F0' }}></div>
+              {/* Step indicator */}
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginBottom: '1.5rem' }}>
+                {[1, 2].map(s => (
+                  <div key={s} style={{
+                    width: s === resetStep ? '36px' : '12px', height: '10px', borderRadius: '99px',
+                    background: s <= resetStep ? 'var(--primary)' : '#E2E8F0',
+                    transition: 'all 0.3s'
+                  }} />
+                ))}
               </div>
 
-              <a 
-                href={`https://wa.me/221773713175?text=${encodeURIComponent("Bonjour ColobaneMarket, j'ai oublié mon mot de passe pour mon compte. Pouvez-vous m'aider à le réinitialiser ?")}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ width: '100%', background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)', color: 'white', padding: '1rem', borderRadius: '16px', textDecoration: 'none', fontWeight: '700', fontSize: '0.95rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', boxShadow: '0 8px 20px rgba(37, 211, 102, 0.25)' }}
-              >
-                <span>💬 Assistance WhatsApp (+221 77 371 31 75)</span>
-              </a>
+              {resetStep === 1 && (
+                <form onSubmit={handleResetIdentity}>
+                  <InputWrapper label="Numéro de téléphone">
+                    <div style={{ display: 'flex', alignItems: 'center', color: 'var(--text-main)', fontWeight: '600', fontSize: '0.95rem', borderRight: '1px solid #E2E8F0', paddingRight: '12px', marginRight: '12px', height: '60%' }}>
+                      <span style={{ color: '#94A3B8', marginRight: '4px', fontSize: '0.8rem' }}>SN</span> +221
+                    </div>
+                    <input type="tel" value={resetPhone} onChange={e => setResetPhone(e.target.value)} required placeholder="77 123 45 67" className="clean-input" style={{ letterSpacing: '1px' }} />
+                  </InputWrapper>
+                  <InputWrapper label="Nom complet (Prénom + Nom)" icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>}>
+                    <input type="text" value={verifyName} onChange={e => setVerifyName(e.target.value)} required placeholder="Aminata Diallo" className="clean-input" />
+                  </InputWrapper>
+                  <button type="submit" className="active-scale" disabled={loading} style={{ width: '100%', background: 'var(--primary)', color: 'white', padding: '1.1rem', borderRadius: '16px', border: 'none', fontWeight: '700', fontSize: '1rem', marginTop: '0.5rem', cursor: 'pointer', boxShadow: '0 8px 25px rgba(138, 28, 28, 0.25)' }}>
+                    {loading ? 'Vérification...' : 'Vérifier mon identité →'}
+                  </button>
+                </form>
+              )}
+
+              {resetStep === 2 && (
+                <form onSubmit={handleResetPassword}>
+                  <InputWrapper label="Nouveau mot de passe" icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>}>
+                    <input type="password" value={newResetPassword} onChange={e => setNewResetPassword(e.target.value)} required placeholder="Min. 6 caractères" className="clean-input" />
+                  </InputWrapper>
+                  <InputWrapper label="Confirmer le mot de passe" icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>}>
+                    <input type="password" value={confirmResetPassword} onChange={e => setConfirmResetPassword(e.target.value)} required placeholder="Retapez le mot de passe" className="clean-input" />
+                  </InputWrapper>
+                  <button type="submit" className="active-scale" disabled={loading} style={{ width: '100%', background: 'var(--primary)', color: 'white', padding: '1.1rem', borderRadius: '16px', border: 'none', fontWeight: '700', fontSize: '1rem', marginTop: '0.5rem', cursor: 'pointer', boxShadow: '0 8px 25px rgba(138, 28, 28, 0.25)' }}>
+                    {loading ? 'Réinitialisation...' : '✅ Changer mon mot de passe'}
+                  </button>
+                  <button type="button" onClick={() => { setResetStep(1); setErrorMsg(''); }} style={{ width: '100%', background: '#F1F5F9', color: 'var(--text-main)', padding: '0.8rem', borderRadius: '16px', border: 'none', fontWeight: '600', fontSize: '0.9rem', marginTop: '0.5rem', cursor: 'pointer' }}>
+                    ← Retour
+                  </button>
+                </form>
+              )}
+
+              <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid #E2E8F0', textAlign: 'center' }}>
+                <p style={{ fontSize: '0.8rem', color: '#94A3B8', margin: '0 0 0.4rem 0' }}>Vous avez des difficultés ?</p>
+                <a
+                  href={`https://wa.me/221773713175?text=${encodeURIComponent("Bonjour ColobaneMarket, j'ai oublié mon mot de passe et j'ai besoin d'aide.")}`}
+                  target="_blank" rel="noopener noreferrer"
+                  style={{ fontSize: '0.85rem', color: '#25D366', fontWeight: '600', textDecoration: 'none' }}
+                >
+                  💬 Contacter l'assistance WhatsApp
+                </a>
+              </div>
             </div>
           ) : (
             <form onSubmit={handleSubmit}>
@@ -265,9 +412,19 @@ const AuthPage = () => {
 
               {isRegister && (
                 <>
-                  <InputWrapper label="Email (optionnel)" icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>}>
+                  <InputWrapper label="Pseudo (nom affiché sur le marketplace)" icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"></path></svg>}>
+                    <input type="text" value={pseudo} onChange={e => setPseudo(e.target.value)} required placeholder="Ex: Boutique_Aminata, ColobaneShop..." className="clean-input" />
+                  </InputWrapper>
+                  <p style={{ fontSize: '0.78rem', color: '#94A3B8', marginTop: '-0.7rem', marginBottom: '0.8rem', paddingLeft: '4px' }}>
+                    👁️ Ce nom sera visible par les autres utilisateurs
+                  </p>
+
+                  <InputWrapper label="Email (optionnel — pour récupérer votre mot de passe)" icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>}>
                     <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="aminata@gmail.com" className="clean-input" />
                   </InputWrapper>
+                  <p style={{ fontSize: '0.78rem', color: '#94A3B8', marginTop: '-0.7rem', marginBottom: '0.8rem', paddingLeft: '4px' }}>
+                    🔒 Si vous oubliez votre mot de passe, on vous enverra un lien par e-mail
+                  </p>
 
                   <InputWrapper label="Région / Quartier" icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>}>
                     <div style={{ position: 'relative', width: '100%', height: '100%' }}>

@@ -33,6 +33,24 @@ const CertificationPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
+  useEffect(() => {
+    if (!user) return;
+    const loadUserProfile = async () => {
+      const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+      if (profile) {
+        setForm(prev => ({
+          ...prev,
+          boutique_name: profile.boutique_name || profile.pseudo || profile.full_name || '',
+          owner_name: profile.full_name || profile.pseudo || '',
+          phone: profile.whatsapp_number || profile.phone_number || '',
+          address: profile.city || 'Dakar, Sénégal',
+          activity: 'Vente en ligne ColobaneMarket'
+        }));
+      }
+    };
+    loadUserProfile();
+  }, [user]);
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
