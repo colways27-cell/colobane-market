@@ -240,6 +240,26 @@ const ProductPage = () => {
           <a 
             href={`https://wa.me/${(product.contact || product.profiles?.whatsapp_number || '').replace(/\+/g, '')}?text=${encodeURIComponent(`Bonjour, je suis intéressé par votre article "${product.title}" sur Colobane Market.`)}`}
             target="_blank" rel="noopener noreferrer"
+            onClick={() => {
+              try {
+                const sellerId = product.seller_id || product.profiles?.id;
+                const key = `colobane_stats_${sellerId}`;
+                const current = JSON.parse(localStorage.getItem(key) || '{"views":0,"whatsapp":0,"calls":0}');
+                current.whatsapp = (current.whatsapp || 0) + 1;
+                localStorage.setItem(key, JSON.stringify(current));
+
+                const notifKey = `colobane_notifs_${sellerId}`;
+                const notifs = JSON.parse(localStorage.getItem(notifKey) || '[]');
+                const newNotif = {
+                  id: 'notif_' + Date.now(),
+                  title: '💬 Nouveau prospect WhatsApp !',
+                  message: `Un client a pris contact pour votre annonce "${product.title}".`,
+                  created_at: new Date().toISOString(),
+                  read: false
+                };
+                localStorage.setItem(notifKey, JSON.stringify([newNotif, ...notifs.slice(0, 19)]));
+              } catch (e) {}
+            }}
             className="btn-secondary active-scale" 
             style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '8px', borderRadius: '8px', color: '#25D366', borderColor: '#25D366', background: 'rgba(37,211,102,0.05)', textDecoration: 'none' }}
           >
@@ -252,6 +272,25 @@ const ProductPage = () => {
               if (!phoneNumber) {
                 e.preventDefault();
                 toast.error("Aucun numéro de téléphone disponible.");
+              } else {
+                try {
+                  const sellerId = product.seller_id || product.profiles?.id;
+                  const key = `colobane_stats_${sellerId}`;
+                  const current = JSON.parse(localStorage.getItem(key) || '{"views":0,"whatsapp":0,"calls":0}');
+                  current.calls = (current.calls || 0) + 1;
+                  localStorage.setItem(key, JSON.stringify(current));
+
+                  const notifKey = `colobane_notifs_${sellerId}`;
+                  const notifs = JSON.parse(localStorage.getItem(notifKey) || '[]');
+                  const newNotif = {
+                    id: 'notif_' + Date.now(),
+                    title: '📞 Nouvel appel téléphonique !',
+                    message: `Un client a cliqué pour vous appeler au sujet de "${product.title}".`,
+                    created_at: new Date().toISOString(),
+                    read: false
+                  };
+                  localStorage.setItem(notifKey, JSON.stringify([newNotif, ...notifs.slice(0, 19)]));
+                } catch (err) {}
               }
             }}
             className="btn-secondary active-scale" 

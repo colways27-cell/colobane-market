@@ -23,54 +23,83 @@ const BuyerRequestsPage = () => {
     details: ''
   });
 
-  const fetchRequests = async () => {
+  // Local storage persistence helpers
+  const getLocalRequests = () => {
     try {
-      setLoading(true);
+      const saved = localStorage.getItem('colobane_buyer_requests');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  };
+
+  const saveLocalRequest = (newReq) => {
+    try {
+      const existing = getLocalRequests();
+      const updated = [newReq, ...existing.filter(r => r.id !== newReq.id)];
+      localStorage.setItem('colobane_buyer_requests', JSON.stringify(updated));
+    } catch (e) {}
+  };
+
+  const fetchRequests = async () => {
+    setLoading(true);
+    let remoteData = [];
+    try {
       const { data, error } = await supabase
         .from('buyer_requests')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (!error && data) {
-        setRequests(data);
-      } else {
-        // Fallback demo buyer requests if table doesn't exist yet
-        const demoRequests = [
-          {
-            id: 'demo-1',
-            title: 'iPhone 13 128 Go — Bon état',
-            budget: 260000,
-            location: 'Dakar, Plateau',
-            contact: '221771234567',
-            details: 'Je cherche un iPhone 13 en bon état avec batterie > 85%. Paiement cash immédiat.',
-            created_at: new Date().toISOString()
-          },
-          {
-            id: 'demo-2',
-            title: 'Robe Wax moderne mariage',
-            budget: 25000,
-            location: 'Thiès',
-            contact: '221789876543',
-            details: 'Cherche couturier ou boutique proposant de belles robes wax pour cérémonie ce weekend.',
-            created_at: new Date(Date.now() - 3600000 * 5).toISOString()
-          },
-          {
-            id: 'demo-3',
-            title: 'Toyota Corolla 2015-2018 automatique',
-            budget: 4500000,
-            location: 'Dakar, VDN',
-            contact: '221761112233',
-            details: 'Acheteur sérieux cherche véhicule propre dédouané avec clim d\'origine.',
-            created_at: new Date(Date.now() - 3600000 * 24).toISOString()
-          }
-        ];
-        setRequests(demoRequests);
+      if (!error && data && data.length > 0) {
+        remoteData = data;
       }
     } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
+      console.error('Supabase fetch error:', e);
     }
+
+    const localData = getLocalRequests();
+    const demoRequests = [
+      {
+        id: 'demo-1',
+        title: 'iPhone 13 128 Go — Bon état',
+        budget: 260000,
+        location: 'Dakar, Plateau',
+        contact: '221771234567',
+        details: 'Je cherche un iPhone 13 en bon état avec batterie > 85%. Paiement cash immédiat.',
+        created_at: new Date().toISOString()
+      },
+      {
+        id: 'demo-2',
+        title: 'Robe Wax moderne mariage',
+        budget: 25000,
+        location: 'Thiès',
+        contact: '221789876543',
+        details: 'Cherche couturier ou boutique proposant de belles robes wax pour cérémonie ce weekend.',
+        created_at: new Date(Date.now() - 3600000 * 5).toISOString()
+      },
+      {
+        id: 'demo-3',
+        title: 'Toyota Corolla 2015-2018 automatique',
+        budget: 4500000,
+        location: 'Dakar, VDN',
+        contact: '221761112233',
+        details: 'Acheteur sérieux cherche véhicule propre dédouané avec clim d\'origine.',
+        created_at: new Date(Date.now() - 3600000 * 24).toISOString()
+      }
+    ];
+
+    const mergedMap = new Map();
+    // Priorité aux demandes locales et distantes
+    localData.forEach(item => mergedMap.set(String(item.id || item.title), item));
+    remoteData.forEach(item => mergedMap.set(String(item.id || item.title), item));
+
+    if (mergedMap.size === 0) {
+      setRequests(demoRequests);
+    } else {
+      const allReqs = Array.from(mergedMap.values()).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      setRequests(allReqs);
+    }
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -85,35 +114,56 @@ const BuyerRequestsPage = () => {
     }
 
     setSubmitting(true);
-    try {
-      const payload = {
-        title: formData.title,
-        budget: parseInt(formData.budget) || 0,
-        location: formData.location,
-        contact: formData.contact.replace(/\D/g, ''),
-        details: formData.details,
-        user_id: user?.id || null,
-        created_at: new Date().toISOString()
-      };
+    toast.loading('Publication de votre demande...', { id: 'wutal-pub' });
 
-      const { error } = await supabase.from('buyer_requests').insert([payload]);
+    const cleanContact = formData.contact.replace(/\D/g, '');
+    const cleanBudget = parseInt(formData.budget) || 0;
+
+    const payload = {
+      title: formData.title,
+      budget: cleanBudget,
+      location: formData.location,
+      contact: cleanContact,
+      details: formData.details || '',
+      user_id: user?.id || null,
+      created_at: new Date().toISOString()
+    };
+
+    let createdItem = {
+      id: 'local_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+      ...payload
+    };
+
+    try {
+      // Insertion dans la base de données Supabase globale pour que TOUS les utilisateurs la voient
+      const { data, error } = await supabase
+        .from('buyer_requests')
+        .insert([payload])
+        .select();
 
       if (error) {
-        // Local state fallback if table doesn't exist
-        setRequests([ { id: Math.random().toString(), ...payload }, ...requests ]);
+        console.error('Erreur Supabase insert buyer_requests:', error);
+        toast.error(`Sauvegardé localement. (Note Supabase: ${error.message})`, { id: 'wutal-pub', duration: 5000 });
+      } else if (data && data[0]) {
+        createdItem = data[0];
+        toast.success('🎉 Votre demande a été publiée avec succès ! Tous les utilisateurs la voient.', { id: 'wutal-pub' });
       } else {
-        fetchRequests();
+        toast.success('🎉 Votre demande a été publiée !', { id: 'wutal-pub' });
       }
-
-      toast.success('Votre demande a été publiée ! Les vendeurs vous contacteront.');
-      setShowModal(false);
-      setFormData({ title: '', budget: '', location: 'Dakar', contact: '', details: '' });
     } catch (err) {
-      console.error(err);
-      toast.error('Erreur lors de la publication.');
-    } finally {
-      setSubmitting(false);
+      console.error('Exception Supabase insert:', err);
+      toast.success('Demande publiée localement !', { id: 'wutal-pub' });
     }
+
+    // Sauvegarde permanente dans le navigateur
+    saveLocalRequest(createdItem);
+
+    // Mise à jour instantanée du composant
+    setRequests(prev => [createdItem, ...prev.filter(r => String(r.id) !== String(createdItem.id))]);
+
+    setShowModal(false);
+    setFormData({ title: '', budget: '', location: 'Dakar', contact: '', details: '' });
+    setSubmitting(false);
   };
 
   const filteredRequests = requests.filter(r => 
