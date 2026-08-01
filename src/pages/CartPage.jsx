@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { openWavePayment } from '../config/paymentConfig';
 
 const CartPage = () => {
   // Mock cart items based on the mockup
@@ -121,9 +122,8 @@ const CartPage = () => {
               </button>
               
               <div style={{ display: 'flex', gap: '10px' }}>
-                <button className="active-scale" style={{ flex: 1, padding: '0.9rem', fontSize: '1.05rem', borderRadius: '12px', background: '#00b0f0', color: 'white', border: 'none', fontWeight: '800', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0, 176, 240, 0.2)' }}>
-                  <img src="/wave.png" alt="Wave" style={{ width: '24px', height: '24px', borderRadius: '50%', objectFit: 'cover' }} />
-                  Payer avec Wave
+                <button onClick={() => openWavePayment()} className="active-scale" style={{ flex: 1, padding: '0.9rem', fontSize: '1.05rem', borderRadius: '12px', background: 'var(--color-primary, #4F46E5)', color: 'white', border: 'none', fontWeight: '800', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(79, 70, 229, 0.2)' }}>
+                  💳 Payer
                 </button>
               </div>
             </div>

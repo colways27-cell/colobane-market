@@ -3,6 +3,7 @@ import { categories } from '../data/categories';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../components/AuthContext';
 import { supabase } from '../lib/supabase';
+import { openWavePayment } from '../config/paymentConfig';
 import toast from 'react-hot-toast';
 import { 
   analyzeContentForModeration, 
@@ -81,54 +82,45 @@ const InputWrapper = ({ label, icon, children, required }) => (
   </div>
 );
 
-const FastInput = ({ value, onChange, ...props }) => {
-  const [localVal, setLocalVal] = useState(value || '');
-  useEffect(() => { setLocalVal(value || ''); }, [value]);
-  return <input value={localVal} onChange={e => setLocalVal(e.target.value)} onBlur={e => onChange({ target: { name: props.name, value: localVal } })} {...props} />;
+const FastInput = ({ value = '', onChange, ...props }) => {
+  const [prevValue, setPrevValue] = useState(value);
+  const [localVal, setLocalVal] = useState(value);
+
+  if (value !== prevValue) {
+    setPrevValue(value);
+    setLocalVal(value);
+  }
+
+  return (
+    <input
+      value={localVal}
+      onChange={(evt) => setLocalVal(evt.target.value)}
+      onBlur={() => onChange({ target: { name: props.name, value: localVal } })}
+      {...props}
+    />
+  );
 };
 
-const FastTextarea = ({ value, onChange, ...props }) => {
-  const [localVal, setLocalVal] = useState(value || '');
-  useEffect(() => { setLocalVal(value || ''); }, [value]);
-  return <textarea value={localVal} onChange={e => setLocalVal(e.target.value)} onBlur={e => onChange({ target: { name: props.name, value: localVal } })} {...props} />;
+const FastTextarea = ({ value = '', onChange, ...props }) => {
+  const [prevValue, setPrevValue] = useState(value);
+  const [localVal, setLocalVal] = useState(value);
+
+  if (value !== prevValue) {
+    setPrevValue(value);
+    setLocalVal(value);
+  }
+
+  return (
+    <textarea
+      value={localVal}
+      onChange={(evt) => setLocalVal(evt.target.value)}
+      onBlur={() => onChange({ target: { name: props.name, value: localVal } })}
+      {...props}
+    />
+  );
 };
 
-// ══════════════════════════════════════════════════════════════════════════════
-// BLACKLIST ÉTENDUE SPÉCIFIQUE SÉNÉGAL (MODÉRATION AVANCÉE NIVEAU 2)
-// ══════════════════════════════════════════════════════════════════════════════
-const SENEGAL_ADVANCED_BLACKLIST = [
-  // Arnaques & Paiement à l'avance / Faux
-  'arnaque', 'faux', 'fake', 'escroquerie', 'avance', 'acompte',
-  'western union', 'moneygram', 'bitcoin', 'crypto', 'paypal',
-  'virement', 'envoyer argent', 'send money', 'transfert',
-  'code de vérification', 'code wave', 'code orange',
-  'reçu wave', 'reçu orange', 'capture wave',
-  'payer avant', 'paiement avant', 'avance obligatoire',
-  'envoyer d\'abord', 'envoyer avant de voir',
-  'frais de livraison à avancer', 'frais de dossier',
-  'frais de déblocage', 'frais de transfert',
-  'caution remboursable', 'dépôt de garantie urgent',
 
-  // Contenu Inapproprié / Adulte
-  'send nudes', 'gratuit contre', 'photo contre',
-  'video contre', 'échange service', 'massage tantrique',
-  'escort', 'accompagnatrice',
-
-  // Mots de Pression & Fausse Urgence
-  'urgent urgent', 'urgent urgent urgent', 'besoin cash urgent',
-  'départ définitif', 'quitte le sénégal',
-  'quitte dakar', 'voyage imminent',
-  'liquidation totale', 'tout doit partir',
-  'prix choc', 'incroyable', 'opportunité unique',
-
-  // Arnaques Immobilier / Véhicules / Dons suspects
-  'propriétaire absent', 'clés disponibles',
-  'visite sans rendez-vous', 'payer pour visiter',
-  'frais de réservation', 'bloquer le bien',
-  'vendu pour raisons médicales', 'décès du propriétaire',
-  'héritage à vendre', 'ambassade vend',
-  'ONG vend', 'association vend'
-];
 
 const categoryDescriptionTemplates = {
   telephones_tablettes: `📱 Modèle & Capacité : [Ex: iPhone 13 Pro 128Go]
@@ -713,7 +705,7 @@ const PublishPage = () => {
                       </p>
                       <button 
                         type="button"
-                        onClick={() => window.open('https://pay.wave.com/m/M_sn_DDpGp25B76P7/c/sn/?src=d', '_blank')}
+                        onClick={() => openWavePayment()}
                         style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', fontWeight: '700', fontSize: '0.9rem', background: '#0EA5E9', color: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 4px 10px rgba(14, 165, 233, 0.2)' }}
                       >
                         👉 Ouvrir Wave pour payer

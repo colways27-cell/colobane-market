@@ -1,4 +1,4 @@
-import React from 'react';
+
 
 const styles = {
   container: { minHeight: '100vh', padding: '100px 20px 80px', background: 'var(--bg-color)', display: 'flex', justifyContent: 'center' },

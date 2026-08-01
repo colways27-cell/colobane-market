@@ -1,7 +1,9 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './components/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
 import InstallPWA from './components/InstallPWA';
+import PushNotificationPrompt from './components/PushNotificationPrompt';
 import ScrollToTop from './components/ScrollToTop';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -12,7 +14,9 @@ import Home from './pages/Home';
 // Reset chunk reload flag if the application loads successfully
 try {
   window.sessionStorage.removeItem('chunk-failed-reloaded');
-} catch (e) {}
+} catch (_e) {
+  // Ignore sessionStorage error
+}
 
 // Wrapper to handle dynamic import failures safely
 const lazyWithRetry = (componentImport) => {
@@ -27,7 +31,9 @@ const lazyWithRetry = (componentImport) => {
           window.sessionStorage.setItem('chunk-failed-reloaded', 'true');
           window.location.reload();
         }
-      } catch (e) {}
+      } catch (_e) {
+        // Ignore reload flag error
+      }
       throw error;
     }
   });
@@ -37,7 +43,6 @@ const lazyWithRetry = (componentImport) => {
 const ExplorePage        = lazyWithRetry(() => import('./pages/ExplorePage'));
 const ProductPage        = lazyWithRetry(() => import('./pages/ProductPage'));
 const AuthPage           = lazyWithRetry(() => import('./pages/AuthPage'));
-
 
 // Pages secondaires
 const CategoryPage       = lazyWithRetry(() => import('./pages/CategoryPage'));
@@ -63,7 +68,7 @@ const TermsOfServicePage = lazyWithRetry(() => import('./pages/TermsOfServicePag
 const PrivacyPolicyPage  = lazyWithRetry(() => import('./pages/PrivacyPolicyPage'));
 const NotFoundPage       = lazyWithRetry(() => import('./pages/NotFoundPage'));
 
-// Admin — chargé séparément (le plus lourd : 67kB)
+// Admin — chargé séparément (le plus lourd)
 const AdminPage          = lazyWithRetry(() => import('./pages/AdminPage'));
 
 // ─── Composant de chargement ─────────────────────────────────────────────────
@@ -99,9 +104,9 @@ const LayoutWrapper = () => {
         <Toaster position="top-center" />
         <Suspense fallback={<PageLoader />}>
           <Routes>
-            <Route path="/admin" element={<AdminPage />} />
-            <Route path="/adminsaer" element={<AdminPage />} />
-            <Route path="/backoffice" element={<AdminPage />} />
+            <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminPage /></ProtectedRoute>} />
+            <Route path="/adminsaer" element={<ProtectedRoute requireAdmin><AdminPage /></ProtectedRoute>} />
+            <Route path="/backoffice" element={<ProtectedRoute requireAdmin><AdminPage /></ProtectedRoute>} />
           </Routes>
         </Suspense>
       </div>
@@ -113,6 +118,7 @@ const LayoutWrapper = () => {
       <ScrollToTop />
       <Navbar />
       <InstallPWA />
+      <PushNotificationPrompt />
       <main className="main-content">
         <Suspense fallback={<PageLoader />}>
           <Routes>
@@ -123,13 +129,13 @@ const LayoutWrapper = () => {
             <Route path="/boutique/:boutiqueId"      element={<BoutiqueProfilePage />} />
             <Route path="/category/:categoryId"      element={<CategoryPage />} />
             <Route path="/product/:productId"        element={<ProductPage />} />
-            <Route path="/publish"                   element={<PublishPage />} />
-            <Route path="/edit-product/:productId"   element={<EditProductPage />} />
-            <Route path="/profile"                   element={<ProfilePage />} />
+            <Route path="/publish"                   element={<ProtectedRoute><PublishPage /></ProtectedRoute>} />
+            <Route path="/edit-product/:productId"   element={<ProtectedRoute><EditProductPage /></ProtectedRoute>} />
+            <Route path="/profile"                   element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             <Route path="/cart"                      element={<CartPage />} />
             <Route path="/favorites"                 element={<FavoritesPage />} />
             <Route path="/auth"                      element={<AuthPage />} />
-            <Route path="/create-boutique"           element={<CreateBoutiquePage />} />
+            <Route path="/create-boutique"           element={<ProtectedRoute><CreateBoutiquePage /></ProtectedRoute>} />
             <Route path="/comment-ca-marche"         element={<HowItWorksPage />} />
             <Route path="/regles-publication"        element={<PublishingRulesPage />} />
             <Route path="/astuces-vente"             element={<SellingTipsPage />} />

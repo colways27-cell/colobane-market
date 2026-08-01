@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../components/AuthContext';
+import { openWavePayment } from '../config/paymentConfig';
 
 const SubscriptionPage = () => {
   const navigate = useNavigate();
@@ -31,7 +32,7 @@ const SubscriptionPage = () => {
     setSelectedPlan({ type: planType, price: price });
     setShowPaymentModal(true);
     // Le lien Wave s'ouvre pour l'utilisateur
-    window.open(`https://pay.wave.com/m/M_sn_DDpGp25B76P7/c/sn/?src=d`, '_blank');
+    openWavePayment();
   };
 
   const confirmPayment = async (e) => {
@@ -72,7 +73,7 @@ const SubscriptionPage = () => {
 
   if (loading) return <div style={{ padding: '50px', textAlign: 'center' }}>Chargement...</div>;
 
-  const isBoutique = profile?.account_type === 'boutique';
+
 
   return (
     <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto', paddingBottom: '100px' }}>
@@ -210,31 +211,30 @@ const SubscriptionPage = () => {
       </div>
 
       <div style={{ marginTop: '50px', textAlign: 'center', background: 'white', padding: '30px', borderRadius: '24px', border: '1px solid #E2E8F0' }}>
-        <h3 style={{ fontSize: '1.2rem', fontWeight: '800', marginBottom: '20px', fontFamily: 'var(--font-heading)' }}>Moyens de paiement acceptés</h3>
+        <h3 style={{ fontSize: '1.2rem', fontWeight: '800', marginBottom: '20px', fontFamily: 'var(--font-heading)' }}>Paiement Sécurisé</h3>
         <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', flexWrap: 'wrap' }}>
-          <div style={{ background: '#00b0f0', color: 'white', padding: '10px 20px', borderRadius: '12px', fontWeight: '800', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '10px', boxShadow: '0 4px 12px rgba(0, 176, 240, 0.2)' }}>
-            <img src="/wave.png" alt="Wave Logo" style={{ width: '24px', height: '24px', borderRadius: '50%', objectFit: 'cover' }} />
-            Wave
+          <div style={{ background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', color: 'white', padding: '12px 24px', borderRadius: '14px', fontWeight: '800', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '10px', boxShadow: '0 4px 15px rgba(16, 185, 129, 0.25)' }}>
+            💳 Payer
           </div>
         </div>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '15px' }}>Paiement 100% sécurisé au Sénégal. Activation immédiate.</p>
       </div>
 
-      {/* Modal de Confirmation Wave */}
+      {/* Modal de Confirmation de Paiement */}
       {showPaymentModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
           <div style={{ background: 'white', borderRadius: '24px', padding: '30px', width: '100%', maxWidth: '400px', position: 'relative', animation: 'scaleUp 0.3s ease-out' }}>
             <button onClick={() => setShowPaymentModal(false)} style={{ position: 'absolute', top: '15px', right: '15px', background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: 'var(--text-muted)' }}>×</button>
             <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-              <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '64px', height: '64px', borderRadius: '16px', background: '#00b0f0', marginBottom: '12px', boxShadow: '0 4px 15px rgba(0, 176, 240, 0.2)' }}>
-                <img src="/wave.png" alt="Wave" style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
+              <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '64px', height: '64px', borderRadius: '16px', background: '#ECFDF5', color: '#059669', marginBottom: '12px', fontSize: '28px', boxShadow: '0 4px 15px rgba(16, 185, 129, 0.15)' }}>
+                💳
               </div>
-              <h3 style={{ fontSize: '1.3rem', fontWeight: '800', margin: '0 0 10px 0', fontFamily: 'var(--font-heading)' }}>Paiement Wave</h3>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>Avez-vous effectué l'envoi de <strong>{selectedPlan?.price} FCFA</strong> via le lien ?</p>
+              <h3 style={{ fontSize: '1.3rem', fontWeight: '800', margin: '0 0 10px 0', fontFamily: 'var(--font-heading)' }}>Confirmation de paiement</h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>Avez-vous effectué le règlement de <strong>{selectedPlan?.price} FCFA</strong> ?</p>
             </div>
             <form onSubmit={confirmPayment}>
               <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', marginBottom: '8px', color: 'var(--text-main)' }}>Numéro Wave utilisé pour le paiement</label>
+                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', marginBottom: '8px', color: 'var(--text-main)' }}>Numéro de téléphone utilisé pour le paiement</label>
                 <input 
                   type="tel" 
                   value={paymentPhone}

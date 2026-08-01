@@ -356,6 +356,16 @@ const Home = () => {
 
           {/* Quick City Location Pills avec Icône Capsule */}
           <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch', marginTop: '12px' }}>
+            <button
+              onClick={() => navigate('/explore?near=me')}
+              className="active-scale hover-lift"
+              style={{ padding: '6px 14px 6px 8px', borderRadius: '20px', background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', border: 'none', color: 'white', fontWeight: '800', fontSize: '0.82rem', whiteSpace: 'nowrap', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px', boxShadow: '0 4px 12px rgba(16,185,129,0.3)' }}
+            >
+              <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: 'rgba(255,255,255,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', flexShrink: 0 }}>
+                🎯
+              </div>
+              Autour de moi (Proximité)
+            </button>
             {['Dakar', 'Thiès', 'Touba', 'Saint-Louis', 'Mbour', 'Pikine', 'Rufisque', 'Kaolack', 'Ziguinchor'].map(city => (
               <button
                 key={city}

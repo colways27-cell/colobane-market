@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
 import { useAuth } from '../components/AuthContext';
 import { supabase } from '../lib/supabase';
 import ReportModal from '../components/ReportModal';
+import SocialSEO from '../components/SocialSEO';
+import { shareProduct, copyToClipboard } from '../utils/socialShare';
 import toast from 'react-hot-toast';
 import { Shield, Tag, Gauge, Settings, Fuel, MapPin, Share2, AlertTriangle, MoreVertical } from 'lucide-react';
+import { categories } from '../data/categories';
 
 const ProductPage = () => {
   const { productId } = useParams();
@@ -21,25 +23,12 @@ const ProductPage = () => {
   const [sameItemSellers, setSameItemSellers] = useState([]);
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
+  const [sellerRating, setSellerRating] = useState(null);
+  const [sellerReviewCount, setSellerReviewCount] = useState(0);
 
   const handleShare = async () => {
     setShowShareMenu(false);
-    const shareData = {
-      title: `${product?.title || 'Produit'} - Colobane Market`,
-      text: `Regarde ce super produit sur Colobane Market : ${product?.title} à ${(product?.price || 0).toLocaleString('fr-FR')} FCFA.`,
-      url: window.location.href
-    };
-
-    if (navigator.share) {
-      try {
-        await navigator.share(shareData);
-      } catch (err) {
-        console.log('Share canceled or failed', err);
-      }
-    } else {
-      navigator.clipboard.writeText(`${shareData.text}\n${shareData.url}`);
-      toast.success('Lien copié dans le presse-papier !');
-    }
+    await shareProduct(product);
   };
 
   useEffect(() => {
@@ -105,12 +94,30 @@ const ProductPage = () => {
                 .eq('user_id', user.id)
                 .eq('product_id', productId)
                 .maybeSingle()
-            : Promise.resolve({ data: null })
+            : Promise.resolve({ data: null }),
+
+          // 4. Avis du vendeur
+          productData.seller_id
+            ? supabase
+                .from('boutique_reviews')
+                .select('rating')
+                .eq('boutique_id', productData.seller_id)
+            : Promise.resolve({ data: [] })
         ]);
 
         setSimilarProducts(similarRes.data || []);
         setSameItemSellers(sameItemRes.data || []);
         if (favRes.data) setIsFavorite(true);
+
+        const reviewsData = reviewsRes.data || [];
+        if (reviewsData.length > 0) {
+          const avg = reviewsData.reduce((acc, r) => acc + (r.rating || 0), 0) / reviewsData.length;
+          setSellerRating(avg.toFixed(1));
+          setSellerReviewCount(reviewsData.length);
+        } else {
+          setSellerRating(null);
+          setSellerReviewCount(0);
+        }
 
       } catch (err) {
         console.error('Error fetching product:', err);
@@ -190,30 +197,14 @@ const ProductPage = () => {
   return (
     <div className="product-page" style={{ paddingBottom: '120px', maxWidth: '600px', margin: '0 auto', background: 'var(--bg-color)', minHeight: '100vh', position: 'relative' }}>
       
-      <Helmet>
-        <title>{product.title} - Colobane Market 🇸🇳</title>
-        <meta name="description" content={product.description?.substring(0, 160) || `Achetez ${product.title} à ${(product.price || 0).toLocaleString('fr-FR')} FCFA sur Colobane Market.`} />
-        <link rel="canonical" href={canonicalUrl} />
-        
-        {/* OpenGraph pour Facebook, WhatsApp, LinkedIn */}
-        <meta property="og:type" content="product" />
-        <meta property="og:title" content={`${product.title} - ${(product.price || 0).toLocaleString('fr-FR')} FCFA`} />
-        <meta property="og:description" content={product.description?.substring(0, 160) || `Annonce publiée sur Colobane Market à ${product.location || 'Dakar'}.`} />
-        <meta property="og:image" content={imageUrl} />
-        <meta property="og:url" content={canonicalUrl} />
-        <meta property="og:site_name" content="Colobane Market" />
-        
-        {/* Twitter Card */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={`${product.title} - Colobane Market`} />
-        <meta name="twitter:description" content={product.description?.substring(0, 160)} />
-        <meta name="twitter:image" content={imageUrl} />
-
-        {/* Schema.org Microdata Google Product */}
-        <script type="application/ld+json">
-          {JSON.stringify(schemaProduct)}
-        </script>
-      </Helmet>
+      <SocialSEO
+        title={`${product.title} - ${(product.price || 0).toLocaleString('fr-FR')} FCFA`}
+        description={product.description?.substring(0, 160) || `Annonce disponible à ${product.location || 'Dakar'} sur ColobaneMarket.`}
+        image={imageUrl}
+        url={canonicalUrl}
+        price={product.price}
+        type="product"
+      />
 
       {/* Top Bar Floating */}
       <div style={{ position: 'absolute', top: '16px', left: '16px', right: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 50 }}>
@@ -341,7 +332,9 @@ const ProductPage = () => {
                   read: false
                 };
                 localStorage.setItem(notifKey, JSON.stringify([newNotif, ...notifs.slice(0, 19)]));
-              } catch (e) {}
+                } catch (_e) {
+                  // Ignore localStorage error
+                }
             }}
             className="btn-secondary active-scale" 
             style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '8px', borderRadius: '8px', color: '#25D366', borderColor: '#25D366', background: 'rgba(37,211,102,0.05)', textDecoration: 'none' }}
@@ -373,7 +366,9 @@ const ProductPage = () => {
                     read: false
                   };
                   localStorage.setItem(notifKey, JSON.stringify([newNotif, ...notifs.slice(0, 19)]));
-                } catch (err) {}
+                } catch (_err) {
+                  // Ignore localStorage error
+                }
               }
             }}
             className="btn-secondary active-scale" 
@@ -470,13 +465,18 @@ const ProductPage = () => {
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="#25D366" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L15 8L22 9L17 14L18.5 21L12 17.5L5.5 21L7 14L2 9L9 8L12 2Z" stroke="#25D366" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 )}
               </div>
-              <div className="text-meta" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              <div className="text-meta" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
                 <span style={{ width: '15px', height: '15px', borderRadius: '50%', background: 'linear-gradient(135deg, #d97706, #92400e)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'white', flexShrink: 0 }}>
                   <MapPin size={9} strokeWidth={3} />
                 </span>
                 {product.location || 'Dakar'} 
                 {(product.profiles?.boutique_name || product.profiles?.account_type === 'pro') && (
                   <> • <span style={{ color: '#25D366', fontWeight: '600' }}>Vérifié</span></>
+                )}
+                {sellerRating && (
+                  <span style={{ marginLeft: '4px', background: '#FFFBEB', color: '#B45309', border: '1px solid #FCD34D', padding: '1px 6px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '800', display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+                    ⭐ {sellerRating} ({sellerReviewCount})
+                  </span>
                 )}
               </div>
             </div>

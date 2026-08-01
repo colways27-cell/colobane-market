@@ -4,7 +4,9 @@ import { supabase } from '../lib/supabase';
 import { categories } from '../data/categories';
 import FavoriteButton from '../components/FavoriteButton';
 import ReportModal from '../components/ReportModal';
-import { Store, MapPin } from 'lucide-react';
+import AroundMeModal from '../components/AroundMeModal';
+import { sortProductsByProximity } from '../utils/geolocation';
+import { Store, MapPin, Compass } from 'lucide-react';
 
 const locations = ['Dakar', 'Pikine', 'Guédiawaye', 'Rufisque', 'Thiès', 'Saint-Louis', 'Touba', 'Kaolack', 'Ziguinchor', 'Mbour', 'Louga', 'Tambacounda', 'Autre'];
 
@@ -61,6 +63,13 @@ const ExplorePage = () => {
   const [isBoostedOnly, setIsBoostedOnly] = useState(initialBoosted);
   const [groupedView, setGroupedView] = useState(false);
   const [selectedGroupModal, setSelectedGroupModal] = useState(null);
+
+  // Géolocalisation & Proximité states
+  const [showAroundMeModal, setShowAroundMeModal] = useState(false);
+  const [activeUserCoords, setActiveUserCoords] = useState(null);
+  const [selectedRadius, setSelectedRadius] = useState(null);
+  const [selectedRegion, setSelectedRegion] = useState('');
+  const [selectedQuartier, setSelectedQuartier] = useState('');
 
   // Smart Grouping logic for products
   const groupProducts = (prods) => {
@@ -222,13 +231,18 @@ const ExplorePage = () => {
       const { data, error } = await query;
       if (error) throw error;
       
-      setProducts(data || []);
+      let finalProducts = data || [];
+      if (activeUserCoords) {
+        finalProducts = sortProductsByProximity(activeUserCoords, finalProducts, selectedRadius);
+      }
+
+      setProducts(finalProducts);
     } catch (err) {
       console.error('Erreur lors de la récupération des annonces:', err);
     } finally {
       setLoading(false);
     }
-  }, [activeCategory, activeSubcategory, searchQuery, minPrice, maxPrice, conditionFilter, locationFilter, sortBy, isBoostedOnly]);
+  }, [activeCategory, activeSubcategory, searchQuery, minPrice, maxPrice, conditionFilter, locationFilter, sortBy, isBoostedOnly, activeUserCoords, selectedRadius]);
 
   // Synchronize state with URL search params if they change
   useEffect(() => {
@@ -236,13 +250,18 @@ const ExplorePage = () => {
     if (params.get('category')) setActiveCategory(params.get('category'));
     if (params.get('subcategory')) setActiveSubcategory(params.get('subcategory'));
     if (params.get('q')) setSearchQuery(params.get('q'));
+    if (params.get('near') === 'me') setShowAroundMeModal(true);
     setIsBoostedOnly(params.get('boosted') === 'true');
   }, [location.search]);
 
-  // Déclencher la recherche au chargement ou quand les filtres automatiques changent
   useEffect(() => {
-    fetchProducts();
-  }, [activeCategory, activeSubcategory, conditionFilter, locationFilter, sortBy, isBoostedOnly]);
+    let active = true;
+    const runFetch = async () => {
+      if (active) await fetchProducts();
+    };
+    runFetch();
+    return () => { active = false; };
+  }, [fetchProducts]);
 
   // Défilement automatique vers les résultats lorsqu'un filtre est actif
   useEffect(() => {
@@ -512,6 +531,31 @@ const ExplorePage = () => {
             </div>
             
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', flexWrap: 'wrap' }}>
+              {/* Bouton Proximité / Autour de moi */}
+              <button
+                onClick={() => setShowAroundMeModal(true)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '0.5rem 1rem',
+                  borderRadius: '20px',
+                  border: activeUserCoords ? '2px solid #10B981' : '1px solid var(--border-color)',
+                  background: activeUserCoords ? '#ECFDF5' : 'white',
+                  color: activeUserCoords ? '#047857' : 'var(--text-main)',
+                  fontWeight: '800',
+                  fontSize: '0.85rem',
+                  cursor: 'pointer',
+                  boxShadow: activeUserCoords ? '0 2px 8px rgba(16,185,129,0.2)' : 'none'
+                }}
+              >
+                <Compass size={16} color={activeUserCoords ? '#10B981' : 'currentColor'} />
+                {activeUserCoords
+                  ? `Autour de moi (${selectedRadius ? `${selectedRadius} km` : 'Tout'})`
+                  : 'Autour de moi 🎯'
+                }
+              </button>
+
               {/* Toggle groupement */}
               <button
                 onClick={() => setGroupedView(v => !v)}
@@ -615,7 +659,7 @@ const ExplorePage = () => {
                           <span style={{ width: '15px', height: '15px', borderRadius: '50%', background: 'linear-gradient(135deg, #d97706, #92400e)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'white', flexShrink: 0 }}>
                             <MapPin size={9} strokeWidth={3} />
                           </span>
-                          {product.location}
+                          {product.formattedDistance ? `À ${product.formattedDistance}` : product.location}
                         </span>
                         <span style={{ whiteSpace: 'nowrap', flexShrink: 0 }}>{new Date(product.created_at).toLocaleDateString()}</span>
                       </div>
@@ -740,6 +784,21 @@ const ExplorePage = () => {
         isOpen={showReportModal} 
         onClose={() => setShowReportModal(false)} 
         productId={reportProductId} 
+      />
+
+      {/* Modal de Géolocalisation & Proximité */}
+      <AroundMeModal
+        isOpen={showAroundMeModal}
+        onClose={() => setShowAroundMeModal(false)}
+        activeUserCoords={activeUserCoords}
+        setActiveUserCoords={setActiveUserCoords}
+        selectedRadius={selectedRadius}
+        setSelectedRadius={setSelectedRadius}
+        selectedRegion={selectedRegion}
+        setSelectedRegion={setSelectedRegion}
+        selectedQuartier={selectedQuartier}
+        setSelectedQuartier={setSelectedQuartier}
+        onApply={() => fetchProducts()}
       />
     </div>
   );

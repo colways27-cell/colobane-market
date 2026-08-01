@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
+import SocialSEO from '../components/SocialSEO';
+import { shareBoutique } from '../utils/socialShare';
 import { supabase } from '../lib/supabase';
 import FavoriteButton from '../components/FavoriteButton';
 import ReportModal from '../components/ReportModal';
@@ -184,21 +185,13 @@ const BoutiqueProfilePage = () => {
 
   return (
     <div className="boutique-profile-page animate-fade-in-up" style={{ paddingBottom: '140px' }}>
-      <Helmet>
-        <title>{boutiqueName} - Boutique Officielle sur Colobane Market 🇸🇳</title>
-        <meta name="description" content={profile.boutique_description?.substring(0, 160) || `Découvrez tous les produits et la vitrine officielle de ${boutiqueName} à ${profile.location || 'Dakar'} sur Colobane Market.`} />
-        <link rel="canonical" href={canonicalUrl} />
-        
-        <meta property="og:type" content="profile" />
-        <meta property="og:title" content={`${boutiqueName} - Colobane Market`} />
-        <meta property="og:description" content={profile.boutique_description?.substring(0, 160) || `Boutique officielle ${boutiqueName} sur Colobane Market.`} />
-        <meta property="og:image" content={profile.avatar_url || profile.banner_url || "https://colobanemarket.vercel.app/hero.png"} />
-        <meta property="og:url" content={canonicalUrl} />
-
-        <script type="application/ld+json">
-          {JSON.stringify(schemaStore)}
-        </script>
-      </Helmet>
+      <SocialSEO
+        title={`${boutiqueName} — Boutique Officielle sur ColobaneMarket`}
+        description={profile.boutique_description?.substring(0, 160) || `Découvrez tous les produits et la vitrine officielle de ${boutiqueName} à ${profile.location || 'Dakar'} sur ColobaneMarket.`}
+        image={profile.avatar_url || profile.banner_url}
+        url={canonicalUrl}
+        type="profile"
+      />
 
       {/* Immersive Banner */}
       <div 

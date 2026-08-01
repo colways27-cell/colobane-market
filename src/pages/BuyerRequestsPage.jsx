@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../components/AuthContext';
+import SocialSEO from '../components/SocialSEO';
+import { shareBuyerRequest } from '../utils/socialShare';
 import toast from 'react-hot-toast';
-import { MapPin, Phone, Plus, Search, MessageSquare, ArrowLeft } from 'lucide-react';
+import { MapPin, Phone, Plus, Search, MessageSquare, ArrowLeft, Share2 } from 'lucide-react';
 import totemLapin from '../assets/totem-lapin.webp';
 
 const BuyerRequestsPage = () => {
@@ -173,6 +175,10 @@ const BuyerRequestsPage = () => {
 
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto', padding: '16px', paddingBottom: '100px' }}>
+      <SocialSEO
+        title="Wutal Ma 🙋‍♂️ — Demandes d'Achats & Recherches au Sénégal"
+        description="Trouvez des clients qui cherchent vos produits ou publiez ce que vous recherchez au Sénégal sur ColobaneMarket."
+      />
       {/* Header Navigation */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
         <button onClick={() => navigate(-1)} className="active-scale" style={{ background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
@@ -254,15 +260,24 @@ const BuyerRequestsPage = () => {
                   <span>{new Date(req.created_at).toLocaleDateString()}</span>
                 </div>
 
-                <a 
-                  href={`https://wa.me/${(req.contact || '').replace(/\+/g, '')}?text=${encodeURIComponent(`Bonjour, j'ai vu votre demande "${req.title}" sur Colobane Market. J'ai ce produit disponible !`)}`}
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="active-scale"
-                  style={{ background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)', color: 'white', padding: '10px 18px', borderRadius: '14px', textDecoration: 'none', fontWeight: '800', fontSize: '0.88rem', display: 'inline-flex', alignItems: 'center', gap: '6px', boxShadow: '0 4px 12px rgba(37,211,102,0.3)' }}
-                >
-                  <MessageSquare size={16} /> Proposer mon offre (WhatsApp)
-                </a>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <a 
+                    href={`https://wa.me/${(req.contact || '').replace(/\+/g, '')}?text=${encodeURIComponent(`Bonjour, j'ai vu votre demande "${req.title}" sur Colobane Market. J'ai ce produit disponible !`)}`}
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="active-scale"
+                    style={{ background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)', color: 'white', padding: '10px 18px', borderRadius: '14px', textDecoration: 'none', fontWeight: '800', fontSize: '0.88rem', display: 'inline-flex', alignItems: 'center', gap: '6px', boxShadow: '0 4px 12px rgba(37,211,102,0.3)' }}
+                  >
+                    <MessageSquare size={16} /> Proposer mon offre
+                  </a>
+                  <button
+                    onClick={() => shareBuyerRequest(req)}
+                    className="active-scale"
+                    style={{ background: '#F1F5F9', color: '#475569', border: '1px solid #CBD5E1', padding: '10px 14px', borderRadius: '14px', fontWeight: '700', fontSize: '0.88rem', display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
+                  >
+                    <Share2 size={16} /> Partager
+                  </button>
+                </div>
               </div>
             </div>
           ))}

@@ -5,6 +5,12 @@ import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import imageCompression from 'browser-image-compression';
 import { isBoutiqueExpired, getTrialDaysRemaining } from '../utils/boutiqueHelpers';
+import { 
+  requestNotificationPermission, 
+  sendSystemNotification, 
+  getNotificationPermissionState 
+} from '../utils/pushNotifications';
+import { openWavePayment } from '../config/paymentConfig';
 
 const locations = ['Dakar', 'Pikine', 'Guédiawaye', 'Rufisque', 'Thiès', 'Saint-Louis', 'Touba', 'Kaolack', 'Ziguinchor', 'Mbour', 'Louga', 'Tambacounda', 'Autre'];
 
@@ -20,10 +26,23 @@ const InputWrapper = ({ label, icon, children }) => (
   </div>
 );
 
-const FastInput = ({ value, onChange, ...props }) => {
-  const [localVal, setLocalVal] = useState(value || '');
-  useEffect(() => { setLocalVal(value || ''); }, [value]);
-  return <input value={localVal} onChange={e => setLocalVal(e.target.value)} onBlur={e => onChange({ target: { name: props.name, value: localVal } })} {...props} />;
+const FastInput = ({ value = '', onChange, ...props }) => {
+  const [prevValue, setPrevValue] = useState(value);
+  const [localVal, setLocalVal] = useState(value);
+
+  if (value !== prevValue) {
+    setPrevValue(value);
+    setLocalVal(value);
+  }
+
+  return (
+    <input
+      value={localVal}
+      onChange={(evt) => setLocalVal(evt.target.value)}
+      onBlur={() => onChange({ target: { name: props.name, value: localVal } })}
+      {...props}
+    />
+  );
 };
 
 const isRealEmail = (email) => {
@@ -316,7 +335,7 @@ const ProfilePage = () => {
     setShowBoostMarketingModal(false);
     setSelectedProductToBoost({ id: productId, title: productTitle, price: price, days: days });
     setShowBoostModal(true);
-    window.open(`https://pay.wave.com/m/M_sn_DDpGp25B76P7/c/sn/?src=d`, '_blank');
+    openWavePayment();
   };
 
   const confirmBoost = async (e) => {
@@ -367,16 +386,7 @@ const ProfilePage = () => {
       </div>
     );
   }
-  let trialDaysLeft = null;
-  let isTrialExpired = false;
 
-  if (profile?.account_type === 'boutique' && profile?.trial_end_date) {
-    const end = new Date(profile.trial_end_date);
-    const now = new Date();
-    const diffTime = end - now;
-    trialDaysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    if (trialDaysLeft <= 0) isTrialExpired = true;
-  }
 
   return (
     <div className="profile-page-container" style={{ minHeight: '100vh', background: 'var(--bg-color)', paddingBottom: '120px' }}>
@@ -768,12 +778,38 @@ const ProfilePage = () => {
                   🔔 Centre de Notifications & Alertes Vendeur
                 </h3>
 
+                <div style={{ background: '#F8FAFC', padding: '16px 20px', borderRadius: '16px', border: '1px solid #E2E8F0', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                  <div>
+                    <strong style={{ fontSize: '0.95rem', color: '#1E293B' }}>🔔 Notifications Push Navigateur / PWA</strong>
+                    <p style={{ margin: '2px 0 0 0', fontSize: '0.8rem', color: '#64748B' }}>
+                      Statut : {getNotificationPermissionState() === 'granted' ? '✅ Activées sur cet appareil' : '⚠️ Non activées'}
+                    </p>
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    {getNotificationPermissionState() !== 'granted' ? (
+                      <button
+                        onClick={() => requestNotificationPermission(user?.id)}
+                        style={{ padding: '8px 14px', background: 'var(--primary, #8a1c1c)', color: 'white', border: 'none', borderRadius: '10px', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer' }}
+                      >
+                        Activer les Notifications 🔔
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => sendSystemNotification("🔔 Test Notification Push !", { body: "Vos notifications système ColobaneMarket fonctionnent parfaitement !", url: "/profile" })}
+                        style={{ padding: '8px 14px', background: '#0284C7', color: 'white', border: 'none', borderRadius: '10px', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer' }}
+                      >
+                        Tester l'envoi 🚀
+                      </button>
+                    )}
+                  </div>
+                </div>
+
                 {(() => {
                   const notifs = JSON.parse(localStorage.getItem(`colobane_notifs_${user?.id}`) || '[]');
                   const defaultNotifs = [
-                    { id: 'n1', title: '💬 Nouveau prospect WhatsApp', message: 'Un client s\'intéresse à l\'un de vos produits publiés !', created_at: new Date().toISOString() },
-                    { id: 'n2', title: '🙋‍♂️ Nouvelle demande Wutal Ma', message: 'Des acheteurs recherchent activement des articles dans votre ville.', created_at: new Date(Date.now() - 3600000 * 2).toISOString() },
-                    { id: 'n3', title: '👑 Statut Certification', message: 'Votre compte est éligible au Badge Officiel Vendeur de Confiance.', created_at: new Date(Date.now() - 3600000 * 24).toISOString() }
+                    { id: 'n1', title: '💬 Nouveau prospect WhatsApp', message: 'Un client s\'intéresse à l\'un de vos produits publiés !', created_at: '2026-08-01T12:00:00.000Z' },
+                    { id: 'n2', title: '🙋‍♂️ Nouvelle demande Wutal Ma', message: 'Des acheteurs recherchent activement des articles dans votre ville.', created_at: '2026-08-01T10:00:00.000Z' },
+                    { id: 'n3', title: '👑 Statut Certification', message: 'Votre compte est éligible au Badge Officiel Vendeur de Confiance.', created_at: '2026-07-31T12:00:00.000Z' }
                   ];
                   const displayNotifs = notifs.length > 0 ? notifs : defaultNotifs;
 
