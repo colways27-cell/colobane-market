@@ -1,29 +1,10 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
-import prerender from '@prerenderer/rollup-plugin'
-import PuppeteerRenderer from '@prerenderer/renderer-puppeteer'
-
 
 export default defineConfig({
   plugins: [
     react(),
-    !process.env.VERCEL && prerender({
-      routes: [
-        '/',
-        '/explore',
-        '/boutiques',
-        '/comment-ca-marche',
-        '/a-propos',
-        '/contact',
-        '/conditions-generales',
-        '/politique-confidentialite'
-      ],
-      renderer: new PuppeteerRenderer({
-        headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
-      })
-    }),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
@@ -65,7 +46,7 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
         importScripts: ['/sw-push.js'],
         maximumFileSizeToCacheInBytes: 20 * 1024 * 1024,
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        globPatterns: ['**/*.{js,css,html}'],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,

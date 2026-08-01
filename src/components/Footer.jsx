@@ -68,7 +68,7 @@ const Footer = () => {
             </Link>
           </h4>
           <p className="footer-desc" style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: '1.6' }}>
-            Trouvez tout ce que vous cherchez au Sénégal, au meilleur prix. Vendez vos articles & dénichez des pépites uniques en 1 clic ! 🇸🇳✨
+            Trouvez tout ce que vous cherchez au Sénégal, au meilleur prix. Vendez vos articles & dénichez des pépites uniques en 1 clic ! 🇸🇳
           </p>
           
           <div className="footer-socials" style={{ display: 'flex', gap: '12px', marginTop: '1rem' }}>
