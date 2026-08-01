@@ -340,19 +340,25 @@ const Home = () => {
               title="Rechercher autour de moi via GPS"
               className="active-scale" 
               style={{
-                background: 'none',
+                background: 'linear-gradient(135deg, #10B981, #059669)',
                 border: 'none',
-                padding: '12px',
+                padding: '10px 14px',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#10B981',
-                borderRadius: '50%',
-                marginRight: '6px'
+                gap: '6px',
+                color: 'white',
+                borderRadius: '12px',
+                marginRight: '6px',
+                fontWeight: '700',
+                fontSize: '0.8rem',
+                whiteSpace: 'nowrap',
+                boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)'
               }}
             >
-              <Navigation size={20} strokeWidth={2} />
+              <Navigation size={16} strokeWidth={2.5} />
+              <span className="hide-on-mobile" style={{ letterSpacing: '0.02em' }}>GPS</span>
             </button>
             <button type="submit" className="active-scale" style={{ flexShrink: 0, background: 'var(--primary)', color: 'white', border: 'none', padding: '16px 22px', fontWeight: '700', fontSize: '0.9rem', cursor: 'pointer', height: '100%', whiteSpace: 'nowrap', borderRadius: '0 14px 14px 0' }}>
               Wër 🔍
