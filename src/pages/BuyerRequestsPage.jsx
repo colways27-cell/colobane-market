@@ -40,7 +40,9 @@ const BuyerRequestsPage = () => {
       const existing = getLocalRequests();
       const updated = [newReq, ...existing.filter(r => r.id !== newReq.id)];
       localStorage.setItem('colobane_buyer_requests', JSON.stringify(updated));
-    } catch (e) {}
+    } catch (e) {
+      // Ignore localStorage write error
+    }
   };
 
   const fetchRequests = async () => {
@@ -105,7 +107,10 @@ const BuyerRequestsPage = () => {
   };
 
   useEffect(() => {
-    fetchRequests();
+    const timer = setTimeout(() => {
+      fetchRequests();
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   const handleSubmit = async (e) => {

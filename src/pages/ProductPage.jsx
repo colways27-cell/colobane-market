@@ -67,7 +67,7 @@ const ProductPage = () => {
         const searchKeyword = titleTokens[0] || '';
 
         // Exécution en parallèle de toutes les requêtes secondaires avec Promise.all()
-        const [similarRes, sameItemRes, favRes] = await Promise.all([
+        const [similarRes, sameItemRes, favRes, reviewsRes] = await Promise.all([
           // 1. Produit similaires (même catégorie)
           supabase
             .from('products')
@@ -97,11 +97,11 @@ const ProductPage = () => {
             : Promise.resolve({ data: null }),
 
           // 4. Avis du vendeur
-          productData.seller_id
+          data.seller_id
             ? supabase
                 .from('boutique_reviews')
                 .select('rating')
-                .eq('boutique_id', productData.seller_id)
+                .eq('boutique_id', data.seller_id)
             : Promise.resolve({ data: [] })
         ]);
 

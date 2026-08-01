@@ -20,7 +20,7 @@ const BottomNav = () => {
       items: [
         { label: 'Qui sommes-nous ?', action: () => go('/a-propos') },
         { label: 'Nos Offres', action: () => go('/subscription') },
-        { label: 'Contact', action: () => { window.location.href = 'tel:+221773713175'; setShowMore(false); } },
+        { label: 'Contact', action: () => { window.location.assign('tel:+221773713175'); setShowMore(false); } },
         { label: 'Conditions Générales', action: () => go('/conditions-generales') },
         { label: 'Politique de confidentialité', action: () => go('/politique-confidentialite') },
       ],

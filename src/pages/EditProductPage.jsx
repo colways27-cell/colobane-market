@@ -32,13 +32,21 @@ const InputWrapper = ({ label, icon, children, required }) => (
 
 const FastInput = ({ value, onChange, ...props }) => {
   const [localVal, setLocalVal] = useState(value || '');
-  useEffect(() => { setLocalVal(value || ''); }, [value]);
+  const [prevValue, setPrevValue] = useState(value);
+  if (value !== prevValue) {
+    setLocalVal(value || '');
+    setPrevValue(value);
+  }
   return <input value={localVal} onChange={e => setLocalVal(e.target.value)} onBlur={e => onChange({ target: { name: props.name, value: localVal } })} {...props} />;
 };
 
 const FastTextarea = ({ value, onChange, ...props }) => {
   const [localVal, setLocalVal] = useState(value || '');
-  useEffect(() => { setLocalVal(value || ''); }, [value]);
+  const [prevValue, setPrevValue] = useState(value);
+  if (value !== prevValue) {
+    setLocalVal(value || '');
+    setPrevValue(value);
+  }
   return <textarea value={localVal} onChange={e => setLocalVal(e.target.value)} onBlur={e => onChange({ target: { name: props.name, value: localVal } })} {...props} />;
 };
 

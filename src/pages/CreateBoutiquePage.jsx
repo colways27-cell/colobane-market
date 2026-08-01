@@ -19,13 +19,21 @@ const InputWrapper = ({ label, required, children }) => (
 
 const FastInput = ({ value, onChange, ...props }) => {
   const [localVal, setLocalVal] = useState(value || '');
-  useEffect(() => { setLocalVal(value || ''); }, [value]);
+  const [prevValue, setPrevValue] = useState(value);
+  if (value !== prevValue) {
+    setLocalVal(value || '');
+    setPrevValue(value);
+  }
   return <input value={localVal} onChange={e => setLocalVal(e.target.value)} onBlur={e => onChange({ target: { name: props.name, value: localVal } })} {...props} />;
 };
 
 const FastTextarea = ({ value, onChange, ...props }) => {
   const [localVal, setLocalVal] = useState(value || '');
-  useEffect(() => { setLocalVal(value || ''); }, [value]);
+  const [prevValue, setPrevValue] = useState(value);
+  if (value !== prevValue) {
+    setLocalVal(value || '');
+    setPrevValue(value);
+  }
   return <textarea value={localVal} onChange={e => setLocalVal(e.target.value)} onBlur={e => onChange({ target: { name: props.name, value: localVal } })} {...props} />;
 };
 
@@ -45,7 +53,10 @@ const CreateBoutiquePage = () => {
   useEffect(() => {
     const defaultQuartier = senegalRegions[formData.region][0];
     if (!senegalRegions[formData.region].includes(formData.quartier)) {
-      setFormData(prev => ({ ...prev, quartier: defaultQuartier }));
+      const timer = setTimeout(() => {
+        setFormData(prev => ({ ...prev, quartier: defaultQuartier }));
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [formData.region]);
 

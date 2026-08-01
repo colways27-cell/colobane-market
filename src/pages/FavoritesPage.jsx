@@ -127,7 +127,7 @@ const FavoritesPage = () => {
                   </div>
 
                   <div style={{ padding: '10px 8px 12px 8px', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                    <div className="product-price" style={{ fontSize: '15px', fontWeight: '800', marginBottom: '2px', color: 'var(--text-main)', letterSpacing: '-0.3px', marginBottom: 'auto' }}>
+                    <div className="product-price" style={{ fontSize: '15px', fontWeight: '800', marginBottom: '2px', color: 'var(--text-main)', letterSpacing: '-0.3px' }}>
                       {(product.price || 0).toLocaleString('fr-FR')} FCFA
                     </div>
                     

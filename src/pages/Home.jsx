@@ -271,7 +271,10 @@ const Home = () => {
   };
 
   useEffect(() => {
-    fetchProducts(0);
+    const timer = setTimeout(() => {
+      fetchProducts(0);
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   const handleLoadMore = () => {
@@ -813,7 +816,9 @@ const Home = () => {
               setShowPromoBanner(false);
               try {
                 localStorage.setItem('hidePromoBanner', 'true');
-              } catch (e) {}
+              } catch (e) {
+                // Ignore localStorage error
+              }
             }}
             style={{
               position: 'absolute', top: '14px', right: '14px',

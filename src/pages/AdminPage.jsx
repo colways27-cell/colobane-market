@@ -28,36 +28,6 @@ const AdminPage = () => {
   const [zoomImage, setZoomImage] = useState(null);
   const [updatingUser, setUpdatingUser] = useState(false);
 
-  useEffect(() => {
-    checkAdminAccess();
-  }, []);
-
-  const checkAdminAccess = async () => {
-    setLoading(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: profile } = await supabase.from('profiles').select('is_admin').eq('id', user.id).single();
-        if (profile?.is_admin) {
-          setIsAdmin(true);
-          fetchAllData();
-          return;
-        }
-      }
-      setIsAdmin(false);
-      setLoading(false);
-    } catch (_err) {
-      setIsAdmin(false);
-      setLoading(false);
-    }
-  };
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setIsAdmin(false);
-    navigate('/');
-  };
-
   const fetchAllData = async () => {
     setLoading(true);
     try {
@@ -86,6 +56,39 @@ const AdminPage = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const checkAdminAccess = async () => {
+    setLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase.from('profiles').select('is_admin').eq('id', user.id).single();
+        if (profile?.is_admin) {
+          setIsAdmin(true);
+          fetchAllData();
+          return;
+        }
+      }
+      setIsAdmin(false);
+      setLoading(false);
+    } catch (_err) {
+      setIsAdmin(false);
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      checkAdminAccess();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setIsAdmin(false);
+    navigate('/');
   };
 
   const validerPaiement = async (paiement) => {

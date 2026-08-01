@@ -247,11 +247,21 @@ const ExplorePage = () => {
   // Synchronize state with URL search params if they change
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    if (params.get('category')) setActiveCategory(params.get('category'));
-    if (params.get('subcategory')) setActiveSubcategory(params.get('subcategory'));
-    if (params.get('q')) setSearchQuery(params.get('q'));
-    if (params.get('near') === 'me') setShowAroundMeModal(true);
-    setIsBoostedOnly(params.get('boosted') === 'true');
+    const cat = params.get('category');
+    const sub = params.get('subcategory');
+    const q = params.get('q');
+    const near = params.get('near');
+    const boosted = params.get('boosted') === 'true';
+
+    const timer = setTimeout(() => {
+      if (cat) setActiveCategory(cat);
+      if (sub) setActiveSubcategory(sub);
+      if (q) setSearchQuery(q);
+      if (near === 'me') setShowAroundMeModal(true);
+      setIsBoostedOnly(boosted);
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, [location.search]);
 
   useEffect(() => {
