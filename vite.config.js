@@ -8,7 +8,7 @@ import PuppeteerRenderer from '@prerenderer/renderer-puppeteer'
 export default defineConfig({
   plugins: [
     react(),
-    prerender({
+    !process.env.VERCEL && prerender({
       routes: [
         '/',
         '/explore',
