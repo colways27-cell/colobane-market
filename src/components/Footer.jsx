@@ -125,7 +125,7 @@ const Footer = () => {
       </div>
       
       <div className="footer-bottom">
-        &copy; {new Date().getFullYear()} ColobaneMarket. Tous droits réservés. Fabriqué avec ❤️ au Sénégal.
+        &copy; {new Date().getFullYear()} ColobaneMarket. Tous droits réservés. Fabriqué au Sénégal.
       </div>
     </footer>
   );
