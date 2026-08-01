@@ -7,8 +7,9 @@ import SkeletonCard from '../components/SkeletonCard';
 import FavoriteButton from '../components/FavoriteButton';
 import ReportModal from '../components/ReportModal';
 import toast from 'react-hot-toast';
-import { Store, ChevronDown, ChevronUp, Search, MapPin } from 'lucide-react';
+import { Store, ChevronDown, ChevronUp, Search, MapPin, Navigation } from 'lucide-react';
 import totemLapin from '../assets/totem-lapin.webp';
+import { getUserCoordinates } from '../utils/geolocation';
 
 const Home = () => {
   const [products, setProducts] = useState([]);
@@ -93,6 +94,21 @@ const Home = () => {
       e.preventDefault();
       navigate(`/product/${suggestions[suggestionIndex].id}`);
     } else if (e.key === 'Escape') { setSuggestionsOpen(false); }
+  };
+
+  const handleGpsSearch = async () => {
+    const toastId = toast.loading('Détection de votre position GPS...');
+    try {
+      const coords = await getUserCoordinates();
+      toast.dismiss(toastId);
+      toast.success("Position détectée ! 🎯");
+      navigate(`/explore?lat=${coords.lat}&lng=${coords.lng}`);
+    } catch (err) {
+      toast.dismiss(toastId);
+      console.error(err);
+      toast.error("Impossible de vous géolocaliser. V\u00e9rifiez vos permissions GPS.");
+      navigate('/explore?near=me');
+    }
   };
 
   const recentProductsRef = useRef(null);
@@ -318,6 +334,26 @@ const Home = () => {
               placeholder="Lan nga bëgg wut ? (robe wax, iPhone, appartement...)" 
               style={{ flex: 1, padding: '16px 16px 16px 44px', border: 'none', background: 'transparent', fontSize: '0.95rem', outline: 'none', width: '100%', boxSizing: 'border-box' }} 
             />
+            <button 
+              type="button" 
+              onClick={handleGpsSearch}
+              title="Rechercher autour de moi via GPS"
+              className="active-scale" 
+              style={{
+                background: 'none',
+                border: 'none',
+                padding: '12px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#10B981',
+                borderRadius: '50%',
+                marginRight: '6px'
+              }}
+            >
+              <Navigation size={20} strokeWidth={2} />
+            </button>
             <button type="submit" className="active-scale" style={{ flexShrink: 0, background: 'var(--primary)', color: 'white', border: 'none', padding: '16px 22px', fontWeight: '700', fontSize: '0.9rem', cursor: 'pointer', height: '100%', whiteSpace: 'nowrap', borderRadius: '0 14px 14px 0' }}>
               Wër 🔍
             </button>

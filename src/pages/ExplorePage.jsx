@@ -252,6 +252,8 @@ const ExplorePage = () => {
     const q = params.get('q');
     const near = params.get('near');
     const boosted = params.get('boosted') === 'true';
+    const lat = params.get('lat');
+    const lng = params.get('lng');
 
     const timer = setTimeout(() => {
       if (cat) setActiveCategory(cat);
@@ -259,6 +261,16 @@ const ExplorePage = () => {
       if (q) setSearchQuery(q);
       if (near === 'me') setShowAroundMeModal(true);
       setIsBoostedOnly(boosted);
+
+      // Auto-activate GPS proximity when lat/lng are provided
+      if (lat && lng) {
+        const parsedLat = parseFloat(lat);
+        const parsedLng = parseFloat(lng);
+        if (!isNaN(parsedLat) && !isNaN(parsedLng)) {
+          setActiveUserCoords({ lat: parsedLat, lng: parsedLng });
+          if (!selectedRadius) setSelectedRadius(15); // 15km default radius
+        }
+      }
     }, 0);
 
     return () => clearTimeout(timer);
