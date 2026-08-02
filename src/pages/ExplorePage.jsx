@@ -203,8 +203,16 @@ const ExplorePage = () => {
         query = query.lte('price', parseInt(maxPrice));
       }
       
-      // 5. Filtre Etat
-      if (conditionFilter !== 'all') {
+      // 5. Filtre Etat (recherche flexible sur le marché sénégalais)
+      if (conditionFilter === 'Neuf') {
+        query = query.or('condition.ilike.%Neuf%');
+      } else if (conditionFilter === 'Venant') {
+        query = query.or('condition.ilike.%Venant%,condition.ilike.%Comme neuf%,condition.ilike.%Très bon état%');
+      } else if (conditionFilter === 'Occasion') {
+        query = query.or('condition.ilike.%Occasion%,condition.ilike.%Bon état%,condition.ilike.%Usagé%');
+      } else if (conditionFilter === 'Friperie') {
+        query = query.or('condition.ilike.%Friperie%,condition.ilike.%Fripe%,condition.ilike.%Balle%');
+      } else if (conditionFilter !== 'all') {
         query = query.eq('condition', conditionFilter);
       }
 
@@ -414,11 +422,105 @@ const ExplorePage = () => {
                   style={{ padding: '0.5rem', flex: 1, minWidth: 0 }}
                 />
               </div>
+              
+              {/* Presets rapides de budget */}
+              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '0.8rem' }}>
+                {[
+                  { label: '< 10k F', min: '', max: '10000' },
+                  { label: '10k-50k F', min: '10000', max: '50000' },
+                  { label: '50k-200k F', min: '50000', max: '200000' },
+                  { label: '> 200k F', min: '200000', max: '' }
+                ].map((p, idx) => {
+                  const isSelected = minPrice === p.min && maxPrice === p.max;
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => { setMinPrice(p.min); setMaxPrice(p.max); }}
+                      style={{
+                        padding: '4px 8px',
+                        borderRadius: '12px',
+                        fontSize: '0.75rem',
+                        fontWeight: '600',
+                        border: isSelected ? '1.5px solid var(--primary)' : '1px solid var(--border-color)',
+                        background: isSelected ? 'var(--primary-light)' : 'white',
+                        color: isSelected ? 'var(--primary)' : 'var(--text-muted)',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {p.label}
+                    </button>
+                  );
+                })}
+              </div>
+
               <button type="submit" className="btn-secondary" style={{ width: '100%', marginTop: '0.8rem', padding: '0.5rem' }}>Appliquer le budget</button>
             </div>
           </form>
 
-          {/* État */}
+          {/* Section Proximité GPS & Rayon */}
+          <div style={{ marginBottom: '2rem' }}>
+            <h4 style={{ fontSize: '0.9rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.8rem', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span>Proximité GPS</span>
+              {activeUserCoords && <span style={{ color: '#10B981', fontWeight: 'bold', textTransform: 'none', fontSize: '0.8rem' }}>● Actif</span>}
+            </h4>
+            <button
+              type="button"
+              onClick={() => setShowAroundMeModal(true)}
+              style={{
+                width: '100%',
+                padding: '0.8rem 1rem',
+                borderRadius: '12px',
+                border: activeUserCoords ? '2px solid #10B981' : '1px solid var(--border-color)',
+                background: activeUserCoords ? '#ECFDF5' : '#F8FAFC',
+                color: activeUserCoords ? '#047857' : 'var(--text-main)',
+                fontWeight: '700',
+                fontSize: '0.88rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '8px',
+                marginBottom: activeUserCoords ? '0.8rem' : '0'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Compass size={18} color={activeUserCoords ? '#10B981' : 'var(--primary)'} />
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '140px' }}>
+                  {selectedQuartier || selectedRegion || 'Position GPS'}
+                </span>
+              </div>
+              <span style={{ fontSize: '0.78rem', background: activeUserCoords ? '#10B981' : '#E2E8F0', color: activeUserCoords ? 'white' : '#475569', padding: '2px 8px', borderRadius: '10px', flexShrink: 0 }}>
+                {selectedRadius ? `${selectedRadius} km` : 'Fixer GPS'}
+              </span>
+            </button>
+
+            {activeUserCoords && (
+              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                {[5, 10, 25, 50, null].map(r => (
+                  <button
+                    key={r || 'all'}
+                    type="button"
+                    onClick={() => setSelectedRadius(r)}
+                    style={{
+                      padding: '4px 8px',
+                      borderRadius: '10px',
+                      fontSize: '0.75rem',
+                      fontWeight: '600',
+                      border: selectedRadius === r ? '1.5px solid #10B981' : '1px solid #E2E8F0',
+                      background: selectedRadius === r ? '#10B981' : 'white',
+                      color: selectedRadius === r ? 'white' : '#475569',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {r ? `${r} km` : 'Tout'}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* État de l'article */}
           <div style={{ marginBottom: '2rem' }}>
             <h4 style={{ fontSize: '0.9rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.8rem', letterSpacing: '0.5px' }}>État de l'article</h4>
             <select 
@@ -428,9 +530,10 @@ const ExplorePage = () => {
               style={{ padding: '0.8rem', width: '100%', borderRadius: '8px', border: '1px solid var(--border-color)', outline: 'none', background: 'var(--bg-body)' }}
             >
               <option value="all">Tous les états</option>
-              <option value="Neuf">Neuf (scellé)</option>
-              <option value="Venant">Venant (importé)</option>
-              <option value="Occasion">Occasion</option>
+              <option value="Neuf">✨ Neuf (scellé / sous blister)</option>
+              <option value="Venant">✈️ Venant (importé / comme neuf)</option>
+              <option value="Occasion">👌 Occasion (bon état)</option>
+              <option value="Friperie">🛍️ Friperie (1er choix & balles)</option>
             </select>
           </div>
 
@@ -541,6 +644,67 @@ const ExplorePage = () => {
 
         {/* Grille de Résultats */}
         <div className="explore-content" ref={resultsRef}>
+
+          {/* Barre des Filtres Actifs */}
+          {(activeCategory !== 'all' || activeSubcategory !== 'all' || searchQuery || minPrice || maxPrice || conditionFilter !== 'all' || locationFilter !== 'all' || isBoostedOnly || activeUserCoords) && (
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '1rem', padding: '0.8rem 1rem', background: '#F8FAFC', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+              <span style={{ fontSize: '0.82rem', fontWeight: '700', color: '#64748B' }}>Filtres actifs :</span>
+              
+              {searchQuery && (
+                <span style={{ background: '#EFF6FF', color: '#1D4ED8', border: '1px solid #BFDBFE', padding: '4px 10px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  🔍 "{searchQuery}"
+                  <button onClick={() => setSearchQuery('')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#1D4ED8', fontWeight: 'bold' }}>✕</button>
+                </span>
+              )}
+
+              {activeCategory !== 'all' && (
+                <span style={{ background: '#FEF2F2', color: 'var(--primary)', border: '1px solid #FECACA', padding: '4px 10px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  🏷️ {categories.find(c => c.id === activeCategory)?.name || activeCategory}
+                  <button onClick={() => { setActiveCategory('all'); setActiveSubcategory('all'); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: 'var(--primary)', fontWeight: 'bold' }}>✕</button>
+                </span>
+              )}
+
+              {activeSubcategory !== 'all' && (
+                <span style={{ background: '#F0FDFA', color: '#0F766E', border: '1px solid #99F6E4', padding: '4px 10px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  📂 {activeSubcategory}
+                  <button onClick={() => setActiveSubcategory('all')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#0F766E', fontWeight: 'bold' }}>✕</button>
+                </span>
+              )}
+
+              {(minPrice || maxPrice) && (
+                <span style={{ background: '#ECFDF5', color: '#047857', border: '1px solid #A7F3D0', padding: '4px 10px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  💰 {minPrice ? `${Number(minPrice).toLocaleString('fr-FR')} F` : '0 F'} - {maxPrice ? `${Number(maxPrice).toLocaleString('fr-FR')} F` : 'Max'}
+                  <button onClick={() => { setMinPrice(''); setMaxPrice(''); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#047857', fontWeight: 'bold' }}>✕</button>
+                </span>
+              )}
+
+              {conditionFilter !== 'all' && (
+                <span style={{ background: '#F5F3FF', color: '#6D28D9', border: '1px solid #DDD6FE', padding: '4px 10px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  ✨ État: {conditionFilter}
+                  <button onClick={() => setConditionFilter('all')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#6D28D9', fontWeight: 'bold' }}>✕</button>
+                </span>
+              )}
+
+              {locationFilter !== 'all' && (
+                <span style={{ background: '#FFFBEB', color: '#B45309', border: '1px solid #FDE68A', padding: '4px 10px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  📍 {locationFilter}
+                  <button onClick={() => setLocationFilter('all')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#B45309', fontWeight: 'bold' }}>✕</button>
+                </span>
+              )}
+
+              {activeUserCoords && (
+                <span style={{ background: '#ECFDF5', color: '#047857', border: '1px solid #10B981', padding: '4px 10px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  🎯 GPS: {selectedQuartier || 'Position active'} {selectedRadius ? `(${selectedRadius} km)` : ''}
+                  <button onClick={() => { setActiveUserCoords(null); setSelectedRadius(null); setSelectedQuartier(''); setSelectedRegion(''); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#047857', fontWeight: 'bold' }}>✕</button>
+                </span>
+              )}
+
+              <button onClick={handleResetFilters} style={{ background: 'none', border: 'none', color: '#EF4444', fontSize: '0.8rem', fontWeight: '700', cursor: 'pointer', textDecoration: 'underline', marginLeft: 'auto' }}>
+                Tout effacer
+              </button>
+            </div>
+          )}
+
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', background: 'white', padding: '1rem 1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)', flexWrap: 'wrap', gap: '1rem' }}>
             <div style={{ color: 'var(--text-muted)', fontWeight: '500', minWidth: '200px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span><span style={{ color: 'var(--primary)', fontWeight: '800', fontSize: '1.2rem' }}>{displayProducts.length}</span> résultat(s){groupedView ? ' groupé(s)' : ''}</span>
