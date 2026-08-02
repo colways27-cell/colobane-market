@@ -358,7 +358,7 @@ const Home = () => {
               }}
             >
               <Navigation size={16} strokeWidth={2.5} />
-              <span className="hide-on-mobile" style={{ letterSpacing: '0.02em' }}>GPS</span>
+              <span style={{ letterSpacing: '0.02em', fontWeight: '800' }}>GPS</span>
             </button>
             <button type="submit" className="active-scale" style={{ flexShrink: 0, background: 'var(--primary)', color: 'white', border: 'none', padding: '16px 22px', fontWeight: '700', fontSize: '0.9rem', cursor: 'pointer', height: '100%', whiteSpace: 'nowrap', borderRadius: '0 14px 14px 0' }}>
               Wër 🔍
@@ -399,31 +399,42 @@ const Home = () => {
             </div>
           )}
 
-          {/* Quick City Location Pills avec Icône Capsule */}
-          <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch', marginTop: '12px' }}>
-            <button
-              onClick={() => navigate('/explore?near=me')}
-              className="active-scale hover-lift"
-              style={{ padding: '6px 14px 6px 8px', borderRadius: '20px', background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', border: 'none', color: 'white', fontWeight: '800', fontSize: '0.82rem', whiteSpace: 'nowrap', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px', boxShadow: '0 4px 12px rgba(16,185,129,0.3)' }}
-            >
-              <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: 'rgba(255,255,255,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', flexShrink: 0 }}>
-                🎯
-              </div>
-              Autour de moi (Proximité)
-            </button>
-            {['Dakar', 'Thiès', 'Touba', 'Saint-Louis', 'Mbour', 'Pikine', 'Rufisque', 'Kaolack', 'Ziguinchor'].map(city => (
+          {/* Section Proximité GPS & Villes sous la barre de recherche */}
+          <div style={{ marginTop: '14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: '700', color: 'var(--text-main)' }}>
+              <span>🎯 Recherche par Proximité GPS & Régions du Sénégal :</span>
+            </div>
+            
+            <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch', alignItems: 'center' }}>
               <button
-                key={city}
-                onClick={() => navigate(`/explore?location=${encodeURIComponent(city)}`)}
+                type="button"
+                onClick={handleGpsSearch}
                 className="active-scale hover-lift"
-                style={{ padding: '6px 14px 6px 8px', borderRadius: '20px', background: 'white', border: '1.5px solid #E2E8F0', color: 'var(--text-main)', fontWeight: '700', fontSize: '0.82rem', whiteSpace: 'nowrap', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}
+                style={{ padding: '8px 16px', borderRadius: '24px', background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', border: 'none', color: 'white', fontWeight: '800', fontSize: '0.88rem', whiteSpace: 'nowrap', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 14px rgba(16,185,129,0.35)', flexShrink: 0 }}
               >
-                <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: 'linear-gradient(135deg, #d97706, #92400e)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', flexShrink: 0, boxShadow: '0 2px 4px rgba(217,119,6,0.3)' }}>
-                  <MapPin size={12} strokeWidth={2.8} />
+                <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: 'rgba(255,255,255,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', flexShrink: 0 }}>
+                  🎯
                 </div>
-                {city}
+                Autour de moi (Activer GPS)
               </button>
-            ))}
+
+              <div style={{ width: '1px', height: '24px', background: '#E2E8F0', margin: '0 4px', flexShrink: 0 }} />
+
+              {['Dakar', 'Thiès', 'Touba', 'Saint-Louis', 'Mbour', 'Pikine', 'Rufisque', 'Kaolack', 'Ziguinchor'].map(city => (
+                <button
+                  key={city}
+                  type="button"
+                  onClick={() => navigate(`/explore?location=${encodeURIComponent(city)}`)}
+                  className="active-scale hover-lift"
+                  style={{ padding: '6px 14px 6px 8px', borderRadius: '20px', background: 'white', border: '1.5px solid #E2E8F0', color: 'var(--text-main)', fontWeight: '700', fontSize: '0.82rem', whiteSpace: 'nowrap', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', flexShrink: 0 }}
+                >
+                  <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: 'linear-gradient(135deg, #d97706, #92400e)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', flexShrink: 0, boxShadow: '0 2px 4px rgba(217,119,6,0.3)' }}>
+                    <MapPin size={12} strokeWidth={2.8} />
+                  </div>
+                  {city}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Banner Wutal Ma (Modern, Premium & Élégant) */}
