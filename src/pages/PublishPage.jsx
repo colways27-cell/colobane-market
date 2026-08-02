@@ -1255,10 +1255,10 @@ const PublishPage = () => {
                 <h2 style={{ fontSize: '1.5rem', fontWeight: '800', marginBottom: '24px', fontFamily: 'var(--font-heading)' }}>Prix et Livraison</h2>
                 
                 <div style={{ marginBottom: '1.5rem' }}>
-                  <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.8rem', fontWeight: '500' }}>Type de prix</label>
-                  <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px', scrollbarWidth: 'none' }}>
+                  <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.8rem', fontWeight: '600' }}>Type de prix</label>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', width: '100%' }}>
                     {['Fixe', 'Négociable', 'Gratuit', 'Échange'].map(pt => (
-                      <button type="button" key={pt} onClick={() => setFormData({...formData, price_type: pt})} className="active-scale touch-target" style={{ flexShrink: 0, padding: '0 20px', minHeight: '44px', borderRadius: '12px', border: formData.price_type === pt ? 'none' : '1px solid #E2E8F0', background: formData.price_type === pt ? 'var(--primary)' : '#FAFAF9', color: formData.price_type === pt ? 'white' : 'var(--text-main)', fontWeight: '600', fontSize: '0.9rem', boxShadow: formData.price_type === pt ? '0 4px 12px rgba(139, 28, 49, 0.2)' : 'none', transition: 'all 0.2s' }}>
+                      <button type="button" key={pt} onClick={() => setFormData({...formData, price_type: pt})} className="active-scale touch-target" style={{ width: '100%', padding: '10px 4px', minHeight: '44px', borderRadius: '12px', border: formData.price_type === pt ? 'none' : '1px solid #E2E8F0', background: formData.price_type === pt ? 'var(--primary)' : '#FAFAF9', color: formData.price_type === pt ? 'white' : 'var(--text-main)', fontWeight: '700', fontSize: '0.82rem', textAlign: 'center', boxShadow: formData.price_type === pt ? '0 4px 12px rgba(139, 28, 49, 0.25)' : 'none', transition: 'all 0.2s', whiteSpace: 'nowrap' }}>
                         {pt}
                       </button>
                     ))}
@@ -1273,7 +1273,7 @@ const PublishPage = () => {
 
                 <div style={{ marginBottom: '1.5rem' }}>
                   <InputWrapper label="Ville / Quartier" required icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>}>
-                    <select name="location" onChange={handleInputChange} value={formData.location} style={{ flex: 1, padding: '1rem 1rem 1rem 0', border: 'none', background: 'transparent', outline: 'none', fontSize: '0.95rem', appearance: 'none' }}>
+                    <select name="location" onChange={handleInputChange} value={formData.location} style={{ flex: 1, padding: '1rem 1rem 1rem 0', border: 'none', background: 'transparent', outline: 'none', fontSize: '0.95rem', appearance: 'none', cursor: 'pointer' }}>
                       {locations.map(loc => <option key={loc} value={loc} style={{ color: 'var(--text-main)' }}>{loc}</option>)}
                     </select>
                     <div style={{ padding: '0 16px', color: '#94A3B8', display: 'flex', alignItems: 'center', pointerEvents: 'none' }}>▼</div>
@@ -1293,16 +1293,16 @@ const PublishPage = () => {
                 </div>
 
                 <InputWrapper label="Options de livraison" icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>}>
-                  <select name="delivery" onChange={handleInputChange} value={formData.delivery} style={{ flex: 1, padding: '1rem 1rem 1rem 0', border: 'none', background: 'transparent', outline: 'none', fontSize: '0.95rem', appearance: 'none' }}>
+                  <select name="delivery" onChange={handleInputChange} value={formData.delivery} style={{ flex: 1, padding: '1rem 1rem 1rem 0', border: 'none', background: 'transparent', outline: 'none', fontSize: '0.95rem', appearance: 'none', cursor: 'pointer' }}>
                     {deliveries.map(del => <option key={del} value={del} style={{ color: 'var(--text-main)' }}>{del}</option>)}
                   </select>
                   <div style={{ padding: '0 16px', color: '#94A3B8', display: 'flex', alignItems: 'center', pointerEvents: 'none' }}>▼</div>
                 </InputWrapper>
 
                 <div style={{ marginBottom: '1.5rem', width: '100%', boxSizing: 'border-box' }}>
-                  <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem', fontWeight: '500' }}>Numéro WhatsApp <span style={{ opacity: 0.7 }}>(optionnel)</span></label>
-                  <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #E2E8F0', borderRadius: '12px', overflow: 'hidden', background: '#FAFAF9', width: '100%', boxSizing: 'border-box' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', padding: '0 12px', background: '#F8FAFC', borderRight: '1px solid #E2E8F0', color: 'var(--text-main)', fontWeight: '600', fontSize: '0.9rem', flexShrink: 0 }}>
+                  <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem', fontWeight: '600' }}>Numéro WhatsApp <span style={{ opacity: 0.7 }}>(optionnel)</span></label>
+                  <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #E2E8F0', borderRadius: '14px', overflow: 'hidden', background: '#FAFAF9', width: '100%', boxSizing: 'border-box' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', padding: '0 12px', background: '#F8FAFC', borderRight: '1px solid #E2E8F0', color: 'var(--text-main)', fontWeight: '700', fontSize: '0.9rem', flexShrink: 0, height: '48px' }}>
                       <span style={{ color: '#94A3B8', marginRight: '6px', fontSize: '0.8rem' }}>SN</span> +221
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -1312,15 +1312,37 @@ const PublishPage = () => {
                         value={cleanPhone(formData.contact_whatsapp)} 
                         onChange={(e) => setFormData({ ...formData, contact_whatsapp: cleanPhone(e.target.value) })} 
                         placeholder="77 123 45 67" 
-                        style={{ width: '100%', padding: '1rem', border: 'none', background: 'transparent', outline: 'none', fontSize: '1rem', letterSpacing: '1px', boxSizing: 'border-box' }} 
+                        style={{ width: '100%', padding: '1rem', border: 'none', background: 'transparent', outline: 'none', fontSize: '1rem', letterSpacing: '1px', boxSizing: 'border-box', fontWeight: '600' }} 
                       />
                     </div>
                   </div>
                 </div>
 
-                <button onClick={handleSubmit} disabled={loading} className="btn-primary active-scale" style={{ width: '100%', marginTop: '32px', padding: '1.1rem', borderRadius: '12px', border: 'none', fontWeight: '700', fontSize: '1.1rem', cursor: 'pointer', boxShadow: '0 4px 15px rgba(139, 28, 49, 0.2)', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}>
+                <button 
+                  onClick={handleSubmit} 
+                  disabled={loading} 
+                  className="active-scale" 
+                  style={{
+                    width: '100%',
+                    marginTop: '24px',
+                    marginBottom: '120px',
+                    padding: '1.15rem',
+                    borderRadius: '16px',
+                    border: 'none',
+                    fontWeight: '800',
+                    fontSize: '1.1rem',
+                    color: 'white',
+                    background: 'linear-gradient(135deg, #8A1C1C 0%, #B91C1C 100%)',
+                    cursor: 'pointer',
+                    boxShadow: '0 6px 20px rgba(139, 28, 49, 0.35)',
+                    display: 'flex',
+                    justify: 'center',
+                    alignItems: 'center',
+                    gap: '10px'
+                  }}
+                >
                   {loading ? 'Publication en cours...' : 'Publier mon annonce'}
-                  {!loading && <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>}
+                  {!loading && <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>}
                 </button>
               </div>
               <div className="hide-on-mobile" style={{ position: 'sticky', top: '100px' }}>

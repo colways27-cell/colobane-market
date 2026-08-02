@@ -1225,7 +1225,7 @@ const Home = () => {
               style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.45rem 0.9rem', borderRadius: '16px', border: `1.5px solid ${groupedView ? 'var(--primary)' : '#CBD5E1'}`, background: groupedView ? 'var(--primary)' : 'white', color: groupedView ? 'white' : 'var(--text-main)', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer', transition: 'all 0.2s', boxShadow: groupedView ? '0 4px 12px rgba(138,28,28,0.2)' : 'none' }}
             >
               <span>{groupedView ? '🗂️' : '📋'}</span>
-              {groupedView ? 'Mode Groupé Actif' : 'Grouper les annonces'}
+              {groupedView ? 'Annonces similaires (Groupées)' : 'Annonces similaires'}
             </button>
 
             <button
