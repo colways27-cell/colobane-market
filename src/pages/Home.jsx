@@ -406,7 +406,7 @@ const Home = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.88rem', fontWeight: '800', color: 'var(--text-main)' }}>
                 <Compass size={18} color="#10B981" />
-                <span>Recherche par Proximité GPS :</span>
+                <span>Recherche par Proximité & Régions :</span>
               </div>
               {activeUserCoords && (
                 <button
@@ -414,13 +414,13 @@ const Home = () => {
                   onClick={() => { setActiveUserCoords(null); setSelectedRadius(null); setSelectedQuartier(''); setSelectedRegion(''); }}
                   style={{ background: 'none', border: 'none', color: '#EF4444', fontSize: '0.78rem', fontWeight: '700', cursor: 'pointer', textDecoration: 'underline' }}
                 >
-                  Désactiver GPS
+                  Effacer ma position
                 </button>
               )}
             </div>
 
             <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch', alignItems: 'center' }}>
-              {/* Bouton GPS Principal Ultra-Visible */}
+              {/* Bouton Proximité Principal Ultra-Visible */}
               <button
                 type="button"
                 onClick={handleGpsSearch}
@@ -444,8 +444,8 @@ const Home = () => {
               >
                 <span style={{ fontSize: '1.1rem' }}>🎯</span>
                 {activeUserCoords
-                  ? `GPS Actif (${selectedQuartier || selectedRegion || 'Ma position'}${selectedRadius ? ` • ${selectedRadius}km` : ''})`
-                  : 'Autour de moi (Activer GPS)'
+                  ? `Position Active (${selectedQuartier || selectedRegion || 'Ma position'}${selectedRadius ? ` • ${selectedRadius}km` : ''})`
+                  : 'Autour de moi'
                 }
               </button>
 

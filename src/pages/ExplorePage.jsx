@@ -402,11 +402,11 @@ const ExplorePage = () => {
           <div style={{ marginTop: '1.2rem', display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.88rem', fontWeight: '700', color: 'var(--text-main)' }}>
               <Compass size={18} color="#10B981" />
-              <span>Recherche par proximité & Régions du Sénégal :</span>
+              <span>Recherche par Proximité & Régions du Sénégal :</span>
             </div>
 
             <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch', alignItems: 'center' }}>
-              {/* Bouton GPS Proximité Ultra-Visible */}
+              {/* Bouton Proximité Ultra-Visible */}
               <button
                 type="button"
                 onClick={() => setShowAroundMeModal(true)}
@@ -430,8 +430,8 @@ const ExplorePage = () => {
               >
                 <span style={{ fontSize: '1rem' }}>🎯</span>
                 {activeUserCoords
-                  ? `GPS Actif (${selectedQuartier || selectedRegion || 'Ma position'}${selectedRadius ? ` • ${selectedRadius}km` : ''})`
-                  : 'Autour de moi (Activer GPS)'
+                  ? `Position Active (${selectedQuartier || selectedRegion || 'Ma position'}${selectedRadius ? ` • ${selectedRadius}km` : ''})`
+                  : 'Autour de moi'
                 }
               </button>
 
