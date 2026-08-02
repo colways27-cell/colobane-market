@@ -386,6 +386,108 @@ const ExplorePage = () => {
               Rechercher
             </button>
           </form>
+
+          {/* Section Proximité GPS & Régions tout juste en dessous de la barre de recherche */}
+          <div style={{ marginTop: '1.2rem', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.88rem', fontWeight: '700', color: 'var(--text-main)' }}>
+              <Compass size={18} color="#10B981" />
+              <span>Recherche par proximité & Régions du Sénégal :</span>
+            </div>
+
+            <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch', alignItems: 'center' }}>
+              {/* Bouton GPS Proximité Ultra-Visible */}
+              <button
+                type="button"
+                onClick={() => setShowAroundMeModal(true)}
+                className="active-scale"
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '24px',
+                  background: activeUserCoords ? 'linear-gradient(135deg, #059669 0%, #047857 100%)' : 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                  color: 'white',
+                  border: 'none',
+                  fontWeight: '800',
+                  fontSize: '0.88rem',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  whiteSpace: 'nowrap',
+                  boxShadow: '0 4px 14px rgba(16,185,129,0.35)',
+                  flexShrink: 0
+                }}
+              >
+                <span style={{ fontSize: '1rem' }}>🎯</span>
+                {activeUserCoords
+                  ? `GPS Actif (${selectedQuartier || selectedRegion || 'Ma position'}${selectedRadius ? ` • ${selectedRadius}km` : ''})`
+                  : 'Autour de moi (Activer GPS)'
+                }
+              </button>
+
+              {/* Pills de Rayon de proximité direct si GPS actif */}
+              {activeUserCoords && [5, 10, 25, 50].map(km => (
+                <button
+                  key={km}
+                  type="button"
+                  onClick={() => setSelectedRadius(km)}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '20px',
+                    background: selectedRadius === km ? '#10B981' : 'white',
+                    color: selectedRadius === km ? 'white' : '#047857',
+                    border: '1.5px solid #10B981',
+                    fontWeight: '700',
+                    fontSize: '0.8rem',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                    flexShrink: 0
+                  }}
+                >
+                  {km} km
+                </button>
+              ))}
+
+              <div style={{ width: '1px', height: '24px', background: '#E2E8F0', margin: '0 4px', flexShrink: 0 }} />
+
+              {/* Pills des Régions du Sénégal */}
+              {locations.map(loc => {
+                const isSelected = locationFilter === loc;
+                return (
+                  <button
+                    key={loc}
+                    type="button"
+                    onClick={() => {
+                      if (isSelected) {
+                        setLocationFilter('all');
+                      } else {
+                        setLocationFilter(loc);
+                        setActiveUserCoords(null);
+                      }
+                    }}
+                    className="active-scale"
+                    style={{
+                      padding: '6px 14px',
+                      borderRadius: '20px',
+                      background: isSelected ? 'var(--primary)' : 'white',
+                      color: isSelected ? 'white' : 'var(--text-main)',
+                      border: isSelected ? '1.5px solid var(--primary)' : '1.5px solid #E2E8F0',
+                      fontWeight: '700',
+                      fontSize: '0.82rem',
+                      whiteSpace: 'nowrap',
+                      cursor: 'pointer',
+                      flexShrink: 0,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px'
+                    }}
+                  >
+                    <span style={{ fontSize: '0.75rem' }}>📍</span>
+                    {loc}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </div>
 
