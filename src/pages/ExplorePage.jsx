@@ -904,16 +904,7 @@ const ExplorePage = () => {
                 return (
                   <div 
                     key={product.id} 
-                    onMouseDown={() => handlePressStart(product.id)}
-                    onMouseUp={handlePressEnd}
-                    onTouchStart={() => handlePressStart(product.id)}
-                    onTouchEnd={handlePressEnd}
-                    onClick={(e) => {
-                      if (isLongPress.current) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        return;
-                      }
+                    onClick={() => {
                       if (isMultiGroup) {
                         setSelectedGroupModal(product);
                       } else {

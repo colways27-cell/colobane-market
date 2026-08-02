@@ -19,9 +19,9 @@
     <meta http-equiv="Expires" content="0" />
     <script>
       (function() {
-        var v = 'v102';
-        if (localStorage.getItem('app_version_v102') !== 'true') {
-          localStorage.setItem('app_version_v102', 'true');
+        var CURRENT_VERSION = 'v106';
+        if (localStorage.getItem('colobane_app_ver') !== CURRENT_VERSION) {
+          localStorage.setItem('colobane_app_ver', CURRENT_VERSION);
           if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(function(regs) {
               for (var i = 0; i < regs.length; i++) {
@@ -37,8 +37,8 @@
             });
           }
           setTimeout(function() {
-            window.location.reload();
-          }, 300);
+            window.location.reload(true);
+          }, 200);
         }
       })();
     </script>
