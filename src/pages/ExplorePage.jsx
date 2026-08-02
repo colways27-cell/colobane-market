@@ -21,24 +21,9 @@ const ExplorePage = () => {
 
   const resultsRef = useRef(null);
 
-  // Long press reporting state
-  const longPressTimer = useRef(null);
-  const isLongPress = useRef(false);
   const [contextMenu, setContextMenu] = useState({ visible: false, productId: null });
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportProductId, setReportProductId] = useState(null);
-
-  const handlePressStart = (productId) => {
-    isLongPress.current = false;
-    longPressTimer.current = setTimeout(() => {
-      isLongPress.current = true;
-      setContextMenu({ visible: true, productId });
-    }, 500);
-  };
-
-  const handlePressEnd = () => {
-    clearTimeout(longPressTimer.current);
-  };
 
   const scrollToResults = useCallback(() => {
     if (resultsRef.current) {
@@ -1023,48 +1008,6 @@ const ExplorePage = () => {
                   </div>
                 );
               })}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Menu contextuel discret sur appui long */}
-      {contextMenu.visible && (
-        <div 
-          style={{
-            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-            background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(4px)',
-            zIndex: 9990, display: 'flex', alignItems: 'flex-end',
-            animation: 'fadeIn 0.2s ease-out'
-          }} 
-          onClick={() => setContextMenu({ visible: false, productId: null })}
-        >
-          <div 
-            style={{
-              width: '100%', maxWidth: '500px', margin: '0 auto', background: 'white',
-              borderRadius: '24px 24px 0 0', padding: '24px 20px',
-              boxShadow: '0 -10px 40px rgba(0,0,0,0.2)'
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div 
-              onClick={() => { 
-                const pid = contextMenu.productId; 
-                setContextMenu({ visible: false, productId: null }); 
-                setReportProductId(pid); 
-                setShowReportModal(true); 
-              }}
-              className="touch-target active-scale"
-              style={{ padding: '16px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '15px', fontWeight: '700', color: '#EF4444', cursor: 'pointer', background: '#FEF2F2', borderRadius: '16px', marginBottom: '12px' }}
-            >
-              🚩 Signaler cette annonce
-            </div>
-            <div 
-              onClick={() => setContextMenu({ visible: false, productId: null })}
-              className="touch-target active-scale"
-              style={{ padding: '14px', textAlign: 'center', fontSize: '15px', fontWeight: '600', color: '#64748B', cursor: 'pointer', background: '#F1F5F9', borderRadius: '16px' }}
-            >
-              Annuler
             </div>
           </div>
         </div>
