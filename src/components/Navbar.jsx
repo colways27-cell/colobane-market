@@ -61,33 +61,6 @@ const Navbar = () => {
               }}
             />
             <svg style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <button 
-              type="button"
-              title="Rechercher autour de moi via GPS"
-              className="active-scale"
-              onClick={async () => {
-                const toastId = toast.loading('Détection GPS...');
-                try {
-                  const coords = await getUserCoordinates();
-                  toast.dismiss(toastId);
-                  toast.success('Position détectée ! 🎯');
-                  navigate(`/explore?lat=${coords.lat}&lng=${coords.lng}`);
-                } catch (err) {
-                  toast.dismiss(toastId);
-                  console.error(err);
-                  toast.error('Impossible de vous géolocaliser.');
-                  navigate('/explore?near=me');
-                }
-              }}
-              style={{ 
-                position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)',
-                background: 'none', border: 'none', padding: '6px', cursor: 'pointer', 
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#10B981', borderRadius: '50%'
-              }}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
-            </button>
           </div>
 
           {/* Right: Publish Button & Profile */}

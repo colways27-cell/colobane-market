@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { categories } from '../data/categories';
 import { products as mockProducts } from '../data/products';
@@ -7,9 +7,10 @@ import SkeletonCard from '../components/SkeletonCard';
 import FavoriteButton from '../components/FavoriteButton';
 import ReportModal from '../components/ReportModal';
 import toast from 'react-hot-toast';
-import { Store, ChevronDown, ChevronUp, Search, MapPin, Navigation } from 'lucide-react';
+import { Store, ChevronDown, ChevronUp, Search, MapPin, Navigation, Compass } from 'lucide-react';
 import totemLapin from '../assets/totem-lapin.webp';
-import { getUserCoordinates } from '../utils/geolocation';
+import { getUserCoordinates, sortProductsByProximity, SENEGAL_LOCATION_COORDS } from '../utils/geolocation';
+import AroundMeModal from '../components/AroundMeModal';
 
 const Home = () => {
   const [products, setProducts] = useState([]);
@@ -66,6 +67,13 @@ const Home = () => {
   const [groupedView, setGroupedView] = useState(false);
   const [selectedGroupModal, setSelectedGroupModal] = useState(null);
 
+  // Geolocation & Proximity State for Homepage
+  const [showAroundMeModal, setShowAroundMeModal] = useState(false);
+  const [activeUserCoords, setActiveUserCoords] = useState(null);
+  const [selectedRadius, setSelectedRadius] = useState(null);
+  const [selectedRegion, setSelectedRegion] = useState('');
+  const [selectedQuartier, setSelectedQuartier] = useState('');
+
   const handleSuggestionSearch = (value) => {
     clearTimeout(suggestionTimer.current);
     if (value.length < 2) { setSuggestions([]); setSuggestionsOpen(false); return; }
@@ -100,14 +108,14 @@ const Home = () => {
     const toastId = toast.loading('Détection de votre position GPS...');
     try {
       const coords = await getUserCoordinates();
+      setActiveUserCoords(coords);
+      if (!selectedRadius) setSelectedRadius(15);
       toast.dismiss(toastId);
-      toast.success("Position détectée ! 🎯");
-      navigate(`/explore?lat=${coords.lat}&lng=${coords.lng}`);
+      toast.success("Position GPS détectée avec succès ! 🎯");
     } catch (err) {
       toast.dismiss(toastId);
       console.error(err);
-      toast.error("Impossible de vous géolocaliser. V\u00e9rifiez vos permissions GPS.");
-      navigate('/explore?near=me');
+      setShowAroundMeModal(true);
     }
   };
 
@@ -160,7 +168,27 @@ const Home = () => {
     }));
   };
 
-  const displayProducts = groupedView ? groupProducts(products) : products;
+  const processedProducts = useMemo(() => {
+    let list = products;
+
+    // 1. Filtrer strictement par la région / ville sélectionnée
+    const activeReg = (selectedQuartier || selectedRegion || '').trim().toLowerCase();
+    if (activeReg && activeReg !== 'all') {
+      list = list.filter(p => {
+        const loc = (p.location || '').toLowerCase();
+        return loc.includes(activeReg) || activeReg.includes(loc);
+      });
+    }
+
+    // 2. Trier/filtrer par proximité GPS si actif
+    if (activeUserCoords) {
+      list = sortProductsByProximity(activeUserCoords, list, selectedRadius);
+    }
+
+    return list;
+  }, [products, selectedQuartier, selectedRegion, activeUserCoords, selectedRadius]);
+
+  const displayProducts = groupedView ? groupProducts(processedProducts) : processedProducts;
 
   const handleTouchStart = (e) => {
     setTouchEnd(null);
@@ -334,32 +362,6 @@ const Home = () => {
               placeholder="Lan nga bëgg wut ? (robe wax, iPhone, appartement...)" 
               style={{ flex: 1, padding: '16px 16px 16px 44px', border: 'none', background: 'transparent', fontSize: '0.95rem', outline: 'none', width: '100%', boxSizing: 'border-box' }} 
             />
-            <button 
-              type="button" 
-              onClick={handleGpsSearch}
-              title="Rechercher autour de moi via GPS"
-              className="active-scale" 
-              style={{
-                background: 'linear-gradient(135deg, #10B981, #059669)',
-                border: 'none',
-                padding: '10px 14px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px',
-                color: 'white',
-                borderRadius: '12px',
-                marginRight: '6px',
-                fontWeight: '700',
-                fontSize: '0.8rem',
-                whiteSpace: 'nowrap',
-                boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)'
-              }}
-            >
-              <Navigation size={16} strokeWidth={2.5} />
-              <span style={{ letterSpacing: '0.02em', fontWeight: '800' }}>GPS</span>
-            </button>
             <button type="submit" className="active-scale" style={{ flexShrink: 0, background: 'var(--primary)', color: 'white', border: 'none', padding: '16px 22px', fontWeight: '700', fontSize: '0.9rem', cursor: 'pointer', height: '100%', whiteSpace: 'nowrap', borderRadius: '0 14px 14px 0' }}>
               Wër 🔍
             </button>
@@ -399,41 +401,127 @@ const Home = () => {
             </div>
           )}
 
-          {/* Section Proximité GPS & Villes sous la barre de recherche */}
-          <div style={{ marginTop: '14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: '700', color: 'var(--text-main)' }}>
-              <span>🎯 Recherche par Proximité GPS & Régions du Sénégal :</span>
+          {/* Section Géolocalisation & Proximité GPS tout juste en dessous de la barre de recherche */}
+          <div style={{ marginTop: '14px', background: 'white', padding: '12px 14px', borderRadius: '16px', border: '1.5px solid #E2E8F0', boxShadow: '0 4px 16px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.88rem', fontWeight: '800', color: 'var(--text-main)' }}>
+                <Compass size={18} color="#10B981" />
+                <span>Recherche par Proximité GPS :</span>
+              </div>
+              {activeUserCoords && (
+                <button
+                  type="button"
+                  onClick={() => { setActiveUserCoords(null); setSelectedRadius(null); setSelectedQuartier(''); setSelectedRegion(''); }}
+                  style={{ background: 'none', border: 'none', color: '#EF4444', fontSize: '0.78rem', fontWeight: '700', cursor: 'pointer', textDecoration: 'underline' }}
+                >
+                  Désactiver GPS
+                </button>
+              )}
             </div>
-            
-            <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch', alignItems: 'center' }}>
+
+            <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch', alignItems: 'center' }}>
+              {/* Bouton GPS Principal Ultra-Visible */}
               <button
                 type="button"
                 onClick={handleGpsSearch}
-                className="active-scale hover-lift"
-                style={{ padding: '8px 16px', borderRadius: '24px', background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', border: 'none', color: 'white', fontWeight: '800', fontSize: '0.88rem', whiteSpace: 'nowrap', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 14px rgba(16,185,129,0.35)', flexShrink: 0 }}
+                className="active-scale"
+                style={{
+                  padding: '9px 18px',
+                  borderRadius: '24px',
+                  background: activeUserCoords ? 'linear-gradient(135deg, #059669 0%, #047857 100%)' : 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                  color: 'white',
+                  border: 'none',
+                  fontWeight: '800',
+                  fontSize: '0.9rem',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  whiteSpace: 'nowrap',
+                  boxShadow: '0 4px 14px rgba(16,185,129,0.4)',
+                  flexShrink: 0
+                }}
               >
-                <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: 'rgba(255,255,255,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', flexShrink: 0 }}>
-                  🎯
-                </div>
-                Autour de moi (Activer GPS)
+                <span style={{ fontSize: '1.1rem' }}>🎯</span>
+                {activeUserCoords
+                  ? `GPS Actif (${selectedQuartier || selectedRegion || 'Ma position'}${selectedRadius ? ` • ${selectedRadius}km` : ''})`
+                  : 'Autour de moi (Activer GPS)'
+                }
               </button>
 
-              <div style={{ width: '1px', height: '24px', background: '#E2E8F0', margin: '0 4px', flexShrink: 0 }} />
-
-              {['Dakar', 'Thiès', 'Touba', 'Saint-Louis', 'Mbour', 'Pikine', 'Rufisque', 'Kaolack', 'Ziguinchor'].map(city => (
+              {/* Pills de Rayons Directs quand le GPS est actif */}
+              {activeUserCoords && [5, 10, 25, 50, null].map(r => (
                 <button
-                  key={city}
+                  key={r || 'all'}
                   type="button"
-                  onClick={() => navigate(`/explore?location=${encodeURIComponent(city)}`)}
-                  className="active-scale hover-lift"
-                  style={{ padding: '6px 14px 6px 8px', borderRadius: '20px', background: 'white', border: '1.5px solid #E2E8F0', color: 'var(--text-main)', fontWeight: '700', fontSize: '0.82rem', whiteSpace: 'nowrap', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', flexShrink: 0 }}
+                  onClick={() => setSelectedRadius(r)}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '20px',
+                    background: selectedRadius === r ? '#10B981' : 'white',
+                    color: selectedRadius === r ? 'white' : '#047857',
+                    border: '1.5px solid #10B981',
+                    fontWeight: '700',
+                    fontSize: '0.8rem',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                    flexShrink: 0
+                  }}
                 >
-                  <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: 'linear-gradient(135deg, #d97706, #92400e)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', flexShrink: 0, boxShadow: '0 2px 4px rgba(217,119,6,0.3)' }}>
-                    <MapPin size={12} strokeWidth={2.8} />
-                  </div>
-                  {city}
+                  {r ? `${r} km` : 'Tout'}
                 </button>
               ))}
+
+              <div style={{ width: '1px', height: '24px', background: '#CBD5E1', margin: '0 4px', flexShrink: 0 }} />
+
+              {/* Pills de Régions / Villes rapides */}
+              {['Dakar', 'Pikine', 'Guédiawaye', 'Rufisque', 'Thiès', 'Touba', 'Mbour', 'Saint-Louis', 'Kaolack', 'Ziguinchor'].map(city => {
+                const key = city.toLowerCase();
+                const isSelected = selectedQuartier?.toLowerCase() === key || selectedRegion?.toLowerCase() === key;
+                return (
+                  <button
+                    key={city}
+                    type="button"
+                    onClick={() => {
+                      if (isSelected) {
+                        setActiveUserCoords(null);
+                        setSelectedRegion('');
+                        setSelectedQuartier('');
+                      } else {
+                        setSelectedRegion(city);
+                        setSelectedQuartier(city);
+                        const coords = SENEGAL_LOCATION_COORDS[key] || SENEGAL_LOCATION_COORDS["dakar"];
+                        setActiveUserCoords(coords);
+                      }
+                      setTimeout(() => {
+                        recentProductsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      }, 100);
+                    }}
+                    className="active-scale"
+                    style={{
+                      padding: '6px 14px',
+                      borderRadius: '20px',
+                      background: isSelected ? 'var(--primary)' : 'white',
+                      color: isSelected ? 'white' : 'var(--text-main)',
+                      border: isSelected ? '1.5px solid var(--primary)' : '1.5px solid #E2E8F0',
+                      fontWeight: '700',
+                      fontSize: '0.82rem',
+                      whiteSpace: 'nowrap',
+                      cursor: 'pointer',
+                      flexShrink: 0,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.03)'
+                    }}
+                  >
+                    <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: isSelected ? 'white' : 'linear-gradient(135deg, #d97706, #92400e)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isSelected ? 'var(--primary)' : 'white', flexShrink: 0 }}>
+                      <MapPin size={11} strokeWidth={3} />
+                    </div>
+                    {city}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -1395,6 +1483,20 @@ const Home = () => {
         isOpen={showReportModal} 
         onClose={() => setShowReportModal(false)} 
         productId={reportProductId} 
+      />
+
+      {/* Modal de Géolocalisation & Proximité GPS */}
+      <AroundMeModal
+        isOpen={showAroundMeModal}
+        onClose={() => setShowAroundMeModal(false)}
+        activeUserCoords={activeUserCoords}
+        setActiveUserCoords={setActiveUserCoords}
+        selectedRadius={selectedRadius}
+        setSelectedRadius={setSelectedRadius}
+        selectedRegion={selectedRegion}
+        setSelectedRegion={setSelectedRegion}
+        selectedQuartier={selectedQuartier}
+        setSelectedQuartier={setSelectedQuartier}
       />
     </div>
   );

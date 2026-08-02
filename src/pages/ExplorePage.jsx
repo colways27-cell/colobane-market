@@ -216,9 +216,10 @@ const ExplorePage = () => {
         query = query.eq('condition', conditionFilter);
       }
 
-      // 6. Filtre Localisation
-      if (locationFilter !== 'all') {
-        query = query.eq('location', locationFilter);
+      // 6. Filtre Localisation par région (flexible ilike)
+      const activeLoc = (locationFilter !== 'all' ? locationFilter : (selectedQuartier || selectedRegion || '')).trim();
+      if (activeLoc && activeLoc !== 'all') {
+        query = query.ilike('location', `%${activeLoc}%`);
       }
 
       // 6b. Filtre "Voir tout" pour les articles sponsorisés
@@ -240,6 +241,16 @@ const ExplorePage = () => {
       if (error) throw error;
       
       let finalProducts = data || [];
+
+      // Filtre strict client-side sur la région si nécessaire
+      if (activeLoc && activeLoc !== 'all') {
+        const target = activeLoc.toLowerCase();
+        finalProducts = finalProducts.filter(p => {
+          const l = (p.location || '').toLowerCase();
+          return l.includes(target) || target.includes(l);
+        });
+      }
+
       if (activeUserCoords) {
         finalProducts = sortProductsByProximity(activeUserCoords, finalProducts, selectedRadius);
       }
@@ -250,7 +261,7 @@ const ExplorePage = () => {
     } finally {
       setLoading(false);
     }
-  }, [activeCategory, activeSubcategory, searchQuery, minPrice, maxPrice, conditionFilter, locationFilter, sortBy, isBoostedOnly, activeUserCoords, selectedRadius]);
+  }, [activeCategory, activeSubcategory, searchQuery, minPrice, maxPrice, conditionFilter, locationFilter, selectedRegion, selectedQuartier, sortBy, isBoostedOnly, activeUserCoords, selectedRadius]);
 
   // Synchronize state with URL search params if they change
   useEffect(() => {
@@ -463,6 +474,7 @@ const ExplorePage = () => {
                         setLocationFilter(loc);
                         setActiveUserCoords(null);
                       }
+                      setTimeout(scrollToResults, 100);
                     }}
                     className="active-scale"
                     style={{
