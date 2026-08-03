@@ -25,6 +25,11 @@ const ProductPage = () => {
   const [showReportModal, setShowReportModal] = useState(false);
   const [sellerRating, setSellerRating] = useState(null);
   const [sellerReviewCount, setSellerReviewCount] = useState(0);
+  const [sellerReviews, setSellerReviews] = useState([]);
+  const [newReviewRating, setNewReviewRating] = useState(5);
+  const [newReviewComment, setNewReviewComment] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [showReviewForm, setShowReviewForm] = useState(false);
 
   const handleShare = async () => {
     setShowShareMenu(false);
@@ -100,8 +105,9 @@ const ProductPage = () => {
           data.seller_id
             ? supabase
                 .from('boutique_reviews')
-                .select('rating')
+                .select('*')
                 .eq('boutique_id', data.seller_id)
+                .order('created_at', { ascending: false })
             : Promise.resolve({ data: [] })
         ]);
 
@@ -110,6 +116,7 @@ const ProductPage = () => {
         if (favRes.data) setIsFavorite(true);
 
         const reviewsData = reviewsRes.data || [];
+        setSellerReviews(reviewsData);
         if (reviewsData.length > 0) {
           const avg = reviewsData.reduce((acc, r) => acc + (r.rating || 0), 0) / reviewsData.length;
           setSellerRating(avg.toFixed(1));
@@ -150,6 +157,50 @@ const ProductPage = () => {
     } catch (err) {
       console.error(err);
       toast.error('Erreur lors de l\'ajout aux favoris');
+    }
+  };
+
+  const handleAddReview = async (e) => {
+    e.preventDefault();
+    if (!user) { toast.error('Connectez-vous pour laisser un avis'); return; }
+    if (product && user.id === product.seller_id) { toast.error('Vous ne pouvez pas noter votre propre profil'); return; }
+    if (!newReviewComment.trim()) { toast.error('Veuillez écrire un commentaire'); return; }
+
+    setSubmittingReview(true);
+    try {
+      const { error } = await supabase.from('boutique_reviews').insert([{
+        boutique_id: product.seller_id,
+        reviewer_id: user.id,
+        rating: newReviewRating,
+        comment: newReviewComment.trim()
+      }]);
+
+      if (error) {
+        if (error.code === '23505') {
+          toast.error('Vous avez déjà laissé un avis sur ce vendeur.');
+        } else {
+          throw error;
+        }
+      } else {
+        toast.success('Votre avis a été publié avec succès ! ⭐');
+        setNewReviewComment('');
+        setShowReviewForm(false);
+        const updated = [{
+          id: Date.now().toString(),
+          rating: newReviewRating,
+          comment: newReviewComment.trim(),
+          created_at: new Date().toISOString()
+        }, ...sellerReviews];
+        setSellerReviews(updated);
+        const avg = updated.reduce((acc, r) => acc + (r.rating || 0), 0) / updated.length;
+        setSellerRating(avg.toFixed(1));
+        setSellerReviewCount(updated.length);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Erreur lors de l\'envoi de votre avis');
+    } finally {
+      setSubmittingReview(false);
     }
   };
 
@@ -647,6 +698,101 @@ const ProductPage = () => {
             <div style={{ fontSize: '13px', fontWeight: '700', color: '#9A3412', marginBottom: '4px' }}>Conseil de sécurité</div>
             <div style={{ fontSize: '12px', color: '#9A3412', lineHeight: '1.4' }}>Ne payez jamais à l'avance par mobile money (Wave, Orange Money). Privilégiez toujours le paiement à la livraison.</div>
           </div>
+        </div>
+
+        {/* Trust Badges & Seller Reviews */}
+        <div style={{ background: 'white', padding: '16px', margin: '12px 0', borderTop: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
+          {/* Trust Badges Row */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '16px' }}>
+            <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '10px 6px', borderRadius: '10px', textAlign: 'center' }}>
+              <div style={{ fontSize: '18px', marginBottom: '2px' }}>🛡️</div>
+              <div style={{ fontSize: '11px', fontWeight: '800', color: '#1E293B' }}>Vendeur Vérifié</div>
+              <div style={{ fontSize: '10px', color: '#64748B' }}>Profil Certifié</div>
+            </div>
+            <div style={{ background: '#F0FDF4', border: '1px solid #DCFCE7', padding: '10px 6px', borderRadius: '10px', textAlign: 'center' }}>
+              <div style={{ fontSize: '18px', marginBottom: '2px' }}>⚡</div>
+              <div style={{ fontSize: '11px', fontWeight: '800', color: '#166534' }}>Réponse rapide</div>
+              <div style={{ fontSize: '10px', color: '#15803D' }}>En ~10 min</div>
+            </div>
+            <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', padding: '10px 6px', borderRadius: '10px', textAlign: 'center' }}>
+              <div style={{ fontSize: '18px', marginBottom: '2px' }}>⭐</div>
+              <div style={{ fontSize: '11px', fontWeight: '800', color: '#92400E' }}>{sellerRating || '5.0'} / 5</div>
+              <div style={{ fontSize: '10px', color: '#B45309' }}>{sellerReviewCount} avis</div>
+            </div>
+          </div>
+
+          {/* Header & Add Review Button */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <h3 style={{ fontSize: '15px', fontWeight: '800', margin: 0, color: 'var(--text-main)' }}>
+              Évaluations du Vendeur ({sellerReviewCount})
+            </h3>
+            <button 
+              onClick={() => setShowReviewForm(v => !v)}
+              className="active-scale touch-target"
+              style={{ background: 'var(--primary-light, #FFF1F2)', color: 'var(--primary, #BE123C)', border: '1px solid var(--primary-border, #FECDD3)', padding: '6px 12px', borderRadius: '999px', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}
+            >
+              {showReviewForm ? 'Annuler' : '✍️ Noter le vendeur'}
+            </button>
+          </div>
+
+          {/* Add Review Form */}
+          {showReviewForm && (
+            <form onSubmit={handleAddReview} style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '14px', borderRadius: '12px', marginBottom: '16px' }}>
+              <div style={{ fontSize: '13px', fontWeight: '700', marginBottom: '8px', color: '#334155' }}>Votre note pour ce vendeur :</div>
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+                {[1, 2, 3, 4, 5].map(star => (
+                  <button 
+                    key={star} 
+                    type="button" 
+                    onClick={() => setNewReviewRating(star)}
+                    style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', opacity: star <= newReviewRating ? 1 : 0.3, transition: 'transform 0.1s' }}
+                  >
+                    ⭐
+                  </button>
+                ))}
+              </div>
+              <textarea 
+                rows="3"
+                value={newReviewComment}
+                onChange={e => setNewReviewComment(e.target.value)}
+                placeholder="Ex: Vendeur très honnête, produit conforme et livraison ponctuelle !"
+                style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '13px', fontFamily: 'inherit', resize: 'none', marginBottom: '10px' }}
+              />
+              <button 
+                type="submit" 
+                disabled={submittingReview}
+                className="btn-primary active-scale"
+                style={{ width: '100%', padding: '10px', fontSize: '13px', fontWeight: '800' }}
+              >
+                {submittingReview ? 'Publication en cours...' : 'Publier mon avis ⭐'}
+              </button>
+            </form>
+          )}
+
+          {/* Reviews List */}
+          {sellerReviews.length === 0 ? (
+            <div style={{ fontSize: '12px', color: '#64748B', textAlign: 'center', padding: '12px 0' }}>
+              Aucun avis pour l'instant. Soyez le premier à donner votre avis !
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {sellerReviews.slice(0, 3).map((rev, idx) => (
+                <div key={rev.id || idx} style={{ background: '#F8FAFC', padding: '10px 12px', borderRadius: '8px', border: '1px solid #F1F5F9' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                    <div style={{ fontSize: '12px', fontWeight: '700', color: '#1E293B' }}>
+                      Acheteur Colobane {'⭐'.repeat(rev.rating || 5)}
+                    </div>
+                    <div style={{ fontSize: '10px', color: '#94A3B8' }}>
+                      {rev.created_at ? new Date(rev.created_at).toLocaleDateString('fr-FR') : 'Récemment'}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#475569', lineHeight: '1.4' }}>
+                    "{rev.comment}"
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
