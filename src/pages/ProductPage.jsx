@@ -258,43 +258,164 @@ const ProductPage = () => {
         </div>
       </div>
 
-      {/* Image Gallery Full Width */}
-      <div style={{ width: '100%', height: '400px', position: 'relative', overflowX: 'auto', scrollSnapType: 'x mandatory', display: 'flex', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch', background: '#F1F5F9' }}>
-        {(product.images && product.images.length > 0 ? product.images : ['/hero.png']).map((img, idx) => (
-          <div key={idx} style={{ flex: '0 0 100%', height: '100%', scrollSnapAlign: 'start', position: 'relative' }}>
-            <img 
-              src={img} 
-              alt={`${product.title} ${idx + 1}`} 
-              loading="lazy" 
-              onClick={() => { setActiveImage(idx); setIsLightboxOpen(true); }}
-              style={{ width: '100%', height: '100%', objectFit: 'cover', imageOrientation: 'from-image', cursor: 'zoom-in' }} 
-            />
-          </div>
-        ))}
-        {(product.condition || (product.metadata && product.metadata.condition)) && (
-          <div style={{ position: 'absolute', bottom: '16px', left: '16px', background: 'rgba(255,255,255,0.95)', color: 'var(--text-main)', padding: '6px 12px', borderRadius: 'var(--radius-pill)', fontSize: '12px', fontWeight: '800', backdropFilter: 'blur(4px)', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', pointerEvents: 'none' }}>
-            {product.condition || (product.metadata && product.metadata.condition)}
+      {/* Instagram Stories Style Gallery */}
+      <div 
+        style={{ 
+          width: '100%', 
+          height: '420px', 
+          position: 'relative', 
+          background: '#09090B', 
+          overflow: 'hidden',
+          userSelect: 'none',
+          WebkitUserSelect: 'none'
+        }}
+      >
+        {/* Story Segment Bars Top */}
+        {product.images && product.images.length > 1 && (
+          <div style={{ position: 'absolute', top: '12px', left: '12px', right: '12px', display: 'flex', gap: '4px', zIndex: 30 }}>
+            {product.images.map((_, idx) => (
+              <div 
+                key={idx} 
+                onClick={(e) => { e.stopPropagation(); setActiveImage(idx); }}
+                style={{ 
+                  flex: 1, 
+                  height: '3px', 
+                  borderRadius: '2px', 
+                  background: idx === activeImage ? '#FFFFFF' : idx < activeImage ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.25)', 
+                  transition: 'background 0.3s ease',
+                  cursor: 'pointer',
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.3)'
+                }} 
+              />
+            ))}
           </div>
         )}
+
+        {/* Current Image */}
+        <img 
+          src={imageUrl} 
+          alt={`${product.title} ${activeImage + 1}`} 
+          style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'all 0.25s ease-out' }} 
+        />
+
+        {/* Tap Navigation Overlays (Story Left / Right) */}
+        <div 
+          onClick={(e) => {
+            e.stopPropagation();
+            if (activeImage > 0) setActiveImage(a => a - 1);
+          }}
+          style={{ position: 'absolute', top: 0, left: 0, width: '35%', height: '100%', zIndex: 20, cursor: 'pointer' }}
+        />
+        <div 
+          onClick={(e) => {
+            e.stopPropagation();
+            const total = product.images?.length || 1;
+            if (activeImage < total - 1) setActiveImage(a => a + 1);
+            else setIsLightboxOpen(true);
+          }}
+          style={{ position: 'absolute', top: 0, right: 0, width: '65%', height: '100%', zIndex: 20, cursor: 'pointer' }}
+        />
+
+        {/* Story Counter Badge & Expand Fullscreen Pill */}
+        <div style={{ position: 'absolute', bottom: '16px', left: '16px', right: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 30, pointerEvents: 'none' }}>
+          {(product.condition || (product.metadata && product.metadata.condition)) && (
+            <div style={{ background: 'rgba(15, 23, 42, 0.75)', color: 'white', padding: '6px 14px', borderRadius: '999px', fontSize: '12px', fontWeight: '800', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.2)' }}>
+              ✨ {product.condition || (product.metadata && product.metadata.condition)}
+            </div>
+          )}
+
+          {product.images && product.images.length > 1 && (
+            <div 
+              onClick={(e) => { e.stopPropagation(); setIsLightboxOpen(true); }}
+              style={{ pointerEvents: 'auto', background: 'rgba(15, 23, 42, 0.75)', color: 'white', padding: '6px 14px', borderRadius: '999px', fontSize: '12px', fontWeight: '800', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
+            >
+              <span>📷 {activeImage + 1}/{product.images.length}</span>
+              <span style={{ opacity: 0.6, fontSize: '10px' }}>• Plein écran 🔍</span>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Lightbox Modal */}
+      {/* Instagram Story Fullscreen Modal */}
       {isLightboxOpen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.95)', zIndex: 9999, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-          <button onClick={() => setIsLightboxOpen(false)} className="active-scale touch-target" style={{ position: 'absolute', top: '20px', right: '20px', background: 'rgba(255,255,255,0.2)', color: 'white', border: 'none', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 10000 }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-          </button>
-          
-          <img src={imageUrl} alt={product.title} style={{ maxWidth: '100%', maxHeight: '80vh', objectFit: 'contain', imageOrientation: 'from-image' }} />
-          
+        <div 
+          style={{ 
+            position: 'fixed', 
+            top: 0, left: 0, right: 0, bottom: 0, 
+            background: '#050505', 
+            zIndex: 99999, 
+            display: 'flex', 
+            flexDirection: 'column', 
+            justify: 'space-between',
+            animation: 'fadeIn 0.2s ease-out' 
+          }}
+        >
+          {/* Story Top Progress & Seller Badge */}
+          <div style={{ padding: '16px 16px 0 16px', background: 'linear-gradient(180deg, rgba(0,0,0,0.85) 0%, transparent 100%)', zIndex: 100000 }}>
+            {product.images && product.images.length > 1 && (
+              <div style={{ display: 'flex', gap: '4px', marginBottom: '14px' }}>
+                {product.images.map((_, idx) => (
+                  <div 
+                    key={idx} 
+                    onClick={() => setActiveImage(idx)}
+                    style={{ flex: 1, height: '3px', borderRadius: '2px', background: idx === activeImage ? '#FFFFFF' : idx < activeImage ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.25)', cursor: 'pointer' }} 
+                  />
+                ))}
+              </div>
+            )}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'linear-gradient(135deg, #BE123C, #F43F5E)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: '800', fontSize: '14px' }}>
+                  {(product.profiles?.boutique_name || product.profiles?.full_name || 'C')[0].toUpperCase()}
+                </div>
+                <div>
+                  <div style={{ color: 'white', fontWeight: '700', fontSize: '14px' }}>{product.profiles?.boutique_name || product.profiles?.full_name || 'Vendeur Colobane'}</div>
+                  <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '11px' }}>Photo {activeImage + 1} sur {product.images?.length || 1}</div>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsLightboxOpen(false)} 
+                className="active-scale touch-target" 
+                style={{ background: 'rgba(255,255,255,0.2)', color: 'white', border: 'none', borderRadius: '50%', width: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+
+          {/* Fullscreen Story Main Image */}
+          <div style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+            <img 
+              src={imageUrl} 
+              alt={product.title} 
+              style={{ maxWidth: '100%', maxHeight: '82vh', objectFit: 'contain', transition: 'transform 0.2s ease' }} 
+            />
+            {/* Story Tap Navigation Left / Right */}
+            <div 
+              onClick={() => {
+                if (activeImage > 0) setActiveImage(a => a - 1);
+              }}
+              style={{ position: 'absolute', top: 0, left: 0, width: '40%', height: '100%', cursor: 'pointer' }}
+            />
+            <div 
+              onClick={() => {
+                const total = product.images?.length || 1;
+                if (activeImage < total - 1) setActiveImage(a => a + 1);
+                else setIsLightboxOpen(false);
+              }}
+              style={{ position: 'absolute', top: 0, right: 0, width: '60%', height: '100%', cursor: 'pointer' }}
+            />
+          </div>
+
+          {/* Story Thumbnails Bar Bottom */}
           {product.images && product.images.length > 1 && (
-            <div style={{ display: 'flex', gap: '8px', marginTop: '20px', overflowX: 'auto', maxWidth: '100%', padding: '0 20px', scrollbarWidth: 'none' }}>
+            <div style={{ padding: '16px', background: 'linear-gradient(0deg, rgba(0,0,0,0.9) 0%, transparent 100%)', display: 'flex', justifyContent: 'center', gap: '8px', overflowX: 'auto', zIndex: 100000 }}>
               {product.images.map((img, idx) => (
                 <img 
                   key={idx} 
                   src={img} 
                   onClick={() => setActiveImage(idx)}
-                  style={{ flexShrink: 0, width: '60px', height: '60px', objectFit: 'cover', borderRadius: '8px', border: activeImage === idx ? '2px solid white' : 'none', cursor: 'pointer', opacity: activeImage === idx ? 1 : 0.5, imageOrientation: 'from-image', transition: 'all 0.2s' }} 
+                  style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '10px', border: activeImage === idx ? '2px solid white' : '2px solid transparent', opacity: activeImage === idx ? 1 : 0.4, cursor: 'pointer', transition: 'all 0.2s' }} 
                 />
               ))}
             </div>
