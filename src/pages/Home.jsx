@@ -248,20 +248,27 @@ const Home = () => {
       const from = currentPage * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
 
-      // 1. Fetch boosted products for top banner
+      // 1. Fetch boosted products for top banner (fallback to top items)
       if (!isLoadMore) {
         try {
-          const { data: boostedData } = await supabase
+          let { data: boostedData } = await supabase
             .from('products')
             .select(`*, profiles:seller_id (account_type, boutique_name, is_verified, phone_number, whatsapp_number)`)
             .eq('is_boosted', true)
             .order('created_at', { ascending: false })
             .limit(10);
-          if (boostedData && boostedData.length > 0) {
-            setBoostedProducts(boostedData);
-          } else {
-            setBoostedProducts([]);
+
+          // Fallback to top items if no boosted items
+          if (!boostedData || boostedData.length === 0) {
+            const { data: topData } = await supabase
+              .from('products')
+              .select(`*, profiles:seller_id (account_type, boutique_name, is_verified, phone_number, whatsapp_number)`)
+              .order('views_count', { ascending: false })
+              .limit(8);
+            boostedData = topData || [];
           }
+
+          setBoostedProducts(boostedData || []);
         } catch (bErr) {
           console.warn('Boosted products error:', bErr);
         }
@@ -1039,56 +1046,62 @@ const Home = () => {
               className="active-scale touch-target"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
-              Découvrir nos offres
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
             </button>
           </div>
         </section>
       )}
 
-      {/* Bande Top Annonces */}
+      {/* Section Premium À la Une (Annonces Sponsorisées) */}
       {boostedProducts.length > 0 && (
         <section style={{ marginBottom: '1.5rem', maxWidth: '1200px', margin: '0 auto 1.5rem auto' }}>
-          {/* Header de la bande */}
+          {/* Header Shiny Glass Header */}
           <div style={{
-            background: 'linear-gradient(135deg, var(--primary) 0%, #C0392B 100%)',
-            padding: '10px 16px',
+            background: 'linear-gradient(135deg, #09090B 0%, #1E1B4B 50%, #991B1B 100%)',
+            padding: '12px 18px',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
-            borderRadius: '16px 16px 0 0',
+            justify: 'space-between',
+            borderRadius: '20px 20px 0 0',
             marginLeft: '16px',
             marginRight: '16px',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+            border: '1px solid rgba(255,215,0,0.3)',
+            borderBottom: 'none'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '18px' }}>🏆</span>
-              <span style={{ fontWeight: '800', fontSize: '0.95rem', color: 'white', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                Top Annonces
-              </span>
+              <span style={{ fontSize: '20px', filter: 'drop-shadow(0 2px 4px rgba(255,215,0,0.5))' }}>👑</span>
+              <div>
+                <div style={{ fontWeight: '900', fontSize: '0.95rem', color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.6px', textShadow: '0 2px 8px rgba(255,215,0,0.3)' }}>
+                  À la Une • Sponsorisé
+                </div>
+                <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.7)', fontWeight: '600' }}>Vendeurs Pro & Offres Vedettes à Dakar</div>
+              </div>
             </div>
             <button
               onClick={() => navigate('/explore?boosted=true')}
-              style={{ background: 'rgba(255,255,255,0.25)', border: 'none', color: 'white', fontWeight: '700', fontSize: '0.78rem', padding: '5px 12px', borderRadius: '20px', cursor: 'pointer', backdropFilter: 'blur(4px)' }}
+              style={{ background: 'linear-gradient(135deg, #FFD700, #F59E0B)', border: 'none', color: '#09090B', fontWeight: '800', fontSize: '0.75rem', padding: '6px 14px', borderRadius: '999px', cursor: 'pointer', boxShadow: '0 2px 10px rgba(245,158,11,0.4)' }}
             >
-              Voir tout →
+              Voir tout ★
             </button>
           </div>
 
-          {/* Cartes scrollables */}
+          {/* Cartes Premium Scrollables */}
           <div style={{
-            background: '#fffbeb',
-            borderLeft: '1px solid #fde68a',
-            borderRight: '1px solid #fde68a',
-            borderBottom: '1px solid #fde68a',
-            borderRadius: '0 0 16px 16px',
+            background: '#FFFDF5',
+            borderLeft: '1px solid #FDE68A',
+            borderRight: '1px solid #FDE68A',
+            borderBottom: '1px solid #FDE68A',
+            borderRadius: '0 0 20px 20px',
             marginLeft: '16px',
             marginRight: '16px',
-            padding: '12px 12px 12px 12px',
+            padding: '14px 12px',
+            boxShadow: '0 8px 24px rgba(245, 158, 11, 0.08)'
           }}>
             <div style={{
               display: 'flex',
               overflowX: 'auto',
-              gap: '12px',
+              gap: '14px',
               paddingBottom: '4px',
               scrollbarWidth: 'none',
               WebkitOverflowScrolling: 'touch',
@@ -1102,72 +1115,78 @@ const Home = () => {
                     onClick={() => navigate(`/product/${product.id}`)}
                     className="sponsored-card active-scale touch-target"
                     style={{
-                      flex: '0 0 150px',
+                      flex: '0 0 160px',
                       scrollSnapAlign: 'start',
                       cursor: 'pointer',
                       background: 'white',
-                      border: '1.5px solid #fde68a',
-                      borderRadius: '12px',
+                      border: '1.5px solid #FCD34D',
+                      borderRadius: '14px',
                       overflow: 'hidden',
-                      boxShadow: '0 2px 12px rgba(245, 158, 11, 0.15)',
+                      boxShadow: '0 4px 16px rgba(245, 158, 11, 0.12)',
                       display: 'flex',
                       flexDirection: 'column',
+                      transition: 'transform 0.2s ease, box-shadow 0.2s ease'
                     }}
                   >
-                    {/* Image */}
-                    <div style={{ height: '130px', position: 'relative', overflow: 'hidden' }}>
+                    {/* Image & Badge Sponsorisé */}
+                    <div style={{ height: '135px', position: 'relative', overflow: 'hidden' }}>
                       <img
                         src={imageUrl}
                         alt={product.title}
                         loading="lazy"
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       />
-                      {/* Badge Top */}
+                      {/* Badge Top Glowing */}
                       <span style={{
                         position: 'absolute',
-                        top: '7px',
-                        left: '7px',
-                        background: 'linear-gradient(135deg, var(--primary), #C0392B)',
-                        color: 'white',
+                        top: '8px',
+                        left: '8px',
+                        background: 'linear-gradient(135deg, #09090B, #BE123C)',
+                        color: '#FFD700',
                         fontSize: '9px',
-                        fontWeight: '800',
-                        padding: '3px 8px',
-                        borderRadius: '10px',
+                        fontWeight: '900',
+                        padding: '4px 8px',
+                        borderRadius: '999px',
                         letterSpacing: '0.5px',
-                        boxShadow: '0 2px 6px rgba(138,28,28,0.4)',
-                        textTransform: 'uppercase',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.5)',
+                        border: '1px solid rgba(255,215,0,0.5)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '3px'
                       }}>
-                        🏆 TOP
+                        ⚡ VEDETTE
                       </span>
                     </div>
+
                     {/* Infos */}
-                    <div style={{ padding: '8px 10px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ padding: '10px', flex: 1, display: 'flex', flexDirection: 'column' }}>
                       <p style={{
-                        fontSize: '11.5px',
-                        fontWeight: '600',
-                        margin: '0 0 5px 0',
+                        fontSize: '12px',
+                        fontWeight: '700',
+                        margin: '0 0 6px 0',
                         display: '-webkit-box',
                         WebkitLineClamp: 2,
                         WebkitBoxOrient: 'vertical',
                         overflow: 'hidden',
-                        color: '#1e293b',
-                        lineHeight: '1.4',
+                        color: '#0F172A',
+                        lineHeight: '1.35',
                       }}>
                         {product.title}
                       </p>
-                      <div style={{ fontSize: '13px', fontWeight: '800', color: '#92400e', marginBottom: 'auto' }}>
+                      <div style={{ fontSize: '13px', fontWeight: '900', color: '#B45309', marginBottom: 'auto' }}>
                         {(product.price || 0).toLocaleString('fr-FR')} FCFA
                       </div>
                       {product.location && (
-                        <div style={{ fontSize: '10px', color: '#94a3b8', marginTop: '3px', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                          <span style={{ width: '13px', height: '13px', borderRadius: '50%', background: 'linear-gradient(135deg, #d97706, #92400e)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'white', flexShrink: 0 }}>
+                        <div style={{ fontSize: '10px', color: '#64748B', marginTop: '4px', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                          <span style={{ width: '13px', height: '13px', borderRadius: '50%', background: 'linear-gradient(135deg, #D97706, #92400E)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'white', flexShrink: 0 }}>
                             <MapPin size={8} strokeWidth={3} />
                           </span>
                           {product.location}
                         </div>
                       )}
                     </div>
-                    {/* Bouton Contacter */}
+
+                    {/* Bouton Contacter Direct */}
                     <div 
                       onClick={(e) => {
                         e.stopPropagation();
@@ -1177,15 +1196,15 @@ const Home = () => {
                           if (whatsappNum.length === 9) {
                             whatsappNum = '221' + whatsappNum;
                           }
-                          const msg = encodeURIComponent(`Bonjour, je suis intéressé par votre article "${product.title}" sur Colobane Market.`);
+                          const msg = encodeURIComponent(`Bonjour, je suis intéressé par votre annonce sponsorisée "${product.title}" sur Colobane Market.`);
                           window.open(`https://wa.me/${whatsappNum}?text=${msg}`, '_blank');
                         } else {
-                          toast.error("Le vendeur n'a pas renseigné de numéro de téléphone.");
+                          toast.error("Le vendeur n'a pas renseigné de numéro WhatsApp.");
                         }
                       }}
-                      style={{ background: '#e30b3b', color: 'white', padding: '6px', textAlign: 'center', fontSize: '12px', fontWeight: '800', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', borderTop: '1px solid rgba(0,0,0,0.05)' }}
+                      style={{ background: 'linear-gradient(135deg, #15803D, #166534)', color: 'white', padding: '7px', textAlign: 'center', fontSize: '11px', fontWeight: '800', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', borderTop: '1px solid rgba(0,0,0,0.05)' }}
                     >
-                      <Store size={14} /> CONTACTER
+                      <Store size={13} /> 💬 WhatsApp
                     </div>
                   </div>
                 );
