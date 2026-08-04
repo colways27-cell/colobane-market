@@ -104,7 +104,7 @@ const Navbar = () => {
   return (
     <>
       <header className="navbar-header" style={{ position: 'sticky', top: 0, zIndex: 100, background: 'rgba(255, 255, 255, 0.96)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #E2E8F0', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
-        <div className="section-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '66px', padding: '0 1rem' }}>
+        <div className="section-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '72px', padding: '0 1rem' }}>
           
           {/* Left: Logo */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -118,7 +118,7 @@ const Navbar = () => {
             </button>
 
             <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
-              <img src="/image marque.jpg" alt="Colobane Market" style={{ height: '42px', objectFit: 'contain', borderRadius: '8px' }} />
+              <img src="/image marque.jpg" alt="Colobane Market" style={{ height: '56px', maxHeight: '56px', width: 'auto', objectFit: 'contain', borderRadius: '10px' }} />
             </Link>
           </div>
 
