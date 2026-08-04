@@ -16,6 +16,37 @@ const Navbar = () => {
   const [showNotificationsDrawer, setShowNotificationsDrawer] = useState(false);
   const [isInfosOpen, setIsInfosOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [theme, setTheme] = useState(() => {
+    try {
+      return localStorage.getItem('colobane_theme') || 'light';
+    } catch (e) {
+      return 'light';
+    }
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  const toggleTheme = () => {
+    const nextTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(nextTheme);
+    localStorage.setItem('colobane_theme', nextTheme);
+    document.documentElement.setAttribute('data-theme', nextTheme);
+    toast.success(nextTheme === 'dark' ? '🌙 Mode Sombre Luxe activé !' : '☀️ Mode Clair activé !');
+  };
 
   const isProductPage = location.pathname.startsWith('/product/');
 
@@ -103,7 +134,12 @@ const Navbar = () => {
 
   return (
     <>
-      <header className="navbar-header" style={{ position: 'sticky', top: 0, zIndex: 100, background: 'rgba(255, 255, 255, 0.96)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #E2E8F0', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
+      {!isOnline && (
+        <div style={{ background: 'linear-gradient(135deg, #BE123C 0%, #9F1239 100%)', color: 'white', padding: '6px 12px', textAlign: 'center', fontSize: '0.82rem', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', zIndex: 1100 }}>
+          <span>📡 Mode Hors-Ligne Actif — Navigation sur le contenu en cache PWA</span>
+        </div>
+      )}
+      <header className="navbar-header" style={{ position: 'sticky', top: 0, zIndex: 100, background: theme === 'dark' ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.96)', backdropFilter: 'blur(12px)', borderBottom: theme === 'dark' ? '1px solid #1E293B' : '1px solid #E2E8F0', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
         <div className="section-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '72px', padding: '0 1rem' }}>
           
           {/* Left: Logo */}
@@ -111,7 +147,7 @@ const Navbar = () => {
             <button 
               className="active-scale" 
               onClick={handleMenuClick} 
-              style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', cursor: 'pointer', padding: '8px', color: '#334155', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              style={{ background: theme === 'dark' ? '#1E293B' : '#F8FAFC', border: theme === 'dark' ? '1px solid #334155' : '1px solid #E2E8F0', borderRadius: '12px', cursor: 'pointer', padding: '8px', color: theme === 'dark' ? '#F8FAFC' : '#334155', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               aria-label="Menu"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
@@ -127,7 +163,7 @@ const Navbar = () => {
             <input 
               type="text" 
               placeholder="Lan nga bëgg wut ? (ex: iPhone, robe, voiture...)" 
-              style={{ width: '100%', padding: '0.6rem 1rem 0.6rem 2.5rem', borderRadius: 'var(--radius-pill)', border: '1px solid var(--border-color)', background: '#F8FAFC', outline: 'none', fontSize: '0.9rem' }}
+              style={{ width: '100%', padding: '0.6rem 1rem 0.6rem 2.5rem', borderRadius: 'var(--radius-pill)', border: '1px solid var(--border-color)', background: theme === 'dark' ? '#1E293B' : '#F8FAFC', color: theme === 'dark' ? '#F8FAFC' : 'inherit', outline: 'none', fontSize: '0.9rem' }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && e.target.value.trim() !== '') {
                   navigate(`/explore?q=${encodeURIComponent(e.target.value.trim())}`);
@@ -137,8 +173,29 @@ const Navbar = () => {
             <svg style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           </div>
 
-          {/* Right: Publish Button & Profile */}
+          {/* Right: Theme Toggle, Publish Button & Profile */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+            {/* Theme Toggle Button */}
+            <button
+              onClick={toggleTheme}
+              className="active-scale"
+              title={theme === 'dark' ? 'Passer en mode clair' : 'Passer en mode sombre luxe'}
+              style={{
+                background: theme === 'dark' ? 'linear-gradient(135deg, #1E1B4B 0%, #312E81 100%)' : '#F1F5F9',
+                border: theme === 'dark' ? '1px solid #4338CA' : '1px solid #CBD5E1',
+                borderRadius: '50%',
+                width: '40px',
+                height: '40px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                fontSize: '1.1rem',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+              }}
+            >
+              {theme === 'dark' ? '☀️' : '🌙'}
+            </button>
             <Link 
               to="/reels" 
               className="active-scale hover-lift" 

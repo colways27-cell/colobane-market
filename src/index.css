@@ -31,6 +31,31 @@
   --transition-spring: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+/* 🌙 Mode Sombre Luxe (Dark Mode Theme) */
+[data-theme="dark"] {
+  --bg-color: #09090b;
+  --card-bg: rgba(24, 24, 27, 0.85);
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --border-color: rgba(51, 65, 85, 0.6);
+  --shadow-sm: 0 4px 14px -2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 12px 32px -4px rgba(0, 0, 0, 0.5);
+  --primary-light: rgba(190, 18, 60, 0.2);
+}
+
+[data-theme="dark"] body {
+  background-color: #09090b !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .product-card,
+[data-theme="dark"] .glass-panel,
+[data-theme="dark"] .modal-content {
+  background: #18181b !important;
+  border-color: #27272a !important;
+  color: #f8fafc !important;
+}
+
 * {
   margin: 0;
   padding: 0;
