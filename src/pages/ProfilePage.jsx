@@ -673,21 +673,7 @@ const ProfilePage = () => {
                     <Link to={`/boutique/${profile.id}`} className="active-scale touch-target hover-lift" style={{ width: '100%', padding: '1rem', borderRadius: '16px', background: 'var(--primary-gradient)', color: 'white', textDecoration: 'none', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', fontWeight: '800' }}>
                       Voir ma vitrine 🏪
                     </Link>
-                    {!profile.is_verified ? (
-                      <button 
-                        onClick={() => {
-                          const adminPhone = "221773713175";
-                          const name = profile.boutique_name || profile.pseudo || profile.full_name || profile.id;
-                          const msg = encodeURIComponent(`Bonjour Administrateur, je souhaite faire vérifier et certifier ma boutique "${name}" sur Colobane Market.`);
-                          window.open(`https://wa.me/${adminPhone}?text=${msg}`, '_blank');
-                          toast.success("Demande de certification ouverte sur WhatsApp !");
-                        }}
-                        className="active-scale touch-target hover-lift"
-                        style={{ width: '100%', padding: '0.8rem', borderRadius: '16px', background: 'linear-gradient(135deg, #3B82F6, #1D4ED8)', color: 'white', border: 'none', fontWeight: '800', fontSize: '0.9rem', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px', boxShadow: '0 4px 14px rgba(59,130,246,0.3)' }}
-                      >
-                        🛡️ Certifier ma boutique
-                      </button>
-                    ) : (
+                    {profile.is_verified && (
                       <div style={{ width: '100%', padding: '0.8rem', borderRadius: '16px', background: 'linear-gradient(135deg, #10B981, #059669)', color: 'white', fontWeight: '800', fontSize: '0.85rem', textAlign: 'center', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px' }}>
                         🛡️ Vendeur Certifié & De Confiance
                       </div>
