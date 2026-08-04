@@ -103,22 +103,22 @@ const Navbar = () => {
 
   return (
     <>
-      <header className="navbar-header" style={{ position: 'sticky', top: 0, zIndex: 100, background: 'white', borderBottom: '1px solid var(--border-color)', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
-        <div className="section-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '70px', padding: '0 1rem' }}>
+      <header className="navbar-header" style={{ position: 'sticky', top: 0, zIndex: 100, background: 'rgba(255, 255, 255, 0.96)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #E2E8F0', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
+        <div className="section-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '66px', padding: '0 1rem' }}>
           
           {/* Left: Logo */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <button 
               className="active-scale" 
               onClick={handleMenuClick} 
-              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '6px', color: 'var(--text-main)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', cursor: 'pointer', padding: '8px', color: '#334155', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               aria-label="Menu"
             >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
             </button>
 
             <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
-              <img src="/image marque.jpg" alt="Colobane Market" style={{ height: '48px', objectFit: 'contain', borderRadius: '4px' }} />
+              <img src="/image marque.jpg" alt="Colobane Market" style={{ height: '42px', objectFit: 'contain', borderRadius: '8px' }} />
             </Link>
           </div>
 
@@ -138,7 +138,7 @@ const Navbar = () => {
           </div>
 
           {/* Right: Publish Button & Profile */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
             <Link 
               to="/reels" 
               className="active-scale hover-lift" 
@@ -146,21 +146,21 @@ const Navbar = () => {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.4rem',
-                background: 'linear-gradient(135deg, #09090B 0%, #172554 100%)',
+                background: 'linear-gradient(135deg, #0F172A 0%, #1E1B4B 100%)',
                 color: '#FFFFFF',
-                padding: '0.4rem 0.9rem',
-                borderRadius: 'var(--radius-pill)',
-                fontWeight: '900',
+                padding: '0.42rem 0.85rem',
+                borderRadius: '999px',
+                fontWeight: '800',
                 textDecoration: 'none',
-                border: '1px solid rgba(244, 63, 94, 0.5)',
-                fontSize: '0.82rem',
-                boxShadow: '0 4px 15px rgba(225, 29, 72, 0.25)',
-                letterSpacing: '0.3px'
+                border: '1px solid rgba(244, 63, 94, 0.4)',
+                fontSize: '0.8rem',
+                boxShadow: '0 4px 14px rgba(15, 23, 42, 0.2)',
+                letterSpacing: '0.4px'
               }}
             >
-              <span style={{ fontSize: '15px' }}>🎬</span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F43F5E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
               <span>REELS</span>
-              <span style={{ background: '#E11D48', color: '#FFF', fontSize: '9px', fontWeight: 900, padding: '1px 5px', borderRadius: '6px', marginLeft: '2px' }}>PRO</span>
+              <span style={{ background: 'linear-gradient(135deg, #E11D48, #BE123C)', color: '#FFF', fontSize: '9px', fontWeight: 900, padding: '2px 5px', borderRadius: '6px', marginLeft: '2px', letterSpacing: '0.5px' }}>PRO</span>
             </Link>
 
             <Link 
@@ -191,7 +191,7 @@ const Navbar = () => {
                   className="active-scale"
                   style={{
                     background: '#F8FAFC',
-                    border: '1px solid var(--border-color)',
+                    border: '1px solid #E2E8F0',
                     width: '38px',
                     height: '38px',
                     borderRadius: '50%',
@@ -203,18 +203,18 @@ const Navbar = () => {
                   }}
                   aria-label="Notifications"
                 >
-                  <span style={{ fontSize: '18px' }}>🔔</span>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
                   {unreadCount > 0 && (
                     <span style={{
                       position: 'absolute',
-                      top: '-2px',
-                      right: '-2px',
+                      top: '0px',
+                      right: '0px',
                       background: '#E11D48',
                       color: 'white',
                       fontSize: '10px',
                       fontWeight: 900,
-                      width: '18px',
-                      height: '18px',
+                      width: '16px',
+                      height: '16px',
                       borderRadius: '50%',
                       display: 'flex',
                       alignItems: 'center',
