@@ -173,10 +173,15 @@ const BuyerRequestsPage = () => {
     setSubmitting(false);
   };
 
-  const filteredRequests = requests.filter(r => 
-    r.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    r.location.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const [filterUrgency, setFilterUrgency] = useState('all');
+
+  const filteredRequests = requests.filter(r => {
+    const matchesSearch = r.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      r.location.toLowerCase().includes(searchQuery.toLowerCase());
+    if (filterUrgency === 'urgent') return matchesSearch && (r.urgency === 'urgent' || r.budget >= 100000);
+    if (filterUrgency === 'flexible') return matchesSearch && r.urgency === 'flexible';
+    return matchesSearch;
+  });
 
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto', padding: '16px', paddingBottom: '100px' }}>
@@ -203,7 +208,7 @@ const BuyerRequestsPage = () => {
       </div>
 
       {/* Top Banner Action */}
-      <div style={{ background: 'linear-gradient(135deg, var(--primary) 0%, #C0392B 100%)', color: 'white', borderRadius: '24px', padding: '24px', marginBottom: '24px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '16px', boxShadow: '0 8px 25px rgba(138,28,28,0.25)' }}>
+      <div style={{ background: 'linear-gradient(135deg, var(--primary) 0%, #C0392B 100%)', color: 'white', borderRadius: '24px', padding: '24px', marginBottom: '20px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '16px', boxShadow: '0 8px 25px rgba(138,28,28,0.25)' }}>
         <div>
           <h2 style={{ fontSize: '1.3rem', fontWeight: '900', margin: '0 0 6px 0' }}>Vous cherchez un produit spécifique ?</h2>
           <p style={{ margin: 0, fontSize: '0.95rem', opacity: 0.9 }}>Publiez votre demande gratuitement et les boutiques vous contacteront directement sur WhatsApp.</p>
@@ -217,16 +222,54 @@ const BuyerRequestsPage = () => {
         </button>
       </div>
 
-      {/* Search Input */}
-      <div style={{ marginBottom: '20px', position: 'relative' }}>
-        <input 
-          type="text" 
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Rechercher une demande (ex: iPhone, voiture, robe...)"
-          style={{ width: '100%', padding: '14px 14px 14px 44px', borderRadius: '16px', border: '1.5px solid #E2E8F0', fontSize: '0.95rem', outline: 'none', boxSizing: 'border-box', background: 'white' }}
-        />
-        <Search size={20} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
+      {/* Search Input & Filter Pills */}
+      <div style={{ marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div style={{ position: 'relative' }}>
+          <input 
+            type="text" 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Rechercher une demande (ex: iPhone, voiture, robe...)"
+            style={{ width: '100%', padding: '14px 14px 14px 44px', borderRadius: '16px', border: '1.5px solid #E2E8F0', fontSize: '0.95rem', outline: 'none', boxSizing: 'border-box', background: 'white' }}
+          />
+          <Search size={20} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
+        </div>
+
+        {/* Filter Pills */}
+        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
+          <button
+            onClick={() => setFilterUrgency('all')}
+            style={{
+              padding: '8px 16px',
+              borderRadius: '20px',
+              border: 'none',
+              fontWeight: 800,
+              fontSize: '0.85rem',
+              cursor: 'pointer',
+              background: filterUrgency === 'all' ? '#0F172A' : '#F1F5F9',
+              color: filterUrgency === 'all' ? '#FFFFFF' : '#475569',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            ⚡ Toutes les demandes ({requests.length})
+          </button>
+          <button
+            onClick={() => setFilterUrgency('urgent')}
+            style={{
+              padding: '8px 16px',
+              borderRadius: '20px',
+              border: 'none',
+              fontWeight: 800,
+              fontSize: '0.85rem',
+              cursor: 'pointer',
+              background: filterUrgency === 'urgent' ? '#BE123C' : '#FFE4E6',
+              color: filterUrgency === 'urgent' ? '#FFFFFF' : '#BE123C',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            🔥 Achats Urgents / Cash Cash
+          </button>
+        </div>
       </div>
 
       {/* Requests Feed */}
@@ -242,10 +285,23 @@ const BuyerRequestsPage = () => {
           {filteredRequests.map(req => (
             <div key={req.id} style={{ background: 'white', borderRadius: '20px', padding: '20px', border: '1.5px solid #E2E8F0', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px', marginBottom: '10px' }}>
-                <h3 style={{ fontSize: '1.15rem', fontWeight: '800', margin: 0, color: 'var(--text-main)' }}>
-                  {req.title}
-                </h3>
-                <div style={{ background: '#FEF3C7', color: '#B45309', padding: '6px 14px', borderRadius: '20px', fontWeight: '900', fontSize: '1rem' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                    {req.budget >= 100000 && (
+                      <span style={{ background: '#FFE4E6', color: '#BE123C', padding: '2px 8px', borderRadius: '8px', fontSize: '11px', fontWeight: 900 }}>
+                        🔥 ACHAT URGENT
+                      </span>
+                    )}
+                    <span style={{ background: '#F1F5F9', color: '#475569', padding: '2px 8px', borderRadius: '8px', fontSize: '11px', fontWeight: 700 }}>
+                      📍 {req.location}
+                    </span>
+                  </div>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: '800', margin: 0, color: 'var(--text-main)' }}>
+                    {req.title}
+                  </h3>
+                </div>
+
+                <div style={{ background: '#FEF3C7', color: '#B45309', padding: '6px 14px', borderRadius: '20px', fontWeight: '900', fontSize: '1rem', border: '1px solid #FCD34D' }}>
                   Budget: {(req.budget || 0).toLocaleString('fr-FR')} FCFA
                 </div>
               </div>
@@ -267,13 +323,13 @@ const BuyerRequestsPage = () => {
 
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                   <a 
-                    href={`https://wa.me/${(req.contact || '').replace(/\+/g, '')}?text=${encodeURIComponent(`Bonjour, j'ai vu votre demande "${req.title}" sur Colobane Market. J'ai ce produit disponible !`)}`}
+                    href={`https://wa.me/${(req.contact || '').replace(/\+/g, '')}?text=${encodeURIComponent(`Bonjour ! 👋 J'ai vu votre demande Wutal Ma "${req.title}" (Budget: ${(req.budget||0).toLocaleString()} FCFA) sur Colobane Market.\nJe dispose de cet article disponible immédiatement. Souhaitez-vous recevoir les photos et le prix ?`)}`}
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="active-scale"
                     style={{ background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)', color: 'white', padding: '10px 18px', borderRadius: '14px', textDecoration: 'none', fontWeight: '800', fontSize: '0.88rem', display: 'inline-flex', alignItems: 'center', gap: '6px', boxShadow: '0 4px 12px rgba(37,211,102,0.3)' }}
                   >
-                    <MessageSquare size={16} /> Proposer mon offre
+                    <MessageSquare size={16} /> Proposer mon offre WhatsApp
                   </a>
                   <button
                     onClick={() => shareBuyerRequest(req)}
