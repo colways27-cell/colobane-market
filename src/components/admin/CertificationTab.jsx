@@ -51,72 +51,127 @@ const CertificationTab = ({
             Aucune demande de certification dans cette catégorie.
           </div>
         ) : (
-          filteredCerts.map((cert) => (
-            <div key={cert.id} style={{ background: 'white', borderRadius: '16px', padding: '20px', border: '1px solid #E2E8F0', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div>
-                  <strong style={{ fontSize: '1rem' }}>{cert.profiles?.full_name || 'Demandeur'}</strong>
-                  <div style={{ fontSize: '0.8rem', color: '#64748B' }}>📞 {cert.profiles?.whatsapp_number || 'N/A'}</div>
+          filteredCerts.map((cert) => {
+            const rawPhone = cert.phone || cert.profiles?.whatsapp_number || cert.profiles?.phone_number || '';
+            const cleanPhone = rawPhone.replace(/\D/g, '');
+            const waPhone = cleanPhone.length === 9 ? `221${cleanPhone}` : cleanPhone;
+            const waMsg = encodeURIComponent(
+              `Bonjour ${cert.owner_name || cert.profiles?.full_name || 'Vendeur'} ! Équipe Colobane Market au sujet de votre demande de certification pour la boutique "${cert.boutique_name || 'Boutique'}". Statut : ${cert.status === 'approved' ? 'VALIDÉE ✅' : cert.status === 'rejected' ? 'REFUSÉE ❌' : 'EN COURS ⏳'}.`
+            );
+            const waUrl = waPhone ? `https://wa.me/${waPhone}?text=${waMsg}` : null;
+
+            return (
+              <div key={cert.id} style={{ background: 'white', borderRadius: '16px', padding: '20px', border: '1px solid #E2E8F0', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div>
+                    <strong style={{ fontSize: '1rem' }}>{cert.owner_name || cert.profiles?.full_name || 'Demandeur'}</strong>
+                    <div style={{ fontSize: '0.8rem', color: '#64748B', display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+                      <span>📞 {rawPhone || 'N/A'}</span>
+                      {waUrl && (
+                        <a
+                          href={waUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          style={{
+                            background: '#25D366',
+                            color: 'white',
+                            borderRadius: '6px',
+                            padding: '2px 6px',
+                            fontSize: '10px',
+                            fontWeight: 800,
+                            textDecoration: 'none'
+                          }}
+                        >
+                          💬 WhatsApp
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                  <span style={statusBadgeStyle(cert.status)}>
+                    {cert.status === 'approved' ? '✅ Approuvé' : cert.status === 'rejected' ? '❌ Refusé' : '⏳ En attente'}
+                  </span>
                 </div>
-                <span style={statusBadgeStyle(cert.status)}>
-                  {cert.status === 'approved' ? '✅ Approuvé' : cert.status === 'rejected' ? '❌ Refusé' : '⏳ En attente'}
-                </span>
-              </div>
 
-              <div style={{ background: '#F8FAFC', padding: '10px', borderRadius: '8px', fontSize: '0.85rem' }}>
-                <strong>Numéro CNI :</strong> {cert.id_card_number || 'Non renseigné'}
-              </div>
-
-              {/* Photos Documents */}
-              <div style={{ display: 'flex', gap: '8px' }}>
-                {cert.id_card_front_url && (
-                  <img
-                    src={cert.id_card_front_url}
-                    alt="CNI Recto"
-                    onClick={() => onZoomImage(cert.id_card_front_url)}
-                    style={imgThumbnailStyle}
-                    title="CNI Recto (Cliquer pour agrandir)"
-                  />
-                )}
-                {cert.id_card_back_url && (
-                  <img
-                    src={cert.id_card_back_url}
-                    alt="CNI Verso"
-                    onClick={() => onZoomImage(cert.id_card_back_url)}
-                    style={imgThumbnailStyle}
-                    title="CNI Verso (Cliquer pour agrandir)"
-                  />
-                )}
-                {cert.selfie_url && (
-                  <img
-                    src={cert.selfie_url}
-                    alt="Selfie"
-                    onClick={() => onZoomImage(cert.selfie_url)}
-                    style={imgThumbnailStyle}
-                    title="Selfie (Cliquer pour agrandir)"
-                  />
-                )}
-              </div>
-
-              {/* Action Buttons */}
-              {cert.status === 'pending' && (
-                <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-                  <button
-                    onClick={() => onValiderCertification(cert)}
-                    style={{ flex: 1, padding: '8px', background: '#16A34A', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}
-                  >
-                    Valider Badge 👑
-                  </button>
-                  <button
-                    onClick={() => onRefuserCertification(cert.id)}
-                    style={{ padding: '8px 12px', background: '#DC2626', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}
-                  >
-                    Refuser
-                  </button>
+                <div style={{ background: '#F8FAFC', padding: '10px', borderRadius: '8px', fontSize: '0.85rem' }}>
+                  <strong>Boutique :</strong> {cert.boutique_name || 'Non renseigné'}<br />
+                  <strong>Adresse :</strong> {cert.address || 'Non renseignée'}
                 </div>
-              )}
-            </div>
-          ))
+
+                {/* Photos Documents */}
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  {cert.photo_boutique_url && (
+                    <img
+                      src={cert.photo_boutique_url}
+                      alt="Boutique"
+                      onClick={() => onZoomImage(cert.photo_boutique_url)}
+                      style={imgThumbnailStyle}
+                      title="Photo Boutique (Cliquer pour agrandir)"
+                    />
+                  )}
+                  {cert.photo_identity_url && (
+                    <img
+                      src={cert.photo_identity_url}
+                      alt="CNI"
+                      onClick={() => onZoomImage(cert.photo_identity_url)}
+                      style={imgThumbnailStyle}
+                      title="CNI (Cliquer pour agrandir)"
+                    />
+                  )}
+                  {cert.photo_selfie_url && (
+                    <img
+                      src={cert.photo_selfie_url}
+                      alt="Selfie"
+                      onClick={() => onZoomImage(cert.photo_selfie_url)}
+                      style={imgThumbnailStyle}
+                      title="Selfie (Cliquer pour agrandir)"
+                    />
+                  )}
+                </div>
+
+                {/* Actions */}
+                <div style={{ display: 'flex', gap: '8px', marginTop: 'auto', paddingTop: '8px' }}>
+                  {cert.status === 'pending' && (
+                    <>
+                      <button
+                        onClick={() => onValiderCertification(cert)}
+                        style={{ flex: 1, padding: '8px 12px', background: '#16A34A', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}
+                      >
+                        Valider
+                      </button>
+                      <button
+                        onClick={() => onRefuserCertification(cert.id)}
+                        style={{ flex: 1, padding: '8px 12px', background: '#DC2626', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}
+                      >
+                        Refuser
+                      </button>
+                    </>
+                  )}
+                  {waUrl && (
+                    <a
+                      href={waUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{
+                        padding: '8px 12px',
+                        background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
+                        color: 'white',
+                        borderRadius: '8px',
+                        fontWeight: 800,
+                        fontSize: '0.8rem',
+                        textDecoration: 'none',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '4px'
+                      }}
+                    >
+                      💬 Contacter WhatsApp
+                    </a>
+                  )}
+                </div>
+              </div>
+            );
+          })
         )}
       </div>
     </div>

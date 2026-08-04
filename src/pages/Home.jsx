@@ -1052,6 +1052,69 @@ const Home = () => {
         </section>
       )}
 
+      {/* Banner TikTok Reels Dakar */}
+      <section style={{ maxWidth: '1200px', margin: '0 auto 1.5rem auto', padding: '0 16px' }}>
+        <div 
+          onClick={() => navigate('/reels')}
+          className="hover-lift active-scale"
+          style={{
+            background: 'linear-gradient(135deg, #09090B 0%, #172554 40%, #BE123C 100%)',
+            borderRadius: '20px',
+            padding: '16px 20px',
+            color: '#FFFFFF',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            cursor: 'pointer',
+            boxShadow: '0 8px 30px rgba(190, 18, 60, 0.25)',
+            border: '1px solid rgba(244, 63, 94, 0.4)'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <div style={{
+              width: '52px',
+              height: '52px',
+              borderRadius: '16px',
+              background: 'rgba(255,255,255,0.12)',
+              backdropFilter: 'blur(10px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '26px',
+              border: '1px solid rgba(255,255,255,0.2)'
+            }}>
+              🎥
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
+                <span style={{ background: '#E11D48', color: '#FFF', fontSize: '10px', fontWeight: 900, padding: '2px 8px', borderRadius: '8px' }}>NOUVEAU</span>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: '#FDA4AF' }}>Colobane Shorts</span>
+              </div>
+              <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 900, letterSpacing: '-0.3px' }}>
+                Mode TikTok Reels Dakar 🔥
+              </h3>
+              <p style={{ margin: 0, fontSize: '0.8rem', color: '#CBD5E1' }}>
+                Découvrez les meilleures offres en vidéos verticales immersives
+              </p>
+            </div>
+          </div>
+
+          <div style={{
+            background: 'rgba(255,255,255,0.15)',
+            padding: '8px 16px',
+            borderRadius: '20px',
+            fontWeight: 800,
+            fontSize: '13px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            backdropFilter: 'blur(8px)'
+          }}>
+            Regarder ▶
+          </div>
+        </div>
+      </section>
+
       {/* Section Premium À la Une (Annonces Sponsorisées) */}
       {boostedProducts.length > 0 && (
         <section style={{ marginBottom: '1.5rem', maxWidth: '1200px', margin: '0 auto 1.5rem auto' }}>

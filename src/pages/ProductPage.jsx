@@ -222,6 +222,8 @@ const ProductPage = () => {
   }
 
   const imageUrl = product.images && product.images.length > 0 ? product.images[activeImage] : '/hero.png';
+  const hasVideo = !!(product.metadata?.video_url || product.video_url);
+  const videoUrl = product.metadata?.video_url || product.video_url;
   const rawPhone = product.profiles?.phone_number || product.profiles?.whatsapp_number || product.metadata?.contact_whatsapp || product.contact || '';
   const phoneNumber = rawPhone.replace(/[^\d+]/g, '');
 
@@ -342,12 +344,25 @@ const ProductPage = () => {
           </div>
         )}
 
-        {/* Current Image */}
-        <img 
-          src={imageUrl} 
-          alt={`${product.title} ${activeImage + 1}`} 
-          style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'all 0.25s ease-out' }} 
-        />
+        {/* Current Image or Video */}
+        {hasVideo && activeImage === 0 ? (
+          <video 
+            src={videoUrl} 
+            poster={imageUrl}
+            controls 
+            autoPlay 
+            muted 
+            loop 
+            playsInline 
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+          />
+        ) : (
+          <img 
+            src={imageUrl} 
+            alt={`${product.title} ${activeImage + 1}`} 
+            style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'all 0.25s ease-out' }} 
+          />
+        )}
 
         {/* Tap Navigation Overlays (Story Left / Right) */}
         <div 
@@ -471,6 +486,38 @@ const ProductPage = () => {
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Reel Video Promotion Banner */}
+      {hasVideo && (
+        <div 
+          onClick={() => navigate('/reels')}
+          className="hover-lift active-scale"
+          style={{
+            margin: '12px 16px 0 16px',
+            background: 'linear-gradient(135deg, #09090B 0%, #172554 40%, #BE123C 100%)',
+            borderRadius: '16px',
+            padding: '12px 16px',
+            color: '#FFFFFF',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            cursor: 'pointer',
+            border: '1px solid rgba(244, 63, 94, 0.4)',
+            boxShadow: '0 4px 16px rgba(190, 18, 60, 0.25)'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '24px' }}>🎬</span>
+            <div>
+              <div style={{ fontSize: '13px', fontWeight: 800, color: '#FFFFFF' }}>Vidéo Reel TikTok disponible !</div>
+              <div style={{ fontSize: '11px', color: '#FDA4AF' }}>Regarder ce produit en vidéo HD plein écran</div>
+            </div>
+          </div>
+          <span style={{ background: '#E11D48', color: '#FFFFFF', fontSize: '11px', fontWeight: 800, padding: '4px 10px', borderRadius: '12px' }}>
+            Voir Reel ▶️
+          </span>
         </div>
       )}
 
@@ -666,7 +713,7 @@ const ProductPage = () => {
             <div>
               <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 {product.profiles?.boutique_name || product.profiles?.pseudo || product.profiles?.full_name || 'Vendeur'}
-                {(product.profiles?.boutique_name || product.profiles?.account_type === 'pro') && (
+                {product.profiles?.is_verified && (
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="#25D366" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L15 8L22 9L17 14L18.5 21L12 17.5L5.5 21L7 14L2 9L9 8L12 2Z" stroke="#25D366" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 )}
               </div>
@@ -675,8 +722,8 @@ const ProductPage = () => {
                   <MapPin size={9} strokeWidth={3} />
                 </span>
                 {product.location || 'Dakar'} 
-                {(product.profiles?.boutique_name || product.profiles?.account_type === 'pro') && (
-                  <> • <span style={{ color: '#25D366', fontWeight: '600' }}>Vérifié</span></>
+                {product.profiles?.is_verified && (
+                  <> • <span style={{ color: '#25D366', fontWeight: '600' }}>Certifié 🛡️</span></>
                 )}
                 {sellerRating && (
                   <span style={{ marginLeft: '4px', background: '#FFFBEB', color: '#B45309', border: '1px solid #FCD34D', padding: '1px 6px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '800', display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
@@ -704,10 +751,10 @@ const ProductPage = () => {
         <div style={{ background: 'white', padding: '16px', margin: '12px 0', borderTop: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
           {/* Trust Badges Row */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '16px' }}>
-            <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '10px 6px', borderRadius: '10px', textAlign: 'center' }}>
-              <div style={{ fontSize: '18px', marginBottom: '2px' }}>🛡️</div>
-              <div style={{ fontSize: '11px', fontWeight: '800', color: '#1E293B' }}>Vendeur Vérifié</div>
-              <div style={{ fontSize: '10px', color: '#64748B' }}>Profil Certifié</div>
+            <div style={{ background: product.profiles?.is_verified ? '#F0FDF4' : '#F8FAFC', border: product.profiles?.is_verified ? '1px solid #DCFCE7' : '1px solid #E2E8F0', padding: '10px 6px', borderRadius: '10px', textAlign: 'center' }}>
+              <div style={{ fontSize: '18px', marginBottom: '2px' }}>{product.profiles?.is_verified ? '🛡️' : '🏪'}</div>
+              <div style={{ fontSize: '11px', fontWeight: '800', color: product.profiles?.is_verified ? '#166534' : '#1E293B' }}>{product.profiles?.is_verified ? 'Vendeur Certifié' : 'Compte Vendeur'}</div>
+              <div style={{ fontSize: '10px', color: product.profiles?.is_verified ? '#15803D' : '#64748B' }}>{product.profiles?.is_verified ? 'Profil Vérifié' : 'Non Certifié'}</div>
             </div>
             <div style={{ background: '#F0FDF4', border: '1px solid #DCFCE7', padding: '10px 6px', borderRadius: '10px', textAlign: 'center' }}>
               <div style={{ fontSize: '18px', marginBottom: '2px' }}>⚡</div>

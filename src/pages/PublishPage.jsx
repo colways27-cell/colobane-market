@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { categories } from '../data/categories';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../components/AuthContext';
 import { supabase } from '../lib/supabase';
 import { openWavePayment } from '../config/paymentConfig';
@@ -195,6 +195,7 @@ const PublishPage = () => {
     title: '', description: '', price_type: 'Fixe', price: '', location: 'Dakar', delivery: 'Aucune', contact_whatsapp: ''
   });
   const [images, setImages] = useState([]);
+  const [videoFile, setVideoFile] = useState(null);
   const [previews, setPreviews] = useState([]);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -209,6 +210,14 @@ const PublishPage = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [monthlyCount, setMonthlyCount] = useState(0);
   const [hasReachedLimit, setHasReachedLimit] = useState(false);
+  const locationQuery = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(locationQuery.search);
+    if (params.get('mode') === 'reel') {
+      toast('🎬 Mode Publication Reel TikTok activé ! Ajoutez le lien de votre vidéo.', { icon: '🎥', duration: 4000 });
+    }
+  }, [locationQuery]);
 
   const renderLivePreview = () => (
     <div style={{ background: 'white', border: '1px solid #E2E8F0', borderRadius: '24px', padding: '20px', boxShadow: '0 10px 30px rgba(0,0,0,0.06)', position: 'sticky', top: '100px' }}>
@@ -544,10 +553,10 @@ const PublishPage = () => {
       return;
     }
 
-    // 1. Bloquer la soumission si images.length === 0
-    if (!images || images.length === 0) {
-      toast.error("Au moins une photo est obligatoire pour publier une annonce.");
-      setErrorMsg("Au moins une photo est obligatoire pour publier une annonce.");
+    // 1. Bloquer la soumission uniquement si ni photo ni vidéo n'est fournie
+    if ((!images || images.length === 0) && !formData.video_url && !videoFile) {
+      toast.error("Au moins une photo ou une vidéo est obligatoire pour publier une annonce.");
+      setErrorMsg("Au moins une photo ou une vidéo est obligatoire pour publier une annonce.");
       return;
     }
 
@@ -610,6 +619,21 @@ const PublishPage = () => {
       if (profileError && profileError.code !== '23505') console.warn('Profile sync issue:', profileError);
 
       const imageUrls = await uploadImages();
+
+      let finalVideoUrl = formData.video_url || null;
+      if (videoFile) {
+        toast.loading("Upload de la vidéo en cours...", { id: 'vid-upload' });
+        const ext = videoFile.name.split('.').pop() || 'mp4';
+        const fileName = `video_${user.id}_${Date.now()}.${ext}`;
+        const filePath = `${user.id}/${fileName}`;
+        const { error: vidUploadErr } = await supabase.storage.from('products').upload(filePath, videoFile, { upsert: true });
+        if (!vidUploadErr) {
+          const { data: pubData } = supabase.storage.from('products').getPublicUrl(filePath);
+          finalVideoUrl = pubData.publicUrl;
+        }
+        toast.dismiss('vid-upload');
+      }
+
       const { title, description, price, price_type, location, delivery, contact_whatsapp, ...metadata } = formData;
       
       let finalPrice = 0;
@@ -618,7 +642,7 @@ const PublishPage = () => {
       }
 
       // Handle "Autre" custom fields
-      const processedMetadata = { ...metadata, price_type, delivery, contact_whatsapp };
+      const processedMetadata = { ...metadata, price_type, delivery, contact_whatsapp, video_url: finalVideoUrl };
       Object.keys(processedMetadata).forEach(key => {
         if (processedMetadata[key] === 'Autre' && processedMetadata[`custom_${key}`]) {
           processedMetadata[key] = processedMetadata[`custom_${key}`];
@@ -628,6 +652,8 @@ const PublishPage = () => {
         }
       });
 
+      const finalImages = imageUrls.length > 0 ? imageUrls : (finalVideoUrl ? [finalVideoUrl] : ['/hero.png']);
+
       const { data: insertedData, error: insertError } = await supabase.from('products').insert([{
         seller_id: user.id,
         title: title || 'Sans titre',
@@ -635,7 +661,7 @@ const PublishPage = () => {
         price: isNaN(finalPrice) ? 0 : finalPrice,
         location: (location === 'Autre' && formData.custom_location) ? formData.custom_location : (location || 'Sénégal'),
         category: selectedCategory,
-        images: imageUrls,
+        images: finalImages,
         metadata: processedMetadata,
         status: 'available'
       }]).select('id, title').single();
@@ -1117,7 +1143,7 @@ const PublishPage = () => {
                                 <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(139, 28, 49, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14"/></svg>
                                 </div>
-                                <span style={{ fontSize: '0.8rem', fontWeight: '600', color: 'var(--text-muted)', display: 'none', '@media (min-width: 768px)': { display: 'block' } }}>Glisser ou cliquer</span>
+                                <span style={{ fontSize: '0.8rem', fontWeight: '600', color: 'var(--text-muted)' }}>Ajouter photo</span>
                               </div>
                               <input type="file" multiple accept="image/*" onChange={handleImageChange} style={{ display: 'none' }} />
                             </label>
@@ -1126,6 +1152,103 @@ const PublishPage = () => {
                       </>
                     );
                   })()}
+                </div>
+
+                {/* Option Vidéo Reels Pro */}
+                <div style={{
+                  marginTop: '1.5rem',
+                  marginBottom: '1.5rem',
+                  background: 'linear-gradient(135deg, #09090B 0%, #172554 40%, #BE123C 100%)',
+                  borderRadius: '20px',
+                  padding: '16px 20px',
+                  color: '#FFFFFF',
+                  border: '1px solid rgba(244, 63, 94, 0.4)',
+                  boxShadow: '0 4px 20px rgba(190, 18, 60, 0.2)'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '20px' }}>🎬</span>
+                      <span style={{ fontWeight: 800, fontSize: '0.95rem' }}>Vidéo Reel TikTok Pro</span>
+                    </div>
+                    <span style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#000', fontSize: '10px', fontWeight: 900, padding: '3px 8px', borderRadius: '10px' }}>FORFAIT PRO / VIP</span>
+                  </div>
+                  <p style={{ fontSize: '0.82rem', color: '#CBD5E1', margin: '0 0 12px 0', lineHeight: '1.5' }}>
+                    👑 <strong>Forfait VIP (10 000F)</strong> : Reels Vidéo <strong>ILLIMITÉS</strong> pendant 1 mois.
+                    <br />
+                    🔥 <strong>Forfait Pro (5 000F)</strong> : <strong>3 Reels Vidéo</strong> inclus par mois.
+                    <br />
+                    ⚡ <strong>Non Abonné</strong> : Option <strong>Boost Reel à 1 500 FCFA / 1 Semaine</strong> (7 jours).
+                  </p>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '12px' }}>
+                    <label className="active-scale touch-target" style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      background: 'rgba(255,255,255,0.15)',
+                      border: '1.5px dashed rgba(255,255,255,0.4)',
+                      borderRadius: '14px',
+                      padding: '12px 16px',
+                      color: '#FFFFFF',
+                      fontWeight: 800,
+                      fontSize: '0.88rem',
+                      cursor: 'pointer',
+                      textAlign: 'center',
+                      backdropFilter: 'blur(8px)'
+                    }}>
+                      <span>📱</span> Importer une Vidéo ou 3 Photos depuis mon téléphone
+                      <input 
+                        type="file" 
+                        accept="video/*,image/*" 
+                        multiple 
+                        onChange={(e) => {
+                          const files = Array.from(e.target.files || []);
+                          if (files.length === 0) return;
+                          const firstFile = files[0];
+                          if (firstFile.type.startsWith('video/')) {
+                            if (firstFile.size > 50 * 1024 * 1024) {
+                              toast.error('La vidéo ne doit pas dépasser 50 Mo.');
+                              return;
+                            }
+                            setVideoFile(firstFile);
+                            const previewUrl = URL.createObjectURL(firstFile);
+                            setFormData(prev => ({ ...prev, video_url: previewUrl }));
+                            toast.success('🎥 Vidéo chargée depuis le téléphone !');
+                          } else {
+                            const selectedImages = files.slice(0, 3);
+                            const newPreviews = selectedImages.map(file => URL.createObjectURL(file));
+                            setPreviews(newPreviews);
+                            setImages(selectedImages);
+                            toast.success(`📸 ${selectedImages.length} photo(s) chargée(s) (Max 3) !`);
+                          }
+                        }} 
+                        style={{ display: 'none' }} 
+                      />
+                    </label>
+
+                    {formData.video_url && (
+                      <div style={{ position: 'relative', width: '100%', height: '160px', borderRadius: '14px', overflow: 'hidden', background: '#000' }}>
+                        <video src={formData.video_url} controls style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <button 
+                          type="button" 
+                          onClick={() => setFormData(prev => ({ ...prev, video_url: '' }))} 
+                          style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.7)', color: 'white', border: 'none', borderRadius: '50%', width: '28px', height: '28px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        >✕</button>
+                      </div>
+                    )}
+                  </div>
+
+                  <InputWrapper icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FDA4AF" strokeWidth="2"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>}>
+                    <FastInput 
+                      type="url" 
+                      name="video_url" 
+                      placeholder="Ou collez un lien vidéo (MP4/TikTok)..." 
+                      value={formData.video_url || ''} 
+                      onChange={handleInputChange} 
+                      style={{ flex: 1, padding: '0.8rem 0.8rem 0.8rem 0', border: 'none', background: 'transparent', outline: 'none', fontSize: '0.9rem', color: '#FFFFFF' }} 
+                    />
+                  </InputWrapper>
                 </div>
 
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', marginBottom: '1.5rem' }}>

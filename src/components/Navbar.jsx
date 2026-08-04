@@ -1,6 +1,7 @@
 import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from './AuthContext';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 import totemLapin from '../assets/totem-lapin.webp';
 import { getUserCoordinates } from '../utils/geolocation';
@@ -10,8 +11,81 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [showNotificationsDrawer, setShowNotificationsDrawer] = useState(false);
+  const [isInfosOpen, setIsInfosOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const isProductPage = location.pathname.startsWith('/product/');
+
+  useEffect(() => {
+    if (user) {
+      fetchNotifications();
+    } else {
+      setIsAdmin(false);
+    }
+  }, [user]);
+
+  const fetchNotifications = async () => {
+    try {
+      const { data: payRequests } = await supabase
+        .from('payment_requests')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (profile?.is_admin) {
+        setIsAdmin(true);
+      } else {
+        setIsAdmin(false);
+      }
+
+      const notifs = [];
+
+      if (payRequests) {
+        payRequests.forEach(req => {
+          if (req.status === 'approved' || req.status === 'validated') {
+            notifs.push({
+              id: `pay-${req.id}`,
+              type: 'success',
+              title: '⚡ Boost Reel / Plan Activé !',
+              message: `Votre demande pour le ${req.plan_type === 'boost_reel_7j' ? 'Boost Reel 7 jours (1 500 F)' : 'forfait'} a été approuvée par l'admin !`,
+              date: req.created_at,
+              link: '/reels'
+            });
+          }
+        });
+      }
+
+      if (profile && profile.subscription_end_date) {
+        const endDate = new Date(profile.subscription_end_date);
+        const now = new Date();
+        const diffDays = Math.ceil((endDate - now) / (1000 * 60 * 60 * 24));
+        if (diffDays > 0 && diffDays <= 3) {
+          notifs.push({
+            id: `sub-expire`,
+            type: 'warning',
+            title: '⏳ Expiration de Forfait',
+            message: `Votre forfait ${profile.subscription_plan || 'Pro'} expire dans ${diffDays} jour(s). Réabonnez-vous pour garder l'illimité.`,
+            date: new Date().toISOString(),
+            link: '/subscription'
+          });
+        }
+      }
+
+      setNotifications(notifs);
+      setUnreadCount(notifs.length);
+    } catch (err) {
+      console.error('Fetch notifications error:', err);
+    }
+  };
 
   const handleLogout = async () => {
     await signOut();
@@ -64,7 +138,31 @@ const Navbar = () => {
           </div>
 
           {/* Right: Publish Button & Profile */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <Link 
+              to="/reels" 
+              className="active-scale hover-lift" 
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                background: 'linear-gradient(135deg, #09090B 0%, #172554 100%)',
+                color: '#FFFFFF',
+                padding: '0.4rem 0.9rem',
+                borderRadius: 'var(--radius-pill)',
+                fontWeight: '900',
+                textDecoration: 'none',
+                border: '1px solid rgba(244, 63, 94, 0.5)',
+                fontSize: '0.82rem',
+                boxShadow: '0 4px 15px rgba(225, 29, 72, 0.25)',
+                letterSpacing: '0.3px'
+              }}
+            >
+              <span style={{ fontSize: '15px' }}>🎬</span>
+              <span>REELS</span>
+              <span style={{ background: '#E11D48', color: '#FFF', fontSize: '9px', fontWeight: 900, padding: '1px 5px', borderRadius: '6px', marginLeft: '2px' }}>PRO</span>
+            </Link>
+
             <Link 
               to="/wutal-ma" 
               className="hide-on-mobile active-scale hover-lift" 
@@ -85,6 +183,134 @@ const Navbar = () => {
               Jaay 📢
             </button>
             
+            {/* Notification Bell */}
+            {user && (
+              <div style={{ position: 'relative' }}>
+                <button
+                  onClick={() => setShowNotificationsDrawer(prev => !prev)}
+                  className="active-scale"
+                  style={{
+                    background: '#F8FAFC',
+                    border: '1px solid var(--border-color)',
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    position: 'relative'
+                  }}
+                  aria-label="Notifications"
+                >
+                  <span style={{ fontSize: '18px' }}>🔔</span>
+                  {unreadCount > 0 && (
+                    <span style={{
+                      position: 'absolute',
+                      top: '-2px',
+                      right: '-2px',
+                      background: '#E11D48',
+                      color: 'white',
+                      fontSize: '10px',
+                      fontWeight: 900,
+                      width: '18px',
+                      height: '18px',
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 2px 6px rgba(225, 29, 72, 0.4)'
+                    }}>
+                      {unreadCount}
+                    </span>
+                  )}
+                </button>
+
+                {/* Notifications Dropdown Drawer */}
+                {showNotificationsDrawer && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '48px',
+                    right: 0,
+                    width: '320px',
+                    background: '#FFFFFF',
+                    borderRadius: '20px',
+                    border: '1px solid #E2E8F0',
+                    boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+                    zIndex: 1000,
+                    padding: '16px',
+                    overflow: 'hidden'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', paddingBottom: '8px', borderBottom: '1px solid #F1F5F9' }}>
+                      <div style={{ fontWeight: 800, fontSize: '14px', color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span>🔔</span> Notifications Vendeur
+                      </div>
+                      <button
+                        onClick={() => setShowNotificationsDrawer(false)}
+                        style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', fontWeight: 800 }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+
+                    {notifications.length === 0 ? (
+                      <div style={{ textAlign: 'center', padding: '20px 10px', color: '#64748B', fontSize: '13px' }}>
+                        Aucune nouvelle notification pour le moment.
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '300px', overflowY: 'auto' }}>
+                        {notifications.map(n => (
+                          <div
+                            key={n.id}
+                            onClick={() => {
+                              setShowNotificationsDrawer(false);
+                              navigate(n.link);
+                            }}
+                            style={{
+                              background: n.type === 'success' ? '#F0FDF4' : '#FFFBEB',
+                              border: n.type === 'success' ? '1px solid #DCFCE7' : '1px solid #FDE68A',
+                              padding: '10px 12px',
+                              borderRadius: '12px',
+                              cursor: 'pointer',
+                              transition: 'transform 0.2s'
+                            }}
+                          >
+                            <div style={{ fontSize: '12px', fontWeight: 800, color: n.type === 'success' ? '#15803D' : '#B45309' }}>
+                              {n.title}
+                            </div>
+                            <div style={{ fontSize: '11px', color: '#334155', marginTop: '2px', lineHeight: '1.3' }}>
+                              {n.message}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {isAdmin && (
+              <Link
+                to="/admin"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  textDecoration: 'none',
+                  color: '#BE123C',
+                  background: '#FFF1F2',
+                  padding: '6px 12px',
+                  borderRadius: '20px',
+                  fontWeight: 800,
+                  fontSize: '12px',
+                  border: '1px solid #FECDD3'
+                }}
+              >
+                <span>🛡️</span> Admin
+              </Link>
+            )}
+
             <Link to={user ? "/profile" : "/auth"} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none', color: 'var(--text-main)' }}>
               <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: '#F8FAFC', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -142,6 +368,60 @@ const Navbar = () => {
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
                 Nos Offres
               </Link>
+
+              {isAdmin && (
+                <Link to="/admin" onClick={closeMenu} style={{ textDecoration: 'none', color: '#BE123C', fontSize: '1.05rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '12px', background: '#FFF1F2', padding: '10px 14px', borderRadius: '12px', border: '1px solid #FECDD3' }}>
+                  <span>🛡️</span>
+                  Back-Office Admin
+                </Link>
+              )}
+
+              {/* Infos+ Collapsible Section */}
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <button
+                  onClick={() => setIsInfosOpen(!isInfosOpen)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    padding: 0,
+                    color: 'var(--text-main)',
+                    fontSize: '1.1rem',
+                    fontWeight: '500',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    width: '100%',
+                    cursor: 'pointer',
+                    outline: 'none'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    <span>Infos+</span>
+                  </div>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', transform: isInfosOpen ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }}>▶</span>
+                </button>
+
+                {isInfosOpen && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', paddingLeft: '34px', marginTop: '1rem', borderLeft: '2px solid var(--border-color)' }}>
+                    <Link to="/a-propos" onClick={closeMenu} style={{ textDecoration: 'none', color: 'var(--text-muted)', fontSize: '0.98rem', fontWeight: '500' }}>
+                      Qui sommes-nous ?
+                    </Link>
+                    <Link to="/subscription" onClick={closeMenu} style={{ textDecoration: 'none', color: 'var(--text-muted)', fontSize: '0.98rem', fontWeight: '500' }}>
+                      Nos Offres
+                    </Link>
+                    <a href="tel:+221773713175" onClick={closeMenu} style={{ textDecoration: 'none', color: 'var(--text-muted)', fontSize: '0.98rem', fontWeight: '500' }}>
+                      Contact
+                    </a>
+                    <Link to="/conditions-generales" onClick={closeMenu} style={{ textDecoration: 'none', color: 'var(--text-muted)', fontSize: '0.98rem', fontWeight: '500' }}>
+                      Conditions Générales
+                    </Link>
+                    <Link to="/politique-confidentialite" onClick={closeMenu} style={{ textDecoration: 'none', color: 'var(--text-muted)', fontSize: '0.98rem', fontWeight: '500' }}>
+                      Politique de confidentialité
+                    </Link>
+                  </div>
+                )}
+              </div>
               <Link to="/publish" onClick={closeMenu} style={{ textDecoration: 'none', color: 'var(--primary)', fontSize: '1.1rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(138, 28, 28, 0.08)', padding: '12px', borderRadius: '12px' }}>
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 Vendre un article

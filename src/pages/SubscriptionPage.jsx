@@ -123,6 +123,7 @@ const SubscriptionPage = () => {
             <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 20px 0', display: 'flex', flexDirection: 'column', gap: '12px', flex: 1, fontSize: '0.9rem' }}>
               <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>📢 <strong>Jusqu'à 30 annonces / mois</strong></li>
               <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>📸 <strong>4 photos par annonce</strong></li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>🎬 <strong>3 Reels Vidéo / mois inclus</strong></li>
               <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>🏪 Vitrine boutique dédiée</li>
               <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>📊 Statistiques vendeur détaillées</li>
             </ul>
@@ -143,6 +144,7 @@ const SubscriptionPage = () => {
             <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 20px 0', display: 'flex', flexDirection: 'column', gap: '12px', flex: 1, fontSize: '0.9rem' }}>
               <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>🚀 <strong>Annonces ILLIMITÉES par mois</strong></li>
               <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>📸 <strong>6 photos par annonce (Max site)</strong></li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>🎬 <strong>Reels Vidéo ILLIMITÉS par mois</strong></li>
               <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>⚡ <strong>Boosts d'annonces inclus</strong></li>
               <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>🔥 Positionnement prioritaire VIP</li>
             </ul>
@@ -187,13 +189,13 @@ const SubscriptionPage = () => {
             </button>
           </div>
 
-          {/* Boost 15j */}
-          <div style={{ background: 'white', borderRadius: '16px', padding: '16px', border: '1px solid #FDE68A', flex: '1 1 200px', maxWidth: '240px', textAlign: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-            <div style={{ fontSize: '0.8rem', color: '#D97706', fontWeight: '800', textTransform: 'uppercase' }}>🔥 Populaire</div>
-            <div style={{ fontSize: '1.6rem', fontWeight: '900', color: '#B45309', margin: '4px 0' }}>2 500 FCFA</div>
-            <div style={{ fontSize: '0.8rem', color: '#64748B', marginBottom: '12px' }}>⚡ 15 jours sponsorisés</div>
-            <button onClick={() => navigate('/profile')} className="active-scale" style={{ width: '100%', padding: '8px', borderRadius: '10px', background: '#F59E0B', color: 'white', border: 'none', fontWeight: '800', fontSize: '0.85rem', cursor: 'pointer' }}>
-              Booster (2 500F)
+          {/* Boost Reel Vidéo 1500 FCFA / 1 Semaine */}
+          <div style={{ background: 'linear-gradient(135deg, #09090B 0%, #172554 40%, #BE123C 100%)', color: 'white', borderRadius: '16px', padding: '16px', border: '1.5px solid rgba(244, 63, 94, 0.5)', flex: '1 1 200px', maxWidth: '240px', textAlign: 'center', boxShadow: '0 4px 15px rgba(190, 18, 60, 0.25)' }}>
+            <div style={{ fontSize: '0.8rem', color: '#FDA4AF', fontWeight: '800', textTransform: 'uppercase' }}>🎬 Boost Reel Vidéo</div>
+            <div style={{ fontSize: '1.6rem', fontWeight: '900', color: '#FFFFFF', margin: '4px 0' }}>1 500 FCFA</div>
+            <div style={{ fontSize: '0.8rem', color: '#CBD5E1', marginBottom: '12px' }}>🎥 1 Semaine dans le Flux Reels TikTok</div>
+            <button onClick={() => initiatePayment('boost_reel_semaine', 1500)} className="active-scale" style={{ width: '100%', padding: '8px', borderRadius: '10px', background: 'linear-gradient(135deg, #E11D48, #BE123C)', color: 'white', border: 'none', fontWeight: '800', fontSize: '0.85rem', cursor: 'pointer' }}>
+              Activer Reel (1 500F / 7j)
             </button>
           </div>
 

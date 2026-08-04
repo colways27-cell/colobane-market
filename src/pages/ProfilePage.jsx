@@ -92,6 +92,7 @@ const ProfilePage = () => {
   const [paymentPhone, setPaymentPhone] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [certPending, setCertPending] = useState(false);
+  const [profileNotifications, setProfileNotifications] = useState([]);
 
   const [formData, setFormData] = useState({
     full_name: '',
@@ -167,6 +168,139 @@ const ProfilePage = () => {
           .maybeSingle();
 
         if (certReq) setCertPending(true);
+
+        // Fetch real notifications for seller
+        const { data: payReqs } = await supabase
+          .from('payment_requests')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        const { data: certReqs } = await supabase
+          .from('certification_requests')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        const { data: buyerReqs } = await supabase
+          .from('buyer_requests')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(10);
+
+        const combinedNotifs = [];
+
+        if (payReqs) {
+          payReqs.forEach(req => {
+            let title = '';
+            let message = '';
+            let type = 'info';
+            let icon = '🔔';
+            let link = '/reels';
+            if (req.plan_type === 'boost_reel_7j') {
+              link = '/reels';
+            } else {
+              link = '/subscription';
+            }
+            
+            if (req.status === 'approved' || req.status === 'validated') {
+              title = '⚡ Boost Reel / Plan Activé !';
+              message = `Votre demande pour le ${req.plan_type === 'boost_reel_7j' ? 'Boost Reel 7 jours (1 500 F)' : 'forfait'} a été approuvée par l'admin !`;
+              type = 'success';
+              icon = '✅';
+            } else if (req.status === 'rejected') {
+              title = '❌ Demande de Boost / Plan Refusée';
+              message = `Votre transfert de ${req.amount} FCFA pour le ${req.plan_type === 'boost_reel_7j' ? 'Boost Reel' : 'forfait'} a été rejeté par l'admin. Veuillez contacter le support.`;
+              type = 'danger';
+              icon = '❌';
+            } else {
+              title = '⏳ Boost / Plan en attente';
+              message = `Votre transfert de ${req.amount} FCFA pour le ${req.plan_type === 'boost_reel_7j' ? 'Boost Reel' : 'forfait'} est en cours de vérification par l'admin.`;
+              type = 'warning';
+              icon = '⏳';
+            }
+
+            combinedNotifs.push({
+              id: `pay-${req.id}`,
+              title,
+              message,
+              type,
+              icon,
+              created_at: req.created_at,
+              link
+            });
+          });
+        }
+
+        if (certReqs) {
+          certReqs.forEach(req => {
+            let title = '';
+            let message = '';
+            let type = 'info';
+            let icon = '👑';
+            
+            if (req.status === 'approved') {
+              title = '👑 Certification Validée !';
+              message = `Félicitations ! Votre demande de certification pour la boutique "${req.boutique_name}" a été approuvée. Vous êtes désormais vendeur de confiance.`;
+              type = 'success';
+              icon = '✅';
+            } else if (req.status === 'rejected') {
+              title = '❌ Certification Refusée';
+              message = `Votre demande de certification pour la boutique "${req.boutique_name}" a été rejetée. Note admin: ${req.admin_note || 'Aucune note'}`;
+              type = 'danger';
+              icon = '❌';
+            } else {
+              title = '⏳ Certification en cours...';
+              message = `Votre demande de certification officielle pour "${req.boutique_name}" est en cours d'examen par notre équipe.`;
+              type = 'warning';
+              icon = '⏳';
+            }
+
+            combinedNotifs.push({
+              id: `cert-${req.id}`,
+              title,
+              message,
+              type,
+              icon,
+              created_at: req.created_at,
+              link: '/certification'
+            });
+          });
+        }
+
+        if (profileData && profileData.subscription_end_date) {
+          const endDate = new Date(profileData.subscription_end_date);
+          const now = new Date();
+          const diffDays = Math.ceil((endDate - now) / (1000 * 60 * 60 * 24));
+          if (diffDays > 0 && diffDays <= 3) {
+            combinedNotifs.push({
+              id: `sub-expire`,
+              title: '⏳ Expiration de Forfait',
+              message: `Votre forfait ${profileData.subscription_plan || 'Pro'} expire dans ${diffDays} jour(s). Réabonnez-vous pour garder l'illimité.`,
+              type: 'warning',
+              icon: '⏳',
+              created_at: new Date().toISOString(),
+              link: '/subscription'
+            });
+          }
+        }
+
+        if (buyerReqs) {
+          buyerReqs.forEach(req => {
+            combinedNotifs.push({
+              id: `buyer-${req.id}`,
+              title: '🙋‍♂️ Nouvelle demande Wutal Ma',
+              message: `Un acheteur recherche activement: "${req.title}" à ${req.location}. Budget: ${req.budget} F. Cliquez pour proposer vos articles.`,
+              type: 'opportunity',
+              icon: '💬',
+              created_at: req.created_at,
+              link: '/wutal-ma'
+            });
+          });
+        }
+
+        combinedNotifs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        setProfileNotifications(combinedNotifs);
 
       } catch (err) {
         console.error('Error fetching profile data:', err);
@@ -489,6 +623,51 @@ const ProfilePage = () => {
                 <button onClick={() => setEditingProfile(true)} className="btn-secondary active-scale touch-target hover-lift" style={{ width: '100%', padding: '1rem', borderRadius: '16px', border: '2px solid #E2E8F0', background: 'white', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', fontWeight: '700' }}>
                   Modifier mon profil
                 </button>
+
+                {profile?.is_admin && (
+                  <Link
+                    to="/admin"
+                    className="active-scale touch-target hover-lift"
+                    style={{
+                      width: '100%',
+                      padding: '1rem',
+                      borderRadius: '16px',
+                      background: 'linear-gradient(135deg, #8A1C1C 0%, #BE123C 100%)',
+                      color: 'white',
+                      textDecoration: 'none',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      gap: '8px',
+                      fontWeight: '800',
+                      boxShadow: '0 4px 15px rgba(138, 28, 28, 0.25)'
+                    }}
+                  >
+                    🛡️ Accéder au Back-Office Admin
+                  </Link>
+                )}
+
+                <Link 
+                  to="/publish?mode=reel" 
+                  className="active-scale touch-target hover-lift" 
+                  style={{ 
+                    width: '100%', 
+                    padding: '1rem', 
+                    borderRadius: '16px', 
+                    background: 'linear-gradient(135deg, #09090B 0%, #172554 40%, #BE123C 100%)', 
+                    color: 'white', 
+                    textDecoration: 'none', 
+                    display: 'flex', 
+                    justifyContent: 'center', 
+                    alignItems: 'center', 
+                    gap: '8px', 
+                    fontWeight: '800',
+                    border: '1px solid rgba(244, 63, 94, 0.5)',
+                    boxShadow: '0 4px 15px rgba(190, 18, 60, 0.25)'
+                  }}
+                >
+                  🎬 Publier un Reel Vidéo
+                </Link>
                 {profile?.account_type === 'boutique' ? (
                   <>
                     <Link to={`/boutique/${profile.id}`} className="active-scale touch-target hover-lift" style={{ width: '100%', padding: '1rem', borderRadius: '16px', background: 'var(--primary-gradient)', color: 'white', textDecoration: 'none', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', fontWeight: '800' }}>
@@ -609,6 +788,12 @@ const ProfilePage = () => {
               📦 Mes Annonces <span style={{ background: activeTab === 'annonces' ? 'var(--primary-light)' : '#f1f5f9', color: activeTab === 'annonces' ? 'var(--primary)' : '#64748b', padding: '2px 10px', borderRadius: '12px', fontSize: '0.9rem', marginLeft: '8px' }}>{myProducts.length}</span>
             </button>
             <button 
+              onClick={() => setActiveTab('reels')} 
+              style={{ background: 'none', border: 'none', padding: '0 0 16px 0', fontSize: '1.15rem', fontWeight: activeTab === 'reels' ? '800' : '600', color: activeTab === 'reels' ? '#E11D48' : 'var(--text-muted)', borderBottom: activeTab === 'reels' ? '3px solid #E11D48' : '3px solid transparent', marginBottom: '-2px', cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.3s' }}
+            >
+              🎬 Mes Reels & Analytics
+            </button>
+            <button 
               onClick={() => setActiveTab('stats')} 
               style={{ background: 'none', border: 'none', padding: '0 0 16px 0', fontSize: '1.15rem', fontWeight: activeTab === 'stats' ? '800' : '600', color: activeTab === 'stats' ? 'var(--primary)' : 'var(--text-muted)', borderBottom: activeTab === 'stats' ? '3px solid var(--primary)' : '3px solid transparent', marginBottom: '-2px', cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.3s' }}
             >
@@ -724,6 +909,93 @@ const ProfilePage = () => {
               </div>
             )}
 
+            {/* ── REELS & ANALYTICS VENDEUR ────────────────────────────────────── */}
+            {activeTab === 'reels' && (() => {
+              const sellerReels = myProducts.filter(p => p.metadata?.video_url || p.video_url);
+              const totalReelViews = sellerReels.reduce((sum, r) => sum + (r.views_count || 0), 0);
+              const plan = profile?.subscription_plan || 'free';
+              const isVip = plan === 'premium' || profile?.account_type === 'vip';
+              const isPro = plan === 'basique' || profile?.account_type === 'pro' || profile?.account_type === 'boutique';
+              const reelsThisMonth = sellerReels.length;
+
+              return (
+                <div className="animate-fade-in">
+                  {/* Overview Cards */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+                    <div style={{ background: 'linear-gradient(135deg, #09090B 0%, #172554 100%)', color: 'white', padding: '20px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
+                      <div style={{ fontSize: '12px', color: '#93C5FD', fontWeight: '700' }}>TOTAL REELS PUBLIÉS</div>
+                      <div style={{ fontSize: '28px', fontWeight: '900', marginTop: '4px' }}>🎬 {sellerReels.length}</div>
+                    </div>
+
+                    <div style={{ background: 'linear-gradient(135deg, #059669 0%, #10B981 100%)', color: 'white', padding: '20px', borderRadius: '20px', boxShadow: '0 4px 15px rgba(16,185,129,0.2)' }}>
+                      <div style={{ fontSize: '12px', color: '#A7F3D0', fontWeight: '700' }}>CUMUL DES VUES REELS</div>
+                      <div style={{ fontSize: '28px', fontWeight: '900', marginTop: '4px' }}>👁️ {totalReelViews.toLocaleString()}</div>
+                    </div>
+
+                    <div style={{ background: 'linear-gradient(135deg, #BE123C 0%, #E11D48 100%)', color: 'white', padding: '20px', borderRadius: '20px', boxShadow: '0 4px 15px rgba(225,29,72,0.2)' }}>
+                      <div style={{ fontSize: '12px', color: '#FECDD3', fontWeight: '700' }}>FORFAIT REELS</div>
+                      <div style={{ fontSize: '18px', fontWeight: '900', marginTop: '4px' }}>
+                        {isVip ? '👑 VIP (Illimité)' : isPro ? `🔥 Pro (${reelsThisMonth}/3 ce mois)` : '⚡ Pay-Per-Reel (1 500F)'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Reel List Header */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>
+                      Vos Vidéos Reels en Ligne ({sellerReels.length})
+                    </h3>
+                    <Link to="/reels" style={{ background: 'linear-gradient(135deg, #E11D48, #BE123C)', color: '#FFF', padding: '8px 16px', borderRadius: '12px', textDecoration: 'none', fontWeight: 800, fontSize: '13px' }}>
+                      ➕ NOUVEAU REEL
+                    </Link>
+                  </div>
+
+                  {sellerReels.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '40px', background: '#F8FAFC', borderRadius: '20px', border: '2px dashed #CBD5E1' }}>
+                      <div style={{ fontSize: '36px', marginBottom: '8px' }}>🎬</div>
+                      <h4 style={{ margin: 0, fontWeight: 800, fontSize: '16px' }}>Aucun Reel publié pour le moment</h4>
+                      <p style={{ color: '#64748B', fontSize: '13px', margin: '4px 0 16px 0' }}>Postez des vidéos courtes pour captiver les acheteurs et booster vos ventes !</p>
+                      <Link to="/reels" style={{ background: '#E11D48', color: '#FFF', padding: '10px 20px', borderRadius: '12px', textDecoration: 'none', fontWeight: 800, display: 'inline-block' }}>
+                        ➕ Publier mon premier Reel Express
+                      </Link>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '20px' }}>
+                      {sellerReels.map(reel => (
+                        <div key={reel.id} style={{ background: 'white', borderRadius: '20px', overflow: 'hidden', border: '1px solid #E2E8F0', boxShadow: '0 4px 14px rgba(0,0,0,0.05)' }}>
+                          <div style={{ position: 'relative', height: '180px', background: '#09090B' }}>
+                            <video src={reel.metadata?.video_url || reel.video_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <div style={{ position: 'absolute', top: '10px', right: '10px', background: 'rgba(0,0,0,0.75)', color: 'white', padding: '4px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 800, backdropFilter: 'blur(4px)' }}>
+                              👁️ {reel.views_count || 0} vues
+                            </div>
+                            <div style={{ position: 'absolute', bottom: '10px', left: '10px', background: 'rgba(16, 185, 129, 0.9)', color: 'white', padding: '3px 8px', borderRadius: '8px', fontSize: '10px', fontWeight: 800 }}>
+                              ● REEL ACTIF
+                            </div>
+                          </div>
+                          <div style={{ padding: '16px' }}>
+                            <h4 style={{ margin: '0 0 6px 0', fontSize: '14px', fontWeight: 800, color: '#1E293B', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                              {reel.title}
+                            </h4>
+                            <div style={{ color: '#10B981', fontWeight: 900, fontSize: '16px', marginBottom: '12px' }}>
+                              {reel.price ? `${Number(reel.price).toLocaleString()} FCFA` : 'Sur demande'}
+                            </div>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                              <Link to={`/product/${reel.id}`} style={{ flex: 1, textAlign: 'center', background: '#F1F5F9', color: '#334155', padding: '8px', borderRadius: '10px', textDecoration: 'none', fontWeight: 700, fontSize: '12px' }}>
+                                Voir le Reel
+                              </Link>
+                              <button onClick={() => handleDeleteProduct(reel.id)} style={{ background: '#FEE2E2', color: '#EF4444', border: 'none', padding: '8px 12px', borderRadius: '10px', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}>
+                                Supprimer
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
             {/* ── STATISTIQUES VENDEUR ────────────────────────────────────────── */}
             {activeTab === 'stats' && (
               <div className="glass-panel animate-fade-in-up stagger-2" style={{ background: 'white', borderRadius: '24px', padding: '2rem', border: '1px solid #E2E8F0', boxShadow: '0 8px 24px rgba(0,0,0,0.03)' }}>
@@ -805,20 +1077,80 @@ const ProfilePage = () => {
                 </div>
 
                 {(() => {
-                  const notifs = JSON.parse(localStorage.getItem(`colobane_notifs_${user?.id}`) || '[]');
-                  const defaultNotifs = [
-                    { id: 'n1', title: '💬 Nouveau prospect WhatsApp', message: 'Un client s\'intéresse à l\'un de vos produits publiés !', created_at: '2026-08-01T12:00:00.000Z' },
-                    { id: 'n2', title: '🙋‍♂️ Nouvelle demande Wutal Ma', message: 'Des acheteurs recherchent activement des articles dans votre ville.', created_at: '2026-08-01T10:00:00.000Z' },
-                    { id: 'n3', title: '👑 Statut Certification', message: 'Votre compte est éligible au Badge Officiel Vendeur de Confiance.', created_at: '2026-07-31T12:00:00.000Z' }
-                  ];
-                  const displayNotifs = notifs.length > 0 ? notifs : defaultNotifs;
+                  const localNotifs = JSON.parse(localStorage.getItem(`colobane_notifs_${user?.id}`) || '[]');
+                  const allNotifsMap = new Map();
+                  
+                  localNotifs.forEach(n => {
+                    allNotifsMap.set(n.id, {
+                      id: n.id,
+                      title: n.title,
+                      message: n.message,
+                      type: n.type || 'info',
+                      icon: n.icon || '🔔',
+                      created_at: n.created_at || n.date || new Date().toISOString(),
+                      link: n.link || '#'
+                    });
+                  });
+
+                  profileNotifications.forEach(n => {
+                    allNotifsMap.set(n.id, n);
+                  });
+
+                  const displayNotifs = Array.from(allNotifsMap.values());
+                  displayNotifs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+                  if (displayNotifs.length === 0) {
+                    return (
+                      <div style={{ textAlign: 'center', padding: '40px 10px', color: '#64748B', fontSize: '14px', background: '#F8FAFC', borderRadius: '16px', border: '1px dashed #CBD5E1' }}>
+                        Aucune notification pour le moment.
+                      </div>
+                    );
+                  }
 
                   return (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                       {displayNotifs.map(n => (
-                        <div key={n.id} style={{ background: '#F8FAFC', padding: '16px 20px', borderRadius: '16px', border: '1px solid #E2E8F0', display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
-                          <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: '#FEF3C7', color: '#D97706', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', flexShrink: 0 }}>
-                            🔔
+                        <div 
+                          key={n.id} 
+                          onClick={() => n.link && n.link !== '#' && navigate(n.link)}
+                          style={{ 
+                            background: n.type === 'success' ? '#F0FDF4' : 
+                                        n.type === 'warning' ? '#FFFBEB' :
+                                        n.type === 'danger' ? '#FEF2F2' :
+                                        n.type === 'opportunity' ? '#EEF2FF' : '#F8FAFC', 
+                            padding: '16px 20px', 
+                            borderRadius: '16px', 
+                            border: n.type === 'success' ? '1px solid #DCFCE7' : 
+                                    n.type === 'warning' ? '1px solid #FDE68A' :
+                                    n.type === 'danger' ? '1px solid #FCA5A5' :
+                                    n.type === 'opportunity' ? '1px solid #C7D2FE' : '1px solid #E2E8F0', 
+                            display: 'flex', 
+                            gap: '14px', 
+                            alignItems: 'flex-start',
+                            cursor: n.link && n.link !== '#' ? 'pointer' : 'default',
+                            transition: 'all 0.2s',
+                          }}
+                          className={n.link && n.link !== '#' ? "active-scale hover-lift" : ""}
+                        >
+                          <div style={{ 
+                            width: '38px', 
+                            height: '38px', 
+                            borderRadius: '50%', 
+                            background: n.type === 'success' ? '#DCFCE7' : 
+                                        n.type === 'warning' ? '#FEF3C7' :
+                                        n.type === 'danger' ? '#FEE2E2' :
+                                        n.type === 'opportunity' ? '#E0E7FF' : '#F1F5F9', 
+                            color: n.type === 'success' ? '#166534' : 
+                                   n.type === 'warning' ? '#92400E' :
+                                   n.type === 'danger' ? '#991B1B' :
+                                   n.type === 'opportunity' ? '#3730A3' : '#475569', 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center', 
+                            fontSize: '1.2rem', 
+                            flexShrink: 0 
+                          }}>
+                            {n.icon || '🔔'}
                           </div>
                           <div style={{ flex: 1 }}>
                             <div style={{ fontWeight: '800', fontSize: '1.02rem', color: '#0F172A', marginBottom: '4px' }}>{n.title}</div>

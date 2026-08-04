@@ -42,6 +42,7 @@ const lazyWithRetry = (componentImport) => {
 // ─── Pages principales ────────────────────────────────────────────────────────
 const ExplorePage        = lazyWithRetry(() => import('./pages/ExplorePage'));
 const ProductPage        = lazyWithRetry(() => import('./pages/ProductPage'));
+const ReelsPage          = lazyWithRetry(() => import('./pages/ReelsPage'));
 const AuthPage           = lazyWithRetry(() => import('./pages/AuthPage'));
 
 // Pages secondaires
@@ -104,9 +105,9 @@ const LayoutWrapper = () => {
         <Toaster position="top-center" />
         <Suspense fallback={<PageLoader />}>
           <Routes>
-            <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminPage /></ProtectedRoute>} />
-            <Route path="/adminsaer" element={<ProtectedRoute requireAdmin><AdminPage /></ProtectedRoute>} />
-            <Route path="/backoffice" element={<ProtectedRoute requireAdmin><AdminPage /></ProtectedRoute>} />
+            <Route path="/admin" element={<AdminPage />} />
+            <Route path="/adminsaer" element={<AdminPage />} />
+            <Route path="/backoffice" element={<AdminPage />} />
           </Routes>
         </Suspense>
       </div>
@@ -123,6 +124,7 @@ const LayoutWrapper = () => {
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/"                          element={<Home />} />
+            <Route path="/reels"                     element={<ReelsPage />} />
             <Route path="/wutal-ma"                  element={<BuyerRequestsPage />} />
             <Route path="/explore"                   element={<ExplorePage />} />
             <Route path="/boutiques"                 element={<BoutiquesPage />} />

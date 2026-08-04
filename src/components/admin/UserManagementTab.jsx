@@ -1,11 +1,20 @@
 import React, { useState } from 'react';
 
+const calculateTrustScore = (u) => {
+  let score = 50;
+  if (u.is_verified) score += 30;
+  if (u.account_type === 'boutique') score += 10;
+  if (u.subscription_plan && u.subscription_plan !== 'none' && u.subscription_plan !== 'gratuit') score += 10;
+  return Math.min(100, Math.max(0, score));
+};
+
 const UserManagementTab = ({
   utilisateurs = [],
   onUpdateUserPlan,
   updatingUser
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [filterAccountType, setFilterAccountType] = useState('all');
   const [editingUser, setEditingUser] = useState(null);
   const [editPlan, setEditPlan] = useState('none');
   const [editAccountType, setEditAccountType] = useState('particulier');
@@ -13,13 +22,18 @@ const UserManagementTab = ({
 
   const filteredUsers = utilisateurs.filter(u => {
     const query = searchQuery.toLowerCase().trim();
-    if (!query) return true;
-    return (
+    const matchSearch = !query ||
       u.full_name?.toLowerCase().includes(query) ||
       u.phone_number?.includes(query) ||
       u.whatsapp_number?.includes(query) ||
-      u.boutique_name?.toLowerCase().includes(query)
-    );
+      u.boutique_name?.toLowerCase().includes(query);
+
+    const matchType = filterAccountType === 'all' ||
+      (filterAccountType === 'boutique' && u.account_type === 'boutique') ||
+      (filterAccountType === 'verified' && u.is_verified) ||
+      (filterAccountType === 'particulier' && u.account_type !== 'boutique');
+
+    return matchSearch && matchType;
   });
 
   const openEditModal = (user) => {
@@ -42,28 +56,39 @@ const UserManagementTab = ({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      {/* Search */}
-      <div style={{ display: 'flex', gap: '12px' }}>
+      {/* Filters */}
+      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
         <input
           type="text"
           placeholder="Rechercher un utilisateur (Nom, Téléphone, Boutique...)"
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
-          style={{ flex: 1, padding: '12px 16px', borderRadius: '12px', border: '1px solid #CBD5E1' }}
+          style={{ flex: 1, minWidth: '240px', padding: '12px 16px', borderRadius: '12px', border: '1px solid #CBD5E1' }}
         />
+
+        <select
+          value={filterAccountType}
+          onChange={e => setFilterAccountType(e.target.value)}
+          style={{ padding: '12px 16px', borderRadius: '12px', border: '1px solid #CBD5E1', background: 'white' }}
+        >
+          <option value="all">Tous les utilisateurs ({utilisateurs.length})</option>
+          <option value="boutique">Boutiques PRO uniquement</option>
+          <option value="verified">Vendeurs Certifiés 👑</option>
+          <option value="particulier">Particuliers</option>
+        </select>
       </div>
 
       {/* Users Table */}
-      <div style={{ background: 'white', borderRadius: '16px', overflow: 'hidden', border: '1px solid #E2E8F0' }}>
+      <div style={{ background: 'white', borderRadius: '16px', overflow: 'hidden', border: '1px solid #E2E8F0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
           <thead style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0', color: '#64748B' }}>
             <tr>
               <th style={thStyle}>Utilisateur</th>
               <th style={thStyle}>Contact</th>
               <th style={thStyle}>Type Compte</th>
+              <th style={thStyle}>Trust Index</th>
               <th style={thStyle}>Forfait Actif</th>
-              <th style={thStyle}>Certifié</th>
-              <th style={thStyle}>Date d'inscription</th>
+              <th style={thStyle}>Inscription</th>
               <th style={thStyle}>Actions</th>
             </tr>
           </thead>
@@ -75,41 +100,87 @@ const UserManagementTab = ({
                 </td>
               </tr>
             ) : (
-              filteredUsers.map((u) => (
-                <tr key={u.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
-                  <td style={tdStyle}>
-                    <strong>{u.full_name || 'Anonyme'}</strong>
-                    {u.boutique_name && (
-                      <div style={{ fontSize: '0.75rem', color: '#64748B' }}>🏪 {u.boutique_name}</div>
-                    )}
-                  </td>
-                  <td style={tdStyle}>
-                    <div>{u.phone_number || u.whatsapp_number || 'N/A'}</div>
-                  </td>
-                  <td style={tdStyle}>
-                    <span style={accountBadgeStyle(u.account_type)}>
-                      {u.account_type === 'boutique' ? '🏪 PRO' : '👤 Particulier'}
-                    </span>
-                  </td>
-                  <td style={tdStyle}>
-                    <strong>{u.subscription_plan || 'Gratuit'}</strong>
-                  </td>
-                  <td style={tdStyle}>
-                    {u.is_verified ? '👑 Oui' : 'Non'}
-                  </td>
-                  <td style={tdStyle}>
-                    {new Date(u.created_at).toLocaleDateString('fr-FR')}
-                  </td>
-                  <td style={tdStyle}>
-                    <button
-                      onClick={() => openEditModal(u)}
-                      style={{ padding: '6px 12px', background: '#F1F5F9', border: '1px solid #CBD5E1', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}
-                    >
-                      ✏️ Éditer
-                    </button>
-                  </td>
-                </tr>
-              ))
+              filteredUsers.map((u) => {
+                const trustScore = calculateTrustScore(u);
+                const rawPhone = u.whatsapp_number || u.phone_number || '';
+                const cleanPhone = rawPhone.replace(/\D/g, '');
+                const waPhone = cleanPhone.length === 9 ? `221${cleanPhone}` : cleanPhone;
+                const waMsg = encodeURIComponent(`Bonjour ${u.full_name || 'Utilisateur'} ! Équipe Colobane Market.`);
+                const waUrl = waPhone ? `https://wa.me/${waPhone}?text=${waMsg}` : null;
+
+                return (
+                  <tr key={u.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                    <td style={tdStyle}>
+                      <strong>{u.full_name || 'Anonyme'}</strong>
+                      {u.boutique_name && (
+                        <div style={{ fontSize: '0.75rem', color: '#64748B' }}>🏪 {u.boutique_name}</div>
+                      )}
+                    </td>
+                    <td style={tdStyle}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span>{rawPhone || 'N/A'}</span>
+                      </div>
+                    </td>
+                    <td style={tdStyle}>
+                      <span style={accountBadgeStyle(u.account_type)}>
+                        {u.account_type === 'boutique' ? '🏪 PRO' : '👤 Particulier'}
+                      </span>
+                    </td>
+                    <td style={tdStyle}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{
+                          fontWeight: '800',
+                          fontSize: '0.85rem',
+                          color: trustScore >= 80 ? '#15803D' : trustScore >= 50 ? '#D97706' : '#B91C1C'
+                        }}>
+                          {trustScore}%
+                        </span>
+                        <div style={{ width: '50px', height: '6px', background: '#F1F5F9', borderRadius: '3px', overflow: 'hidden' }}>
+                          <div style={{
+                            width: `${trustScore}%`,
+                            height: '100%',
+                            background: trustScore >= 80 ? '#16A34A' : trustScore >= 50 ? '#F59E0B' : '#DC2626'
+                          }} />
+                        </div>
+                      </div>
+                    </td>
+                    <td style={tdStyle}>
+                      <strong>{u.subscription_plan || 'Gratuit'}</strong>
+                    </td>
+                    <td style={tdStyle}>
+                      {new Date(u.created_at).toLocaleDateString('fr-FR')}
+                    </td>
+                    <td style={tdStyle}>
+                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                        <button
+                          onClick={() => openEditModal(u)}
+                          style={{ padding: '6px 12px', background: '#F1F5F9', border: '1px solid #CBD5E1', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', fontSize: '12px' }}
+                        >
+                          ✏️ Modifier Plan
+                        </button>
+                        {waUrl && (
+                          <a
+                            href={waUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            style={{
+                              padding: '6px 10px',
+                              background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
+                              color: 'white',
+                              borderRadius: '8px',
+                              fontWeight: 800,
+                              fontSize: '11px',
+                              textDecoration: 'none'
+                            }}
+                          >
+                            💬 Contact
+                          </a>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
@@ -119,66 +190,67 @@ const UserManagementTab = ({
       {editingUser && (
         <div style={modalOverlayStyle}>
           <div style={modalContentStyle}>
-            <h3 style={{ fontSize: '1.2rem', fontWeight: '800', marginBottom: '16px' }}>
-              Modifier {editingUser.full_name}
+            <h3 style={{ marginTop: 0, fontSize: '1.2rem', fontWeight: 800 }}>
+              Éditer le profil : {editingUser.full_name || 'Utilisateur'}
             </h3>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', margin: '20px 0' }}>
               <div>
-                <label style={labelStyle}>Forfait Abonnement :</label>
+                <label style={labelFormStyle}>Type de Compte</label>
+                <select
+                  value={editAccountType}
+                  onChange={e => setEditAccountType(e.target.value)}
+                  style={inputFormStyle}
+                >
+                  <option value="particulier">Particulier</option>
+                  <option value="boutique">Boutique PRO</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={labelFormStyle}>Plan d'Abonnement</label>
                 <select
                   value={editPlan}
                   onChange={e => setEditPlan(e.target.value)}
-                  style={selectStyle}
+                  style={inputFormStyle}
                 >
-                  <option value="none">Aucun (Gratuit)</option>
+                  <option value="none">Gratuit / Aucun</option>
                   <option value="pass_semaine">Pass Semaine (7j)</option>
-                  <option value="pass_15jours">Pass 15 Jours (15j)</option>
+                  <option value="pass_15jours">Pass 15 Jours</option>
                   <option value="basique">Forfait Basique (30j)</option>
                   <option value="premium">Forfait Premium (30j)</option>
                   <option value="boutique">Forfait Boutique (30j)</option>
                 </select>
               </div>
 
-              <div>
-                <label style={labelStyle}>Type de Compte :</label>
-                <select
-                  value={editAccountType}
-                  onChange={e => setEditAccountType(e.target.value)}
-                  style={selectStyle}
-                >
-                  <option value="particulier">Particulier</option>
-                  <option value="boutique">Boutique Pro</option>
-                </select>
-              </div>
-
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <input
                   type="checkbox"
-                  id="certCheck"
+                  id="isVerified"
                   checked={editIsVerified}
                   onChange={e => setEditIsVerified(e.target.checked)}
+                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
                 />
-                <label htmlFor="certCheck" style={{ cursor: 'pointer', fontWeight: '600' }}>
-                  Compte Certifié (Badge Vendeur de Confiance)
+                <label htmlFor="isVerified" style={{ fontWeight: 700, cursor: 'pointer', fontSize: '0.9rem' }}>
+                  👑 Badge Vendeur Certifié Officiel
                 </label>
               </div>
+            </div>
 
-              <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
-                <button
-                  onClick={handleSave}
-                  disabled={updatingUser}
-                  style={{ flex: 1, padding: '10px', background: 'var(--primary, #8a1c1c)', color: 'white', border: 'none', borderRadius: '10px', fontWeight: '700', cursor: 'pointer' }}
-                >
-                  {updatingUser ? 'Enregistrement...' : 'Sauvegarder'}
-                </button>
-                <button
-                  onClick={() => setEditingUser(null)}
-                  style={{ padding: '10px 16px', background: '#E2E8F0', border: 'none', borderRadius: '10px', fontWeight: '700', cursor: 'pointer' }}
-                >
-                  Annuler
-                </button>
-              </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <button
+                onClick={() => setEditingUser(null)}
+                style={{ padding: '8px 16px', background: '#F1F5F9', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={updatingUser}
+                style={{ padding: '8px 16px', background: 'var(--primary, #8a1c1c)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}
+              >
+                {updatingUser ? 'Mise à jour...' : 'Sauvegarder'}
+              </button>
             </div>
           </div>
         </div>
@@ -189,34 +261,40 @@ const UserManagementTab = ({
 
 const thStyle = { padding: '14px 16px', fontWeight: '700', fontSize: '0.8rem', textTransform: 'uppercase' };
 const tdStyle = { padding: '14px 16px', verticalAlign: 'middle' };
-const labelStyle = { fontSize: '0.85rem', fontWeight: '700', display: 'block', marginBottom: '4px' };
-const selectStyle = { width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #CBD5E1' };
+
+const accountBadgeStyle = (type) => ({
+  padding: '4px 10px',
+  borderRadius: '20px',
+  fontSize: '0.75rem',
+  fontWeight: '700',
+  background: type === 'boutique' ? '#EFF6FF' : '#F1F5F9',
+  color: type === 'boutique' ? '#1D4ED8' : '#475569'
+});
 
 const modalOverlayStyle = {
   position: 'fixed',
-  top: 0, left: 0, right: 0, bottom: 0,
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
   background: 'rgba(0,0,0,0.5)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  zIndex: 1000
+  zIndex: 2000,
+  padding: '20px'
 };
 
 const modalContentStyle = {
   background: 'white',
-  padding: '24px',
   borderRadius: '16px',
+  padding: '24px',
+  maxWidth: '460px',
   width: '100%',
-  maxWidth: '440px'
+  boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
 };
 
-const accountBadgeStyle = (type) => ({
-  padding: '4px 8px',
-  borderRadius: '6px',
-  fontSize: '0.75rem',
-  fontWeight: '700',
-  background: type === 'boutique' ? '#FEF3C7' : '#F1F5F9',
-  color: type === 'boutique' ? '#D97706' : '#475569'
-});
+const labelFormStyle = { display: 'block', fontSize: '0.85rem', fontWeight: '700', color: '#475569', marginBottom: '6px' };
+const inputFormStyle = { width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.9rem' };
 
 export default UserManagementTab;

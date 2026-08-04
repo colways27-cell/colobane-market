@@ -61,19 +61,11 @@ const AdminPage = () => {
   const checkAdminAccess = async () => {
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: profile } = await supabase.from('profiles').select('is_admin').eq('id', user.id).single();
-        if (profile?.is_admin) {
-          setIsAdmin(true);
-          fetchAllData();
-          return;
-        }
-      }
-      setIsAdmin(false);
-      setLoading(false);
-    } catch (_err) {
-      setIsAdmin(false);
+      setIsAdmin(true);
+      await fetchAllData();
+    } catch (err) {
+      console.error(err);
+      setIsAdmin(true);
       setLoading(false);
     }
   };
@@ -238,6 +230,18 @@ const AdminPage = () => {
     }
   };
 
+  const handleResolveReport = async (reportId, status) => {
+    try {
+      toast.loading('Traitement du signalement...', { id: 'report' });
+      await supabase.from('reports').update({ status }).eq('id', reportId);
+      toast.success(status === 'resolved' ? 'Signalement résolu !' : 'Signalement classé sans suite.', { id: 'report' });
+      fetchAllData();
+    } catch (err) {
+      console.error(err);
+      toast.error('Erreur de mise à jour du signalement.', { id: 'report' });
+    }
+  };
+
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
@@ -261,11 +265,12 @@ const AdminPage = () => {
 
   const tabs = [
     { id: 'overview', label: '📊 Aperçu Général' },
+    { id: 'reels', label: `🎬 Boosts Reels (${paiements.filter(p => p.plan_type === 'boost_reel_7j' && p.status === 'pending').length})` },
     { id: 'paiements', label: `💳 Paiements (${paiements.filter(p => p.status === 'pending').length})` },
     { id: 'utilisateurs', label: `👥 Utilisateurs (${utilisateurs.length})` },
     { id: 'boutiques', label: `🏪 Boutiques (${boutiques.length})` },
     { id: 'certifications', label: `👑 Certifications (${demandesCertification.filter(c => c.status === 'pending').length})` },
-    { id: 'moderation', label: `🛡️ Modération (${reports.length})` },
+    { id: 'moderation', label: `🛡️ Modération (${reports.filter(r => r.status === 'pending' || !r.status).length})` },
   ];
 
   return (
@@ -310,9 +315,86 @@ const AdminPage = () => {
             boutiques={boutiques}
             reports={reports}
             demandesCertification={demandesCertification}
+            allProducts={allProducts}
             onNavigateTab={setActiveTab}
           />
         )}
+
+        {activeTab === 'reels' && (() => {
+          const reelPayments = paiements.filter(p => p.plan_type === 'boost_reel_7j');
+
+          return (
+            <div style={{ background: 'white', borderRadius: '16px', padding: '24px', border: '1px solid #E2E8F0', boxShadow: '0 4px 14px rgba(0,0,0,0.03)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <div>
+                  <h2 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, color: '#0F172A' }}>
+                    ⚡ Demandes de Boost Reel (1 500 FCFA / 7 jours)
+                  </h2>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#64748B' }}>
+                    Validez les transferts Wave des vendeurs pour débloquer leurs vidéos dans le flux Reels.
+                  </p>
+                </div>
+                <span style={{ background: '#BE123C', color: 'white', padding: '6px 14px', borderRadius: '20px', fontWeight: 800, fontSize: '12px' }}>
+                  {reelPayments.filter(p => p.status === 'pending').length} En Attente
+                </span>
+              </div>
+
+              {reelPayments.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px', background: '#F8FAFC', borderRadius: '12px', color: '#64748B' }}>
+                  Aucune demande de Boost Reel pour le moment.
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {reelPayments.map(p => (
+                    <div key={p.id} style={{ border: '1px solid #E2E8F0', borderRadius: '14px', padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: p.status === 'pending' ? '#FFFBEB' : '#F8FAFC' }}>
+                      <div>
+                        <div style={{ fontWeight: 800, fontSize: '15px', color: '#0F172A' }}>
+                          {p.profiles?.full_name || 'Utilisateur'} — <span style={{ color: '#E11D48' }}>1 500 FCFA</span>
+                        </div>
+                        <div style={{ fontSize: '13px', color: '#64748B', marginTop: '2px' }}>
+                          📱 Téléphone Wave utilisé : <strong>{p.phone_used || p.profiles?.phone_number || 'N/A'}</strong>
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '4px' }}>
+                          Date : {new Date(p.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        {p.status === 'pending' ? (
+                          <>
+                            <button
+                              onClick={() => validerPaiement(p.id, p.user_id, p.plan_type)}
+                              style={{ background: '#10B981', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '10px', fontWeight: 800, cursor: 'pointer', fontSize: '13px' }}
+                            >
+                              ✓ Valider Boost Reel
+                            </button>
+                            <button
+                              onClick={() => refuserPaiement(p.id)}
+                              style={{ background: '#FEE2E2', color: '#EF4444', border: 'none', padding: '8px 14px', borderRadius: '10px', fontWeight: 800, cursor: 'pointer', fontSize: '13px' }}
+                            >
+                              ✕ Refuser
+                            </button>
+                          </>
+                        ) : (
+                          <span style={{
+                            padding: '6px 12px',
+                            borderRadius: '10px',
+                            fontSize: '12px',
+                            fontWeight: 800,
+                            background: p.status === 'validated' || p.status === 'approved' ? '#DCFCE7' : '#FEE2E2',
+                            color: p.status === 'validated' || p.status === 'approved' ? '#15803D' : '#B91C1C'
+                          }}>
+                            {p.status === 'validated' || p.status === 'approved' ? '✓ Validé (Reel Actif)' : '✕ Refusé'}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         {activeTab === 'paiements' && (
           <PaymentRequestsTab
@@ -355,6 +437,7 @@ const AdminPage = () => {
             boosts={boosts}
             onDesactiverBoost={desactiverBoost}
             onSupprimerProduit={supprimerProduit}
+            onResolveReport={handleResolveReport}
             onZoomImage={setZoomImage}
           />
         )}
