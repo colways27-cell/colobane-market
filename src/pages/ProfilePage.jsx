@@ -11,6 +11,7 @@ import {
   getNotificationPermissionState 
 } from '../utils/pushNotifications';
 import { openWavePayment } from '../config/paymentConfig';
+import VendorAnalyticsDashboard from '../components/vendor/VendorAnalyticsDashboard';
 
 const locations = ['Dakar', 'Pikine', 'Guédiawaye', 'Rufisque', 'Thiès', 'Saint-Louis', 'Touba', 'Kaolack', 'Ziguinchor', 'Mbour', 'Louga', 'Tambacounda', 'Autre'];
 
@@ -976,49 +977,7 @@ const ProfilePage = () => {
 
             {/* ── STATISTIQUES VENDEUR ────────────────────────────────────────── */}
             {activeTab === 'stats' && (
-              <div className="glass-panel animate-fade-in-up stagger-2" style={{ background: 'white', borderRadius: '24px', padding: '2rem', border: '1px solid #E2E8F0', boxShadow: '0 8px 24px rgba(0,0,0,0.03)' }}>
-                <h3 style={{ fontSize: '1.4rem', fontWeight: '900', marginBottom: '1.5rem', fontFamily: 'var(--font-heading)', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  📊 Statistiques & Performances de votre Boutique
-                </h3>
-
-                {/* KPI Cards Grid */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '2rem' }}>
-                  <div style={{ background: '#F8FAFC', padding: '18px', borderRadius: '16px', border: '1px solid #E2E8F0' }}>
-                    <div style={{ fontSize: '0.85rem', color: '#64748B', fontWeight: '700', marginBottom: '6px' }}>👁️ Total Vues Annonces</div>
-                    <div style={{ fontSize: '1.8rem', fontWeight: '900', color: '#0F172A' }}>
-                      {JSON.parse(localStorage.getItem(`colobane_stats_${user?.id}`) || '{}').views || (myProducts.length * 9 + 14)}
-                    </div>
-                  </div>
-                  <div style={{ background: '#F0FDF4', padding: '18px', borderRadius: '16px', border: '1px solid #BBF7D0' }}>
-                    <div style={{ fontSize: '0.85rem', color: '#166534', fontWeight: '700', marginBottom: '6px' }}>💬 Contacts WhatsApp</div>
-                    <div style={{ fontSize: '1.8rem', fontWeight: '900', color: '#15803D' }}>
-                      {JSON.parse(localStorage.getItem(`colobane_stats_${user?.id}`) || '{}').whatsapp || 5} clics
-                    </div>
-                  </div>
-                  <div style={{ background: '#EFF6FF', padding: '18px', borderRadius: '16px', border: '1px solid #BFDBFE' }}>
-                    <div style={{ fontSize: '0.85rem', color: '#1E40AF', fontWeight: '700', marginBottom: '6px' }}>📞 Appels Téléphoniques</div>
-                    <div style={{ fontSize: '1.8rem', fontWeight: '900', color: '#1D4ED8' }}>
-                      {JSON.parse(localStorage.getItem(`colobane_stats_${user?.id}`) || '{}').calls || 2} appels
-                    </div>
-                  </div>
-                  <div style={{ background: '#FEF3C7', padding: '18px', borderRadius: '16px', border: '1px solid #FDE68A' }}>
-                    <div style={{ fontSize: '0.85rem', color: '#B45309', fontWeight: '700', marginBottom: '6px' }}>⭐️ Score Réputation</div>
-                    <div style={{ fontSize: '1.8rem', fontWeight: '900', color: '#D97706' }}>4.9 / 5</div>
-                  </div>
-                </div>
-
-                {/* Growth Tips */}
-                <div style={{ background: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)', borderRadius: '20px', padding: '20px', border: '1.5px solid #FDE68A' }}>
-                  <h4 style={{ margin: '0 0 10px 0', color: '#92400E', fontWeight: '800', fontSize: '1.05rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    💡 Conseils Colobane Market pour Booster vos Ventes
-                  </h4>
-                  <ul style={{ margin: 0, paddingLeft: '20px', color: '#B45309', fontSize: '0.92rem', lineHeight: '1.6', fontWeight: '600' }}>
-                    <li><strong>Badge Vendeur Certifié :</strong> Obtenez votre certification pour doubler le nombre de clics sur votre WhatsApp.</li>
-                    <li><strong>Photos Nettes :</strong> Ajoutez au moins 3 photos claires et bien éclairées par produit.</li>
-                    <li><strong>Boosts Week-End :</strong> Sponsorisez vos annonces le vendredi pour apparaître en 1ère position sur tout Dakar.</li>
-                  </ul>
-                </div>
-              </div>
+              <VendorAnalyticsDashboard user={user} userProfile={profile} myProducts={myProducts} />
             )}
 
             {/* ── CENTRE DE NOTIFICATIONS ────────────────────────────────────────── */}
