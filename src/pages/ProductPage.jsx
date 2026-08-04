@@ -4,7 +4,7 @@ import { useAuth } from '../components/AuthContext';
 import { supabase } from '../lib/supabase';
 import ReportModal from '../components/ReportModal';
 import SocialSEO from '../components/SocialSEO';
-import { shareProduct, copyToClipboard } from '../utils/socialShare';
+import { shareProduct, shareWhatsAppStatus, copyToClipboard } from '../utils/socialShare';
 import toast from 'react-hot-toast';
 import { Shield, Tag, Gauge, Settings, Fuel, MapPin, Share2, AlertTriangle, MoreVertical } from 'lucide-react';
 import { categories } from '../data/categories';
@@ -292,6 +292,14 @@ const ProductPage = () => {
                 >
                   <Share2 size={16} />
                   <span>Partager</span>
+                </div>
+                <div style={{ height: '1px', background: '#F1F5F9' }} />
+                <div 
+                  onClick={() => { setShowShareMenu(false); shareWhatsAppStatus(product); }}
+                  style={{ padding: '12px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14px', fontWeight: '700', color: '#166534', background: '#F0FDF4' }}
+                >
+                  <span>📸</span>
+                  <span>WhatsApp Status</span>
                 </div>
                 <div style={{ height: '1px', background: '#F1F5F9' }} />
                 <div 

@@ -58,6 +58,20 @@ export const shareProduct = async (product) => {
   window.open(whatsappUrl, '_blank');
 };
 
+export const shareWhatsAppStatus = async (product) => {
+  if (!product) return;
+
+  const url = `${window.location.origin}/product/${product.id}`;
+  const formattedPrice = product.price ? `${Number(product.price).toLocaleString('fr-FR')} FCFA` : 'Sur demande';
+  const location = product.location || 'Dakar';
+
+  const statusText = `🔥 *DISPONIBLE EN STOCK A DAKAR !*\n\n📦 *${product.title.toUpperCase()}*\n💰 *PRIX :* ${formattedPrice}\n📍 *LIVRAISON :* ${location} & partout au Sénégal 🇸🇳\n\n📲 *COMMANDER DIRECTEMENT EN 1-CLIC :*\n${url}`;
+
+  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(statusText)}`;
+  window.open(whatsappUrl, '_blank');
+  toast.success("Format WhatsApp Status généré ! Choisissez 'Mon statut' pour publier 📸");
+};
+
 export const shareBoutique = async (boutique) => {
   if (!boutique) return;
 

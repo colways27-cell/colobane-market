@@ -5,11 +5,12 @@ import { shareBoutique } from '../utils/socialShare';
 import { supabase } from '../lib/supabase';
 import FavoriteButton from '../components/FavoriteButton';
 import ReportModal from '../components/ReportModal';
+import BoutiqueQRCodeModal from '../components/BoutiqueQRCodeModal';
 import toast from 'react-hot-toast';
 import { useAuth } from '../components/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { Store, BadgeCheck, MapPin, Star } from 'lucide-react';
+import { Store, BadgeCheck, MapPin, Star, QrCode } from 'lucide-react';
 import { isBoutiqueExpired } from '../utils/boutiqueHelpers';
 
 const BoutiqueProfilePage = () => {
@@ -25,6 +26,7 @@ const BoutiqueProfilePage = () => {
   const [submittingReview, setSubmittingReview] = useState(false);
   const [showVendorMenu, setShowVendorMenu] = useState(false);
   const [showReportVendorModal, setShowReportVendorModal] = useState(false);
+  const [showQRCodeModal, setShowQRCodeModal] = useState(false);
 
   useEffect(() => {
     const fetchBoutiqueData = async () => {
@@ -326,6 +328,15 @@ const BoutiqueProfilePage = () => {
                 </a>
               )}
               <button 
+                onClick={() => setShowQRCodeModal(true)}
+                className="btn-secondary active-scale touch-target hover-lift" 
+                style={{ height: '48px', padding: '0 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: '#FFFBEB', color: '#B45309', border: '1.5px solid #FCD34D', borderRadius: '18px', cursor: 'pointer', fontWeight: 800, fontSize: '0.88rem' }}
+                title="Afficher et télécharger le QR Code Officiel"
+              >
+                <QrCode size={18} /> QR Code
+              </button>
+
+              <button 
                 onClick={() => {
                   navigator.clipboard.writeText(window.location.href);
                   toast.success('Lien de la boutique copié !');
@@ -339,6 +350,12 @@ const BoutiqueProfilePage = () => {
             </div>
           </div>
         </div>
+
+        <BoutiqueQRCodeModal
+          isOpen={showQRCodeModal}
+          onClose={() => setShowQRCodeModal(false)}
+          boutiqueProfile={profile}
+        />
 
         {/* Mobile Sticky Contact Bar */}
         <div className="hide-on-desktop" style={{ position: 'fixed', bottom: 0, left: 0, right: 0, padding: '12px 16px', background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', borderTop: '1px solid rgba(226, 232, 240, 0.6)', zIndex: 100, display: 'flex', gap: '12px', boxShadow: '0 -10px 30px rgba(0,0,0,0.05)' }}>
