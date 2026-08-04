@@ -714,7 +714,7 @@ const ProfilePage = () => {
                       </div>
                     )}
 
-                    {/* Certification Badge & Direct Link */}
+                    {/* Certification Badge */}
                     {profile?.is_verified ? (
                        <div style={{ background: '#E0F2FE', color: '#0284C7', padding: '12px', borderRadius: '16px', fontSize: '0.9rem', textAlign: 'center', fontWeight: '800', border: '2px solid #BAE6FD' }}>
                          ✅ Boutique Certifiée
@@ -723,15 +723,7 @@ const ProfilePage = () => {
                        <div style={{ background: '#FFFBEB', color: '#B45309', padding: '12px', borderRadius: '16px', fontSize: '0.88rem', textAlign: 'center', fontWeight: '800', border: '2px solid #FDE68A' }}>
                          ⏳ Certification en cours d'examen
                        </div>
-                    ) : (
-                       <Link 
-                         to="/certification" 
-                         className="active-scale hover-lift" 
-                         style={{ width: '100%', background: '#FEF3C7', color: '#B45309', padding: '12px', borderRadius: '16px', fontSize: '0.9rem', textAlign: 'center', border: '2px solid #FDE68A', fontWeight: '800', textDecoration: 'none', display: 'block', boxSizing: 'border-box' }}
-                       >
-                         👑 Demander Certification (CNI + Selfie)
-                       </Link>
-                    )}
+                    ) : null}
                   </>
                 ) : (
                   <>

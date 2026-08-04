@@ -298,21 +298,7 @@ const BoutiqueProfilePage = () => {
                 )}
               </div>
 
-              {/* Banniere de demande de certification si proprio non vérifié */}
-              {user && user.id === profile.id && !profile.is_verified && (
-                <div style={{ marginTop: '1.2rem', padding: '14px 18px', background: 'linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)', border: '1.5px solid #93C5FD', borderRadius: '18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span style={{ fontSize: '1.5rem' }}>🛡️</span>
-                    <div>
-                      <div style={{ fontWeight: '800', color: '#1E40AF', fontSize: '0.92rem' }}>Certifier ma boutique (CNI + Selfie)</div>
-                      <div style={{ fontSize: '0.78rem', color: '#3B82F6', fontWeight: '500' }}>Obtenez le badge officiel Vendeur Vérifié & De Confiance</div>
-                    </div>
-                  </div>
-                  <Link to="/certification" className="active-scale hover-lift" style={{ padding: '8px 18px', background: 'linear-gradient(135deg, #2563EB, #1D4ED8)', color: 'white', textDecoration: 'none', borderRadius: '12px', fontSize: '0.85rem', fontWeight: '800', whiteSpace: 'nowrap', boxShadow: '0 4px 12px rgba(37,99,235,0.3)' }}>
-                    Demander Certification →
-                  </Link>
-                </div>
-              )}
+
             </div>
           </div>
 
