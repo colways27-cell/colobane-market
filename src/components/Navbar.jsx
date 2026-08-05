@@ -143,23 +143,23 @@ const Navbar = () => {
         <div className="section-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '72px', padding: '0 1rem' }}>
           
           {/* Left: Logo */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
             <button 
               className="active-scale" 
               onClick={handleMenuClick} 
-              style={{ background: theme === 'dark' ? '#1E293B' : '#F8FAFC', border: theme === 'dark' ? '1px solid #334155' : '1px solid #E2E8F0', borderRadius: '12px', cursor: 'pointer', padding: '8px', color: theme === 'dark' ? '#F8FAFC' : '#334155', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              style={{ background: theme === 'dark' ? '#1E293B' : '#F8FAFC', border: theme === 'dark' ? '1px solid #334155' : '1px solid #E2E8F0', borderRadius: '12px', cursor: 'pointer', padding: '7px', color: theme === 'dark' ? '#F8FAFC' : '#334155', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               aria-label="Menu"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
             </button>
 
             <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
-              <img src="/image marque.jpg" alt="Colobane Market" style={{ height: '56px', maxHeight: '56px', width: 'auto', objectFit: 'contain', borderRadius: '10px' }} />
+              <img src="/image marque.jpg" alt="Colobane Market" style={{ height: '42px', maxHeight: '44px', width: 'auto', maxWidth: '140px', objectFit: 'contain', borderRadius: '8px' }} />
             </Link>
           </div>
 
           {/* Center: Search Bar (Desktop) */}
-          <div className="hide-on-mobile" style={{ flex: 1, maxWidth: '450px', margin: '0 2rem', position: 'relative', display: 'flex', alignItems: 'center' }}>
+          <div className="hide-on-mobile" style={{ flex: 1, maxWidth: '450px', margin: '0 1.5rem', position: 'relative', display: 'flex', alignItems: 'center' }}>
             <input 
               type="text" 
               placeholder="Lan nga bëgg wut ? (ex: iPhone, robe, voiture...)" 
@@ -174,7 +174,7 @@ const Navbar = () => {
           </div>
 
           {/* Right: Theme Toggle, Publish Button & Profile */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
             {/* Theme Toggle Button */}
             <button
               onClick={toggleTheme}
@@ -184,14 +184,15 @@ const Navbar = () => {
                 background: theme === 'dark' ? 'linear-gradient(135deg, #1E1B4B 0%, #312E81 100%)' : '#F1F5F9',
                 border: theme === 'dark' ? '1px solid #4338CA' : '1px solid #CBD5E1',
                 borderRadius: '50%',
-                width: '40px',
-                height: '40px',
+                width: '36px',
+                height: '36px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                fontSize: '1.1rem',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                fontSize: '1.05rem',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                flexShrink: 0
               }}
             >
               {theme === 'dark' ? '☀️' : '🌙'}
