@@ -8,7 +8,12 @@ import AroundMeModal from '../components/AroundMeModal';
 import { sortProductsByProximity } from '../utils/geolocation';
 import { Store, MapPin, Compass } from 'lucide-react';
 
-const locations = ['Dakar', 'Pikine', 'Guédiawaye', 'Rufisque', 'Thiès', 'Saint-Louis', 'Touba', 'Kaolack', 'Ziguinchor', 'Mbour', 'Louga', 'Tambacounda', 'Autre'];
+const locations = [
+  'Dakar Plateau', 'Almadies', 'VDN', 'Ouakam', 'Ngor', 'Mermoz', 'Sacré-Cœur', 
+  'Point E', 'Parcelles Assainies', 'Grand Yoff', 'Yoff', 'Liberté 6', 
+  'Pikine', 'Guédiawaye', 'Keur Massar', 'Rufisque', 'Thiès', 'Touba', 
+  'Mbour', 'Saly', 'Saint-Louis', 'Kaolack', 'Ziguinchor'
+];
 
 const ExplorePage = () => {
   const location = useLocation();
