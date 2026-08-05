@@ -1,47 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://colobanemarket.vercel.app/</loc>
+    <loc>https://colobanemarketplac.com/</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://colobanemarket.vercel.app/explore</loc>
+    <loc>https://colobanemarketplac.com/explore</loc>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://colobanemarket.vercel.app/boutiques</loc>
+    <loc>https://colobanemarketplac.com/boutiques</loc>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://colobanemarket.vercel.app/wutal-ma</loc>
+    <loc>https://colobanemarketplac.com/wutal-ma</loc>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://colobanemarket.vercel.app/comment-ca-marche</loc>
+    <loc>https://colobanemarketplac.com/reels</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://colobanemarketplac.com/comment-ca-marche</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://colobanemarket.vercel.app/a-propos</loc>
+    <loc>https://colobanemarketplac.com/a-propos</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://colobanemarket.vercel.app/contact</loc>
+    <loc>https://colobanemarketplac.com/contact</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://colobanemarket.vercel.app/conditions-generales</loc>
+    <loc>https://colobanemarketplac.com/conditions-generales</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://colobanemarket.vercel.app/politique-confidentialite</loc>
+    <loc>https://colobanemarketplac.com/politique-confidentialite</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
