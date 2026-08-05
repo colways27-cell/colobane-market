@@ -280,13 +280,13 @@ const AdminPage = () => {
   return (
     <div style={{ minHeight: '100vh', background: '#F8FAFC', paddingBottom: '60px' }}>
       {/* Top Bar */}
-      <div style={{ background: 'white', borderBottom: '1px solid #E2E8F0', padding: '14px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 100, boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <h1 style={{ fontSize: '1.25rem', fontWeight: '900', color: 'var(--primary, #be123c)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <div style={{ background: 'white', borderBottom: '1px solid #E2E8F0', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 100, boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+          <h1 style={{ fontSize: '1.1rem', fontWeight: '900', color: 'var(--primary, #be123c)', margin: 0, display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap' }}>
             🛡️ Colobane Admin
           </h1>
         </div>
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
           <button onClick={fetchAllData} style={actionBtnStyle('#F1F5F9', '#334155')}>
             🔄 Actualiser
           </button>
@@ -465,14 +465,15 @@ const AdminPage = () => {
 };
 
 const actionBtnStyle = (bg, color) => ({
-  padding: '8px 14px',
+  padding: '6px 12px',
   borderRadius: '8px',
   border: 'none',
   background: bg,
   color: color,
   fontWeight: '700',
-  fontSize: '0.85rem',
-  cursor: 'pointer'
+  fontSize: '0.8rem',
+  cursor: 'pointer',
+  whiteSpace: 'nowrap'
 });
 
 const mainTabStyle = (active) => ({

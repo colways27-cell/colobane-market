@@ -108,19 +108,21 @@ const AdminOverview = ({
       {/* Time Filter Bar */}
       <div style={{
         display: 'flex',
-        justify: 'space-between',
+        justifyContent: 'space-between',
         alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '12px',
         background: 'white',
         padding: '14px 20px',
         borderRadius: '16px',
         border: '1px solid #E2E8F0',
         boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span style={{ fontSize: '1.1rem' }}>⏱️</span>
-          <span style={{ fontWeight: 800, color: '#0F172A', fontSize: '0.95rem' }}>Période d'analyse :</span>
+          <span style={{ fontWeight: 800, color: '#0F172A', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>Période d'analyse</span>
         </div>
-        <div style={{ display: 'flex', gap: '6px' }}>
+        <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', WebkitOverflowScrolling: 'touch', maxWidth: '100%' }}>
           {[
             { id: 'today', label: "Aujourd'hui" },
             { id: '7d', label: '7 Derniers Jours' },
