@@ -99,6 +99,10 @@ const AdminPage = () => {
       } else if (paiement.plan_type === 'pass_15jours') {
         const pass15 = new Date(); pass15.setDate(pass15.getDate() + 15);
         await supabase.from('profiles').update({ subscription_plan: 'pass_15jours', subscription_end_date: pass15.toISOString(), account_type: 'boutique', is_verified: true }).eq('id', paiement.user_id);
+      } else if (paiement.plan_type === 'boost_reel_7j') {
+        const passReel7 = new Date(); passReel7.setDate(passReel7.getDate() + 7);
+        await supabase.from('profiles').update({ is_verified: true, subscription_plan: 'boost_reel_7j', subscription_end_date: passReel7.toISOString() }).eq('id', paiement.user_id);
+        await supabase.from('products').update({ is_boosted: true, boost_end_date: passReel7.toISOString() }).eq('seller_id', paiement.user_id);
       } else if (paiement.plan_type === 'forfait_basique') {
         await supabase.from('profiles').update({ subscription_plan: 'basique', subscription_end_date: subEndDateISO, account_type: 'boutique', is_verified: true }).eq('id', paiement.user_id);
       } else if (paiement.plan_type === 'forfait_premium') {
@@ -276,13 +280,13 @@ const AdminPage = () => {
   return (
     <div style={{ minHeight: '100vh', background: '#F8FAFC', paddingBottom: '60px' }}>
       {/* Top Bar */}
-      <div style={{ background: 'white', borderBottom: '1px solid #E2E8F0', padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', sticky: 'top', top: 0, zIndex: 100 }}>
+      <div style={{ background: 'white', borderBottom: '1px solid #E2E8F0', padding: '14px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 100, boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <h1 style={{ fontSize: '1.3rem', fontWeight: '900', color: 'var(--primary, #8a1c1c)', margin: 0 }}>
-            Colobane Admin
+          <h1 style={{ fontSize: '1.25rem', fontWeight: '900', color: 'var(--primary, #be123c)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+            🛡️ Colobane Admin
           </h1>
         </div>
-        <div style={{ display: 'flex', gap: '12px' }}>
+        <div style={{ display: 'flex', gap: '8px' }}>
           <button onClick={fetchAllData} style={actionBtnStyle('#F1F5F9', '#334155')}>
             🔄 Actualiser
           </button>
@@ -293,9 +297,9 @@ const AdminPage = () => {
       </div>
 
       {/* Main Container */}
-      <div style={{ maxWidth: '1280px', margin: '24px auto', padding: '0 20px' }}>
+      <div style={{ maxWidth: '1280px', margin: '20px auto', padding: '0 16px' }}>
         {/* Main Tab Navigation */}
-        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '12px', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '12px', marginBottom: '24px', WebkitOverflowScrolling: 'touch' }}>
           {tabs.map(t => (
             <button
               key={t.id}
@@ -325,7 +329,7 @@ const AdminPage = () => {
 
           return (
             <div style={{ background: 'white', borderRadius: '16px', padding: '24px', border: '1px solid #E2E8F0', boxShadow: '0 4px 14px rgba(0,0,0,0.03)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
                 <div>
                   <h2 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, color: '#0F172A' }}>
                     ⚡ Demandes de Boost Reel (1 500 FCFA / 7 jours)
@@ -346,7 +350,7 @@ const AdminPage = () => {
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {reelPayments.map(p => (
-                    <div key={p.id} style={{ border: '1px solid #E2E8F0', borderRadius: '14px', padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: p.status === 'pending' ? '#FFFBEB' : '#F8FAFC' }}>
+                    <div key={p.id} style={{ border: '1px solid #E2E8F0', borderRadius: '14px', padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', background: p.status === 'pending' ? '#FFFBEB' : '#F8FAFC' }}>
                       <div>
                         <div style={{ fontWeight: 800, fontSize: '15px', color: '#0F172A' }}>
                           {p.profiles?.full_name || 'Utilisateur'} — <span style={{ color: '#E11D48' }}>1 500 FCFA</span>
@@ -363,7 +367,7 @@ const AdminPage = () => {
                         {p.status === 'pending' ? (
                           <>
                             <button
-                              onClick={() => validerPaiement(p.id, p.user_id, p.plan_type)}
+                              onClick={() => validerPaiement(p)}
                               style={{ background: '#10B981', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '10px', fontWeight: 800, cursor: 'pointer', fontSize: '13px' }}
                             >
                               ✓ Valider Boost Reel
