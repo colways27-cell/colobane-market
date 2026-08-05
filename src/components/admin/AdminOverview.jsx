@@ -209,23 +209,23 @@ const AdminOverview = ({
       </div>
 
       {/* Financial Breakdown & Live System Feed Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))', gap: '16px' }}>
         
         {/* Financial Breakdown Panel */}
         <div style={panelStyle}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <h3 style={titleStyle}>📊 Breakdown des Revenus par Offre</h3>
-            <span style={{ fontSize: '12px', fontWeight: 800, color: '#059669', background: '#ECFDF5', padding: '4px 10px', borderRadius: '12px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
+            <h3 style={{ ...titleStyle, fontSize: '1.05rem', margin: 0 }}>📊 Revenus par Offre</h3>
+            <span style={{ fontSize: '11px', fontWeight: 800, color: '#059669', background: '#ECFDF5', padding: '4px 10px', borderRadius: '12px' }}>
               Direct Wave Sénégal
             </span>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             {/* Boosts Reels */}
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.88rem', fontWeight: 700, marginBottom: '6px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', fontWeight: 700, marginBottom: '6px', gap: '8px' }}>
                 <span style={{ color: '#E11D48' }}>🎬 Boosts Reels (1 500 FCFA / 7j)</span>
-                <span>{reelRevenue.toLocaleString()} FCFA ({getPercent(reelRevenue)}%)</span>
+                <span style={{ whiteSpace: 'nowrap' }}>{reelRevenue.toLocaleString()} FCFA ({getPercent(reelRevenue)}%)</span>
               </div>
               <div style={{ height: '8px', background: '#F1F5F9', borderRadius: '4px', overflow: 'hidden' }}>
                 <div style={{ width: `${getPercent(reelRevenue)}%`, height: '100%', background: '#E11D48', borderRadius: '4px', transition: 'width 0.5s' }} />
@@ -234,9 +234,9 @@ const AdminOverview = ({
 
             {/* Abonnements & Forfaits */}
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.88rem', fontWeight: '700', marginBottom: '6px' }}>
-                <span style={{ color: '#2563EB' }}>📦 Abonnements & Forfaits (Pro / Premium)</span>
-                <span>{subRevenue.toLocaleString()} FCFA ({getPercent(subRevenue)}%)</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', fontWeight: '700', marginBottom: '6px', gap: '8px' }}>
+                <span style={{ color: '#2563EB' }}>📦 Forfaits Pro & Premium</span>
+                <span style={{ whiteSpace: 'nowrap' }}>{subRevenue.toLocaleString()} FCFA ({getPercent(subRevenue)}%)</span>
               </div>
               <div style={{ height: '8px', background: '#F1F5F9', borderRadius: '4px', overflow: 'hidden' }}>
                 <div style={{ width: `${getPercent(subRevenue)}%`, height: '100%', background: '#2563EB', borderRadius: '4px', transition: 'width 0.5s' }} />
@@ -245,9 +245,9 @@ const AdminOverview = ({
 
             {/* Certifications */}
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.88rem', fontWeight: '700', marginBottom: '6px' }}>
-                <span style={{ color: '#D97706' }}>👑 Badges de Certification (5 000 FCFA)</span>
-                <span>{certRevenue.toLocaleString()} FCFA ({getPercent(certRevenue)}%)</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', fontWeight: '700', marginBottom: '6px', gap: '8px' }}>
+                <span style={{ color: '#D97706' }}>👑 Badges de Certification</span>
+                <span style={{ whiteSpace: 'nowrap' }}>{certRevenue.toLocaleString()} FCFA ({getPercent(certRevenue)}%)</span>
               </div>
               <div style={{ height: '8px', background: '#F1F5F9', borderRadius: '4px', overflow: 'hidden' }}>
                 <div style={{ width: `${getPercent(certRevenue)}%`, height: '100%', background: '#D97706', borderRadius: '4px', transition: 'width 0.5s' }} />
@@ -256,9 +256,9 @@ const AdminOverview = ({
 
             {/* Boosts Produit */}
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.88rem', fontWeight: '700', marginBottom: '6px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', fontWeight: '700', marginBottom: '6px', gap: '8px' }}>
                 <span style={{ color: '#059669' }}>🚀 Boosts Produits Classiques</span>
-                <span>{productBoostRevenue.toLocaleString()} FCFA ({getPercent(productBoostRevenue)}%)</span>
+                <span style={{ whiteSpace: 'nowrap' }}>{productBoostRevenue.toLocaleString()} FCFA ({getPercent(productBoostRevenue)}%)</span>
               </div>
               <div style={{ height: '8px', background: '#F1F5F9', borderRadius: '4px', overflow: 'hidden' }}>
                 <div style={{ width: `${getPercent(productBoostRevenue)}%`, height: '100%', background: '#059669', borderRadius: '4px', transition: 'width 0.5s' }} />
@@ -266,9 +266,9 @@ const AdminOverview = ({
             </div>
           </div>
 
-          <div style={{ marginTop: '20px', padding: '12px 14px', background: '#F8FAFC', borderRadius: '12px', border: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.85rem', color: '#475569', fontWeight: 600 }}>Taux d'acceptation des transactions :</span>
-            <strong style={{ color: '#059669', fontSize: '1rem' }}>
+          <div style={{ marginTop: '16px', padding: '10px 12px', background: '#F8FAFC', borderRadius: '12px', border: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '0.8rem', color: '#475569', fontWeight: 600 }}>Taux d'acceptation :</span>
+            <strong style={{ color: '#059669', fontSize: '0.95rem' }}>
               {paiements.length > 0 ? Math.round((approvedPayments.length / paiements.length) * 100) : 100}%
             </strong>
           </div>
@@ -276,8 +276,8 @@ const AdminOverview = ({
 
         {/* Live System Activity Feed Panel */}
         <div style={panelStyle}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <h3 style={titleStyle}>⚡ Fil d'Activité Système (Live Feed)</h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
+            <h3 style={{ ...titleStyle, fontSize: '1.05rem', margin: 0 }}>⚡ Fil d'Activité Système</h3>
             <span style={{ fontSize: '11px', fontWeight: 800, color: '#3B82F6', background: '#EFF6FF', padding: '4px 10px', borderRadius: '12px' }}>
               En direct
             </span>
