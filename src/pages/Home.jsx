@@ -337,7 +337,7 @@ const Home = () => {
           <form onSubmit={(e) => {
             e.preventDefault();
             if (homeSearchQuery.trim()) navigate(`/explore?q=${encodeURIComponent(homeSearchQuery.trim())}`);
-          }} className="search-input-wrapper" style={{ position: 'relative', display: 'flex', alignItems: 'center', borderRadius: '16px', border: '2px solid #E2E8F0', background: 'white', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', transition: 'border-color 0.2s' }}>
+          }} className="search-input-wrapper" style={{ position: 'relative', display: 'flex', alignItems: 'center', borderRadius: '16px', border: '2px solid var(--border-color)', background: 'var(--card-bg)', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', transition: 'border-color 0.2s' }}>
             <div style={{ position: 'absolute', left: '16px', color: '#94A3B8', display: 'flex', pointerEvents: 'none' }}>
               <Search size={20} strokeWidth={2} />
             </div>
@@ -350,7 +350,7 @@ const Home = () => {
               onFocus={() => homeSearchQuery.length >= 2 && setSuggestionsOpen(true)}
               onBlur={() => setTimeout(() => setSuggestionsOpen(false), 200)}
               placeholder="Lan nga bëgg wut ? (robe wax, iPhone, appartement...)" 
-              style={{ flex: 1, padding: '16px 16px 16px 44px', border: 'none', background: 'transparent', fontSize: '0.95rem', outline: 'none', width: '100%', boxSizing: 'border-box' }} 
+              style={{ flex: 1, padding: '16px 16px 16px 44px', border: 'none', background: 'transparent', fontSize: '0.95rem', outline: 'none', width: '100%', boxSizing: 'border-box', color: 'var(--text-main)' }} 
             />
             <button type="submit" className="active-scale" style={{ flexShrink: 0, background: 'var(--primary)', color: 'white', border: 'none', padding: '16px 22px', fontWeight: '700', fontSize: '0.9rem', cursor: 'pointer', height: '100%', whiteSpace: 'nowrap', borderRadius: '0 14px 14px 0' }}>
               Wër 🔍
@@ -359,7 +359,7 @@ const Home = () => {
 
           {/* Dropdown Suggestions */}
           {suggestionsOpen && suggestions.length > 0 && (
-            <div style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, background: 'white', borderRadius: '16px', boxShadow: '0 12px 36px rgba(0,0,0,0.15)', border: '1px solid #E2E8F0', zIndex: 999, overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, background: 'var(--card-bg, white)', borderRadius: '16px', boxShadow: '0 12px 36px rgba(0,0,0,0.15)', border: '1px solid var(--border-color)', zIndex: 999, overflow: 'hidden' }}>
               {suggestions.map((s, i) => {
                 const img = s.images && s.images.length > 0 ? s.images[0] : '/hero.png';
                 return (
@@ -392,7 +392,7 @@ const Home = () => {
           )}
 
           {/* Section Géolocalisation & Proximité GPS tout juste en dessous de la barre de recherche */}
-          <div style={{ marginTop: '14px', background: 'white', padding: '12px 14px', borderRadius: '16px', border: '1.5px solid #E2E8F0', boxShadow: '0 4px 16px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div style={{ marginTop: '14px', background: 'var(--card-bg, white)', padding: '12px 14px', borderRadius: '16px', border: '1.5px solid var(--border-color)', boxShadow: '0 4px 16px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.88rem', fontWeight: '800', color: 'var(--text-main)' }}>
                 <Compass size={18} color="#10B981" />

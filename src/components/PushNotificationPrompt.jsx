@@ -9,6 +9,19 @@ import {
 const PushNotificationPrompt = () => {
   const { user } = useAuth();
   const [showPrompt, setShowPrompt] = useState(false);
+  const [theme, setTheme] = useState(() => {
+    try { return document.documentElement.getAttribute('data-theme') || 'light'; } catch(e) { return 'light'; }
+  });
+
+  const isDark = theme === 'dark';
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setTheme(document.documentElement.getAttribute('data-theme') || 'light');
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     if (!checkNotificationSupport()) return;
@@ -45,11 +58,11 @@ const PushNotificationPrompt = () => {
       left: '20px',
       maxWidth: '400px',
       margin: '0 auto',
-      background: 'white',
+      background: isDark ? '#18181b' : 'white',
       borderRadius: '20px',
       padding: '18px 20px',
-      boxShadow: '0 12px 32px rgba(0,0,0,0.15)',
-      border: '1px solid #E2E8F0',
+      boxShadow: isDark ? '0 12px 32px rgba(0,0,0,0.5)' : '0 12px 32px rgba(0,0,0,0.15)',
+      border: isDark ? '1px solid #334155' : '1px solid #E2E8F0',
       zIndex: 999,
       animation: 'slideUp 0.3s ease-out'
     }}>
@@ -65,7 +78,7 @@ const PushNotificationPrompt = () => {
           width: '44px',
           height: '44px',
           borderRadius: '50%',
-          background: '#FEF3C7',
+          background: isDark ? '#422006' : '#FEF3C7',
           color: '#D97706',
           display: 'flex',
           alignItems: 'center',
@@ -77,10 +90,10 @@ const PushNotificationPrompt = () => {
         </div>
 
         <div style={{ flex: 1 }}>
-          <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: '800', color: '#1E293B' }}>
+          <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: '800', color: isDark ? '#f8fafc' : '#1E293B' }}>
             Activer les Alertes Instantanées
           </h4>
-          <p style={{ margin: '4px 0 12px 0', fontSize: '0.8rem', color: '#64748B', lineHeight: '1.4' }}>
+          <p style={{ margin: '4px 0 12px 0', fontSize: '0.8rem', color: isDark ? '#94a3b8' : '#64748B', lineHeight: '1.4' }}>
             Soyez averti en direct des nouvelles demandes d'acheteurs (*Wutal Ma*), des messages et des validations de vos annonces.
           </p>
 
@@ -105,9 +118,9 @@ const PushNotificationPrompt = () => {
               onClick={handleDismiss}
               style={{
                 padding: '8px 12px',
-                background: '#F1F5F9',
-                color: '#64748B',
-                border: 'none',
+                background: isDark ? '#27272a' : '#F1F5F9',
+                color: isDark ? '#94a3b8' : '#64748B',
+                border: isDark ? '1px solid #334155' : 'none',
                 borderRadius: '10px',
                 fontWeight: '700',
                 fontSize: '0.8rem',

@@ -1,9 +1,24 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { MessageCircle, Phone } from 'lucide-react';
 
 const Footer = () => {
+  const [theme, setTheme] = useState(() => {
+    try { return document.documentElement.getAttribute('data-theme') || 'light'; } catch(e) { return 'light'; }
+  });
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setTheme(document.documentElement.getAttribute('data-theme') || 'light');
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    return () => observer.disconnect();
+  }, []);
+
+  const isDark = theme === 'dark';
+
   return (
-    <footer className="footer">
+    <footer className="footer" style={isDark ? { background: '#09090b', borderTopColor: '#1e293b' } : undefined}>
       <style>{`
         .social-icon-hover {
           transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease;
@@ -63,7 +78,16 @@ const Footer = () => {
                 src="/image marque.jpg" 
                 alt="Colobane Market" 
                 className="footer-logo-img"
-                style={{ height: '110px', objectFit: 'contain', borderRadius: '16px', boxShadow: '0 6px 16px rgba(0, 0, 0, 0.08)', border: '1px solid var(--border-color)', background: 'white', padding: '8px', transition: 'transform 0.2s' }} 
+                style={{ 
+                  height: '110px', 
+                  objectFit: 'contain', 
+                  borderRadius: '16px', 
+                  boxShadow: isDark ? '0 6px 16px rgba(0,0,0,0.3)' : '0 6px 16px rgba(0, 0, 0, 0.08)', 
+                  border: isDark ? '1px solid #334155' : '1px solid var(--border-color)', 
+                  background: isDark ? '#18181b' : 'white', 
+                  padding: '8px', 
+                  transition: 'transform 0.2s' 
+                }} 
               />
             </Link>
           </h4>
@@ -76,7 +100,16 @@ const Footer = () => {
               href="https://wa.me/221773713175" 
               target="_blank" 
               rel="noopener noreferrer" 
-              style={{ width: '38px', height: '38px', borderRadius: '50%', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#25D366' }} 
+              style={{ 
+                width: '38px', 
+                height: '38px', 
+                borderRadius: '50%', 
+                background: isDark ? '#1e293b' : '#f1f5f9', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                color: '#25D366' 
+              }} 
               className="social-icon-hover"
               title="Discuter sur WhatsApp"
             >
@@ -84,7 +117,16 @@ const Footer = () => {
             </a>
             <a 
               href="tel:+221773713175" 
-              style={{ width: '38px', height: '38px', borderRadius: '50%', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)' }} 
+              style={{ 
+                width: '38px', 
+                height: '38px', 
+                borderRadius: '50%', 
+                background: isDark ? '#1e293b' : '#f1f5f9', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                color: 'var(--primary)' 
+              }} 
               className="social-icon-hover"
               title="Nous appeler"
             >

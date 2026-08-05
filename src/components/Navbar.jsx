@@ -248,8 +248,8 @@ const Navbar = () => {
                   onClick={() => setShowNotificationsDrawer(prev => !prev)}
                   className="active-scale"
                   style={{
-                    background: '#F8FAFC',
-                    border: '1px solid #E2E8F0',
+                    background: theme === 'dark' ? '#27272a' : '#F8FAFC',
+                    border: theme === 'dark' ? '1px solid #334155' : '1px solid #E2E8F0',
                     width: '38px',
                     height: '38px',
                     borderRadius: '50%',
@@ -261,7 +261,7 @@ const Navbar = () => {
                   }}
                   aria-label="Notifications"
                 >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={theme === 'dark' ? '#94a3b8' : '#475569'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
                   {unreadCount > 0 && (
                     <span style={{
                       position: 'absolute',
@@ -291,16 +291,16 @@ const Navbar = () => {
                     top: '48px',
                     right: 0,
                     width: '320px',
-                    background: '#FFFFFF',
+                    background: theme === 'dark' ? '#18181b' : '#FFFFFF',
                     borderRadius: '20px',
-                    border: '1px solid #E2E8F0',
-                    boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+                    border: theme === 'dark' ? '1px solid #334155' : '1px solid #E2E8F0',
+                    boxShadow: theme === 'dark' ? '0 20px 40px rgba(0,0,0,0.5)' : '0 20px 40px rgba(0,0,0,0.15)',
                     zIndex: 1000,
                     padding: '16px',
                     overflow: 'hidden'
                   }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', paddingBottom: '8px', borderBottom: '1px solid #F1F5F9' }}>
-                      <div style={{ fontWeight: 800, fontSize: '14px', color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', paddingBottom: '8px', borderBottom: theme === 'dark' ? '1px solid #27272a' : '1px solid #F1F5F9' }}>
+                      <div style={{ fontWeight: 800, fontSize: '14px', color: theme === 'dark' ? '#f8fafc' : '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <span>🔔</span> Notifications Vendeur
                       </div>
                       <button
@@ -312,7 +312,7 @@ const Navbar = () => {
                     </div>
 
                     {notifications.length === 0 ? (
-                      <div style={{ textAlign: 'center', padding: '20px 10px', color: '#64748B', fontSize: '13px' }}>
+                      <div style={{ textAlign: 'center', padding: '20px 10px', color: theme === 'dark' ? '#94a3b8' : '#64748B', fontSize: '13px' }}>
                         Aucune nouvelle notification pour le moment.
                       </div>
                     ) : (
@@ -325,8 +325,8 @@ const Navbar = () => {
                               navigate(n.link);
                             }}
                             style={{
-                              background: n.type === 'success' ? '#F0FDF4' : '#FFFBEB',
-                              border: n.type === 'success' ? '1px solid #DCFCE7' : '1px solid #FDE68A',
+                              background: n.type === 'success' ? (theme === 'dark' ? '#052e16' : '#F0FDF4') : (theme === 'dark' ? '#422006' : '#FFFBEB'),
+                              border: n.type === 'success' ? (theme === 'dark' ? '1px solid #14532d' : '1px solid #DCFCE7') : (theme === 'dark' ? '1px solid #713f12' : '1px solid #FDE68A'),
                               padding: '10px 12px',
                               borderRadius: '12px',
                               cursor: 'pointer',
@@ -336,7 +336,7 @@ const Navbar = () => {
                             <div style={{ fontSize: '12px', fontWeight: 800, color: n.type === 'success' ? '#15803D' : '#B45309' }}>
                               {n.title}
                             </div>
-                            <div style={{ fontSize: '11px', color: '#334155', marginTop: '2px', lineHeight: '1.3' }}>
+                            <div style={{ fontSize: '11px', color: theme === 'dark' ? '#cbd5e1' : '#334155', marginTop: '2px', lineHeight: '1.3' }}>
                               {n.message}
                             </div>
                           </div>
@@ -370,7 +370,7 @@ const Navbar = () => {
             )}
 
             <Link to={user ? "/profile" : "/auth"} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none', color: 'var(--text-main)' }}>
-              <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: '#F8FAFC', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: theme === 'dark' ? '#27272a' : '#F8FAFC', border: theme === 'dark' ? '1px solid #334155' : '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
               </div>
             </Link>
@@ -385,7 +385,7 @@ const Navbar = () => {
           onClick={closeMenu}
         >
           <div 
-            style={{ width: '280px', height: '100%', background: 'white', padding: '2rem 1.5rem 100px 1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', boxShadow: '2px 0 20px rgba(0,0,0,0.1)', overflowY: 'auto' }}
+            style={{ width: '280px', height: '100%', background: theme === 'dark' ? '#18181b' : 'white', padding: '2rem 1.5rem 100px 1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', boxShadow: theme === 'dark' ? '2px 0 20px rgba(0,0,0,0.4)' : '2px 0 20px rgba(0,0,0,0.1)', overflowY: 'auto' }}
             onClick={e => e.stopPropagation()}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
