@@ -1614,3 +1614,20 @@ select {
     font-size: 1.35rem !important;
   }
 }
+
+/* Responsive Admin & Payment Requests Switcher */
+.mobile-only-payments {
+  display: flex !important;
+}
+.desktop-only-payments {
+  display: none !important;
+}
+
+@media (min-width: 769px) {
+  .mobile-only-payments {
+    display: none !important;
+  }
+  .desktop-only-payments {
+    display: block !important;
+  }
+}

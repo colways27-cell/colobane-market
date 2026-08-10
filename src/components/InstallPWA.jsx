@@ -51,12 +51,16 @@ const InstallPWA = () => {
       setDeferredPrompt(e);
       setIsVisible(true);
     };
-    window.addEventListener('beforeinstallprompt', handler);
-    window.addEventListener('appinstalled', () => {
+    const handleInstalled = () => {
       setIsVisible(false);
       setDeferredPrompt(null);
-    });
-    return () => window.removeEventListener('beforeinstallprompt', handler);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    window.addEventListener('appinstalled', handleInstalled);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handler);
+      window.removeEventListener('appinstalled', handleInstalled);
+    };
   }, []);
 
   const handleInstallClick = async () => {

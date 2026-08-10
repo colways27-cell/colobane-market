@@ -102,12 +102,11 @@ const LayoutWrapper = () => {
   if (isAdminRoute) {
     return (
       <div className="admin-container" style={{ minHeight: '100vh', background: '#f8fafc' }}>
-        <Toaster position="top-center" />
         <Suspense fallback={<PageLoader />}>
           <Routes>
-            <Route path="/admin" element={<AdminPage />} />
-            <Route path="/adminsaer" element={<AdminPage />} />
-            <Route path="/backoffice" element={<AdminPage />} />
+            <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminPage /></ProtectedRoute>} />
+            <Route path="/adminsaer" element={<ProtectedRoute requireAdmin><AdminPage /></ProtectedRoute>} />
+            <Route path="/backoffice" element={<ProtectedRoute requireAdmin><AdminPage /></ProtectedRoute>} />
           </Routes>
         </Suspense>
       </div>

@@ -13,7 +13,7 @@ import {
 import { openWavePayment } from '../config/paymentConfig';
 import VendorAnalyticsDashboard from '../components/vendor/VendorAnalyticsDashboard';
 
-const locations = ['Dakar', 'Pikine', 'Guédiawaye', 'Rufisque', 'Thiès', 'Saint-Louis', 'Touba', 'Kaolack', 'Ziguinchor', 'Mbour', 'Louga', 'Tambacounda', 'Autre'];
+import { locationsList as locations } from '../data/locations';
 
 const InputWrapper = ({ label, icon, children }) => (
   <div style={{ marginBottom: '1rem' }}>
@@ -461,6 +461,26 @@ const ProfilePage = () => {
     }
   };
 
+  const handleDeleteMyAccount = async () => {
+    if (!window.confirm("⚠️ ATTENTION : Êtes-vous vraiment sûr de vouloir SUPPRIMER DÉFINITIVEMENT votre compte Colobane Market ?\n\nToutes vos annonces seront effacées. Cette action est irréversible.")) {
+      return;
+    }
+    toast.loading("Suppression du compte...", { id: 'del-account' });
+    try {
+      if (user) {
+        await supabase.from('products').delete().eq('seller_id', user.id);
+        await supabase.from('payment_requests').delete().eq('user_id', user.id);
+        await supabase.from('profiles').delete().eq('id', user.id);
+        await signOut();
+        toast.success("Votre compte a été supprimé avec succès.", { id: 'del-account' });
+        navigate('/');
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Erreur lors de la suppression.", { id: 'del-account' });
+    }
+  };
+
   const openBoostMarketing = (productId, productTitle) => {
     setProductToBoostMarketing({ id: productId, title: productTitle });
     setShowBoostMarketingModal(true);
@@ -625,6 +645,10 @@ const ProfilePage = () => {
                   Modifier mon profil
                 </button>
 
+                <button onClick={handleDeleteMyAccount} className="active-scale touch-target hover-lift" style={{ width: '100%', padding: '0.8rem', borderRadius: '16px', border: '1px solid #FCA5A5', background: '#FEF2F2', color: '#DC2626', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', fontWeight: '700', fontSize: '0.85rem', cursor: 'pointer' }}>
+                  🗑️ Supprimer mon compte
+                </button>
+
                 {profile?.is_admin && (
                   <Link
                     to="/admin"
@@ -648,27 +672,6 @@ const ProfilePage = () => {
                   </Link>
                 )}
 
-                <Link 
-                  to="/publish?mode=reel" 
-                  className="active-scale touch-target hover-lift" 
-                  style={{ 
-                    width: '100%', 
-                    padding: '1rem', 
-                    borderRadius: '16px', 
-                    background: 'linear-gradient(135deg, #09090B 0%, #172554 40%, #BE123C 100%)', 
-                    color: 'white', 
-                    textDecoration: 'none', 
-                    display: 'flex', 
-                    justifyContent: 'center', 
-                    alignItems: 'center', 
-                    gap: '8px', 
-                    fontWeight: '800',
-                    border: '1px solid rgba(244, 63, 94, 0.5)',
-                    boxShadow: '0 4px 15px rgba(190, 18, 60, 0.25)'
-                  }}
-                >
-                  🎬 Publier un Reel Vidéo
-                </Link>
                 {profile?.account_type === 'boutique' ? (
                   <>
                     <Link to={`/boutique/${profile.id}`} className="active-scale touch-target hover-lift" style={{ width: '100%', padding: '1rem', borderRadius: '16px', background: 'var(--primary-gradient)', color: 'white', textDecoration: 'none', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', fontWeight: '800' }}>
@@ -676,7 +679,7 @@ const ProfilePage = () => {
                     </Link>
                     {profile.is_verified && (
                       <div style={{ width: '100%', padding: '0.8rem', borderRadius: '16px', background: 'linear-gradient(135deg, #10B981, #059669)', color: 'white', fontWeight: '800', fontSize: '0.85rem', textAlign: 'center', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px' }}>
-                        🛡️ Vendeur Certifié & De Confiance
+                        🛡️ Vendeur Certifié
                       </div>
                     )}
                     

@@ -46,3 +46,9 @@ export const senegalRegions = {
     "Sédhiou", "Bounkiling", "Goudomp"
   ]
 };
+
+export const locationsList = [
+  'Dakar', 'Pikine', 'Guédiawaye', 'Rufisque', 'Thiès', 'Saint-Louis', 
+  'Touba', 'Kaolack', 'Ziguinchor', 'Mbour', 'Louga', 'Tambacounda', 'Autre'
+];
+

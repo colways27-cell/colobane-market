@@ -11,6 +11,7 @@ const calculateTrustScore = (u) => {
 const UserManagementTab = ({
   utilisateurs = [],
   onUpdateUserPlan,
+  onDeleteUser,
   updatingUser
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -78,113 +79,221 @@ const UserManagementTab = ({
         </select>
       </div>
 
-      {/* Users Table */}
-      <div style={{ background: 'white', borderRadius: '16px', overflow: 'hidden', border: '1px solid #E2E8F0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
-          <thead style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0', color: '#64748B' }}>
-            <tr>
-              <th style={thStyle}>Utilisateur</th>
-              <th style={thStyle}>Contact</th>
-              <th style={thStyle}>Type Compte</th>
-              <th style={thStyle}>Trust Index</th>
-              <th style={thStyle}>Forfait Actif</th>
-              <th style={thStyle}>Inscription</th>
-              <th style={thStyle}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredUsers.length === 0 ? (
-              <tr>
-                <td colSpan={7} style={{ padding: '30px', textAlign: 'center', color: '#94A3B8' }}>
-                  Aucun utilisateur trouvé.
-                </td>
-              </tr>
-            ) : (
-              filteredUsers.map((u) => {
-                const trustScore = calculateTrustScore(u);
-                const rawPhone = u.whatsapp_number || u.phone_number || '';
-                const cleanPhone = rawPhone.replace(/\D/g, '');
-                const waPhone = cleanPhone.length === 9 ? `221${cleanPhone}` : cleanPhone;
-                const waMsg = encodeURIComponent(`Bonjour ${u.full_name || 'Utilisateur'} ! Équipe Colobane Market.`);
-                const waUrl = waPhone ? `https://wa.me/${waPhone}?text=${waMsg}` : null;
+      {/* Users List Container */}
+      {filteredUsers.length === 0 ? (
+        <div style={{ background: 'white', borderRadius: '16px', padding: '40px', textAlign: 'center', color: '#94A3B8', border: '1px solid #E2E8F0' }}>
+          Aucun utilisateur trouvé.
+        </div>
+      ) : (
+        <>
+          {/* MOBILE CARDS VIEW */}
+          <div className="mobile-only-payments" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {filteredUsers.map((u) => {
+              const trustScore = calculateTrustScore(u);
+              const rawPhone = u.whatsapp_number || u.phone_number || '';
+              const cleanPhone = rawPhone.replace(/\D/g, '');
+              const waPhone = cleanPhone.length === 9 ? `221${cleanPhone}` : cleanPhone;
+              const waMsg = encodeURIComponent(`Bonjour ${u.full_name || 'Utilisateur'} ! Équipe Colobane Market.`);
+              const waUrl = waPhone ? `https://wa.me/${waPhone}?text=${waMsg}` : null;
 
-                return (
-                  <tr key={u.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
-                    <td style={tdStyle}>
-                      <strong>{u.full_name || 'Anonyme'}</strong>
+              return (
+                <div
+                  key={u.id}
+                  style={{
+                    background: 'white',
+                    borderRadius: '16px',
+                    padding: '16px',
+                    border: '1px solid #E2E8F0',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '12px'
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div>
+                      <div style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A' }}>
+                        {u.full_name || 'Anonyme'} {u.is_verified && '👑'}
+                      </div>
                       {u.boutique_name && (
-                        <div style={{ fontSize: '0.75rem', color: '#64748B' }}>🏪 {u.boutique_name}</div>
-                      )}
-                    </td>
-                    <td style={tdStyle}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span>{rawPhone || 'N/A'}</span>
-                      </div>
-                    </td>
-                    <td style={tdStyle}>
-                      <span style={accountBadgeStyle(u.account_type)}>
-                        {u.account_type === 'boutique' ? '🏪 PRO' : '👤 Particulier'}
-                      </span>
-                    </td>
-                    <td style={tdStyle}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{
-                          fontWeight: '800',
-                          fontSize: '0.85rem',
-                          color: trustScore >= 80 ? '#15803D' : trustScore >= 50 ? '#D97706' : '#B91C1C'
-                        }}>
-                          {trustScore}%
-                        </span>
-                        <div style={{ width: '50px', height: '6px', background: '#F1F5F9', borderRadius: '3px', overflow: 'hidden' }}>
-                          <div style={{
-                            width: `${trustScore}%`,
-                            height: '100%',
-                            background: trustScore >= 80 ? '#16A34A' : trustScore >= 50 ? '#F59E0B' : '#DC2626'
-                          }} />
+                        <div style={{ fontSize: '13px', color: '#0284C7', fontWeight: 700, marginTop: '2px' }}>
+                          🏪 {u.boutique_name}
                         </div>
+                      )}
+                      <div style={{ fontSize: '13px', color: '#64748B', marginTop: '2px' }}>
+                        📞 {rawPhone || 'Pas de numéro'}
                       </div>
-                    </td>
-                    <td style={tdStyle}>
-                      <strong>{u.subscription_plan || 'Gratuit'}</strong>
-                    </td>
-                    <td style={tdStyle}>
-                      {new Date(u.created_at).toLocaleDateString('fr-FR')}
-                    </td>
-                    <td style={tdStyle}>
-                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                        <button
-                          onClick={() => openEditModal(u)}
-                          style={{ padding: '6px 12px', background: '#F1F5F9', border: '1px solid #CBD5E1', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', fontSize: '12px' }}
-                        >
-                          ✏️ Modifier Plan
-                        </button>
-                        {waUrl && (
-                          <a
-                            href={waUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            style={{
-                              padding: '6px 10px',
-                              background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
-                              color: 'white',
-                              borderRadius: '8px',
-                              fontWeight: 800,
-                              fontSize: '11px',
-                              textDecoration: 'none'
-                            }}
-                          >
-                            💬 Contact
-                          </a>
+                    </div>
+                    <span style={accountBadgeStyle(u.account_type)}>
+                      {u.account_type === 'boutique' ? '🏪 PRO' : '👤 Particulier'}
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F8FAFC', padding: '10px 12px', borderRadius: '10px' }}>
+                    <div>
+                      <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 700, textTransform: 'uppercase' }}>Plan Actif</div>
+                      <div style={{ fontSize: '13px', fontWeight: 800, color: '#1E293B' }}>{u.subscription_plan || 'Gratuit'}</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 700, textTransform: 'uppercase' }}>Trust Score</div>
+                      <div style={{ fontSize: '14px', fontWeight: 900, color: trustScore >= 80 ? '#16A34A' : trustScore >= 50 ? '#D97706' : '#DC2626' }}>
+                        {trustScore}%
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    <button
+                      onClick={() => openEditModal(u)}
+                      style={{ flex: 1, padding: '10px', background: '#F1F5F9', border: '1px solid #CBD5E1', borderRadius: '10px', fontWeight: 700, cursor: 'pointer', fontSize: '12px' }}
+                    >
+                      ✏️ Plan
+                    </button>
+                    {waUrl && (
+                      <a
+                        href={waUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{
+                          flex: 1,
+                          padding: '10px',
+                          background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
+                          color: 'white',
+                          borderRadius: '10px',
+                          fontWeight: 800,
+                          fontSize: '12px',
+                          textDecoration: 'none',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '4px'
+                        }}
+                      >
+                        💬 Contact
+                      </a>
+                    )}
+                    {onDeleteUser && (
+                      <button
+                        onClick={() => onDeleteUser(u.id, u.full_name)}
+                        style={{ padding: '10px 12px', background: '#FEE2E2', color: '#DC2626', border: '1px solid #FCA5A5', borderRadius: '10px', fontWeight: 800, cursor: 'pointer', fontSize: '12px' }}
+                      >
+                        🗑️ Supprimer
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* DESKTOP TABLE VIEW */}
+          <div className="desktop-only-payments" style={{ background: 'white', borderRadius: '16px', overflowX: 'auto', border: '1px solid #E2E8F0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
+            <table style={{ width: '100%', minWidth: '700px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
+              <thead style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0', color: '#64748B' }}>
+                <tr>
+                  <th style={thStyle}>Utilisateur</th>
+                  <th style={thStyle}>Contact</th>
+                  <th style={thStyle}>Type Compte</th>
+                  <th style={thStyle}>Trust Index</th>
+                  <th style={thStyle}>Forfait Actif</th>
+                  <th style={thStyle}>Inscription</th>
+                  <th style={thStyle}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredUsers.map((u) => {
+                  const trustScore = calculateTrustScore(u);
+                  const rawPhone = u.whatsapp_number || u.phone_number || '';
+                  const cleanPhone = rawPhone.replace(/\D/g, '');
+                  const waPhone = cleanPhone.length === 9 ? `221${cleanPhone}` : cleanPhone;
+                  const waMsg = encodeURIComponent(`Bonjour ${u.full_name || 'Utilisateur'} ! Équipe Colobane Market.`);
+                  const waUrl = waPhone ? `https://wa.me/${waPhone}?text=${waMsg}` : null;
+
+                  return (
+                    <tr key={u.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                      <td style={tdStyle}>
+                        <strong>{u.full_name || 'Anonyme'}</strong>
+                        {u.boutique_name && (
+                          <div style={{ fontSize: '0.75rem', color: '#64748B' }}>🏪 {u.boutique_name}</div>
                         )}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
+                      </td>
+                      <td style={tdStyle}>
+                        <small style={{ color: '#64748B' }}>{rawPhone || 'N/A'}</small>
+                      </td>
+                      <td style={tdStyle}>
+                        <span style={accountBadgeStyle(u.account_type)}>
+                          {u.account_type === 'boutique' ? '🏪 PRO' : '👤 Particulier'}
+                        </span>
+                      </td>
+                      <td style={tdStyle}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{
+                            fontWeight: '800',
+                            fontSize: '0.85rem',
+                            color: trustScore >= 80 ? '#15803D' : trustScore >= 50 ? '#D97706' : '#B91C1C'
+                          }}>
+                            {trustScore}%
+                          </span>
+                          <div style={{ width: '50px', height: '6px', background: '#F1F5F9', borderRadius: '3px', overflow: 'hidden' }}>
+                            <div style={{
+                              width: `${trustScore}%`,
+                              height: '100%',
+                              background: trustScore >= 80 ? '#16A34A' : trustScore >= 50 ? '#F59E0B' : '#DC2626'
+                            }} />
+                          </div>
+                        </div>
+                      </td>
+                      <td style={tdStyle}>
+                        <strong>{u.subscription_plan || 'Gratuit'}</strong>
+                      </td>
+                      <td style={tdStyle}>
+                        {new Date(u.created_at).toLocaleDateString('fr-FR')}
+                      </td>
+                      <td style={tdStyle}>
+                        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                          <button
+                            onClick={() => openEditModal(u)}
+                            style={{ padding: '6px 12px', background: '#F1F5F9', border: '1px solid #CBD5E1', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', fontSize: '12px' }}
+                          >
+                            ✏️ Modifier Plan
+                          </button>
+                          {waUrl && (
+                            <a
+                              href={waUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              style={{
+                                padding: '6px 10px',
+                                background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
+                                color: 'white',
+                                borderRadius: '8px',
+                                fontWeight: 800,
+                                fontSize: '11px',
+                                textDecoration: 'none'
+                              }}
+                            >
+                              💬 Contact
+                            </a>
+                          )}
+                          {onDeleteUser && (
+                            <button
+                              onClick={() => onDeleteUser(u.id, u.full_name)}
+                              style={{ padding: '6px 10px', background: '#FEE2E2', color: '#DC2626', border: '1px solid #FCA5A5', borderRadius: '8px', fontWeight: 800, cursor: 'pointer', fontSize: '11px' }}
+                            >
+                              🗑️ Supprimer
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
 
       {/* Modal Edition */}
       {editingUser && (

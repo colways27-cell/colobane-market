@@ -31,8 +31,20 @@ const AdminPage = () => {
   const fetchAllData = async () => {
     setLoading(true);
     try {
-      const [payRes, usersRes, boutRes, boostRes, certRes, reqRes, prodRes, reportsRes] = await Promise.all([
-        supabase.from('payment_requests').select('*, profiles(full_name, phone_number)').order('created_at', { ascending: false }),
+      let payRes = await supabase
+        .from('payment_requests')
+        .select('*, profiles(full_name, phone_number)')
+        .order('created_at', { ascending: false });
+
+      if (payRes.error) {
+        console.warn('Join query on payment_requests failed, trying fallback select:', payRes.error);
+        payRes = await supabase
+          .from('payment_requests')
+          .select('*')
+          .order('created_at', { ascending: false });
+      }
+
+      const [usersRes, boutRes, boostRes, certRes, reqRes, prodRes, reportsRes] = await Promise.all([
         supabase.from('profiles').select('*').order('created_at', { ascending: false }),
         supabase.from('profiles').select('*').eq('account_type', 'boutique').order('created_at', { ascending: false }),
         supabase.from('products').select('id, title, seller_id, is_boosted, boost_end_date, images, profiles(full_name, boutique_name, phone_number)').eq('is_boosted', true).order('boost_end_date', { ascending: true }),
@@ -58,15 +70,50 @@ const AdminPage = () => {
     }
   };
 
+  const ADMIN_EMAILS = ['colways27@gmail.com', 'admin@colobanemarket.com'];
+
   const checkAdminAccess = async () => {
     setLoading(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setIsAdmin(false);
+        setLoading(false);
+        return;
+      }
+      const isEmailAdmin = user.email && ADMIN_EMAILS.includes(user.email.toLowerCase().trim());
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('is_admin')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      const hasAdminRights = !!profile?.is_admin || isEmailAdmin;
+
+      if (!hasAdminRights) {
+        setIsAdmin(false);
+        setLoading(false);
+        return;
+      }
+
+      // Auto update DB profile if missing is_admin
+      if (!profile?.is_admin && user.id) {
+        supabase.from('profiles').upsert({ id: user.id, is_admin: true }, { onConflict: 'id' }).then(() => {});
+      }
+
       setIsAdmin(true);
       await fetchAllData();
     } catch (err) {
       console.error(err);
-      setIsAdmin(true);
-      setLoading(false);
+      const { data: { user } } = await supabase.auth.getUser();
+      const isEmailAdmin = user?.email && ADMIN_EMAILS.includes(user.email.toLowerCase().trim());
+      if (isEmailAdmin) {
+        setIsAdmin(true);
+        await fetchAllData();
+      } else {
+        setIsAdmin(false);
+        setLoading(false);
+      }
     }
   };
 
@@ -206,6 +253,30 @@ const AdminPage = () => {
       toast.error('Erreur de mise à jour', { id: 'update-user' });
     } finally {
       setUpdatingUser(false);
+    }
+  };
+
+  const handleDeleteUser = async (userId, userName) => {
+    if (!window.confirm(`⚠️ ATTENTION : Êtes-vous sûr de vouloir SUPPRIMER DÉFINITIVEMENT l'utilisateur "${userName || 'sélectionné'}" ?\n\nToutes ses annonces et ses demandes de paiement seront effacées. Cette action est IRRÉVERSIBLE.`)) {
+      return;
+    }
+    toast.loading('Suppression du compte...', { id: 'delete-user' });
+    try {
+      // 1. Supprimer les annonces créées par l'utilisateur
+      await supabase.from('products').delete().eq('seller_id', userId);
+
+      // 2. Supprimer les demandes de paiement
+      await supabase.from('payment_requests').delete().eq('user_id', userId);
+
+      // 3. Supprimer le profil utilisateur
+      const { error } = await supabase.from('profiles').delete().eq('id', userId);
+      if (error) throw error;
+
+      toast.success('✅ Compte supprimé avec succès !', { id: 'delete-user' });
+      fetchAllData();
+    } catch (err) {
+      console.error(err);
+      toast.error('Erreur lors de la suppression: ' + (err.message || 'Impossible'), { id: 'delete-user' });
     }
   };
 
@@ -413,6 +484,7 @@ const AdminPage = () => {
           <UserManagementTab
             utilisateurs={utilisateurs}
             onUpdateUserPlan={handleUpdateUserPlan}
+            onDeleteUser={handleDeleteUser}
             updatingUser={updatingUser}
           />
         )}

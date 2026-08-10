@@ -169,109 +169,205 @@ const PaymentRequestsTab = ({
         </select>
       </div>
 
-      {/* Table */}
-      <div style={{ background: 'white', borderRadius: '16px', overflow: 'hidden', border: '1px solid #E2E8F0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
-          <thead style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0', color: '#64748B' }}>
-            <tr>
-              <th style={thStyle}>Date</th>
-              <th style={thStyle}>Vendeur</th>
-              <th style={thStyle}>Formule / Offre</th>
-              <th style={thStyle}>Montant</th>
-              <th style={thStyle}>Trans. ID / Reçu</th>
-              <th style={thStyle}>Statut</th>
-              <th style={thStyle}>Actions & WhatsApp Templates</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredList.length === 0 ? (
-              <tr>
-                <td colSpan={7} style={{ padding: '30px', textAlign: 'center', color: '#94A3B8' }}>
-                  Aucune transaction enregistrée.
-                </td>
-              </tr>
-            ) : (
-              filteredList.map((p) => {
-                const rawPhone = p.phone_used || p.phone_number || p.profiles?.phone_number || '';
-                const confirmUrl = getWaLink(p, 'confirm');
+      {/* Responsive List Container */}
+      {filteredList.length === 0 ? (
+        <div style={{ background: 'white', borderRadius: '16px', padding: '40px', textAlign: 'center', color: '#94A3B8', border: '1px solid #E2E8F0' }}>
+          Aucune transaction enregistrée.
+        </div>
+      ) : (
+        <>
+          {/* MOBILE CARDS VIEW (Displayed on mobile screens) */}
+          <div className="mobile-only-payments" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {filteredList.map((p) => {
+              const rawPhone = p.phone_used || p.phone_number || p.profiles?.phone_number || '';
+              return (
+                <div
+                  key={p.id}
+                  style={{
+                    background: 'white',
+                    borderRadius: '16px',
+                    padding: '16px',
+                    border: '1px solid #E2E8F0',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '10px'
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div>
+                      <div style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A' }}>
+                        {p.profiles?.full_name || 'Utilisateur'}
+                      </div>
+                      <div style={{ fontSize: '13px', color: '#64748B', marginTop: '2px' }}>
+                        📞 {rawPhone || 'Pas de numéro'}
+                      </div>
+                    </div>
+                    <span style={statusBadgeStyle(p.status)}>
+                      {p.status === 'approved' ? '✅ Validé' : p.status === 'rejected' ? '❌ Refusé' : '⏳ En attente'}
+                    </span>
+                  </div>
 
-                return (
-                  <tr key={p.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
-                    <td style={tdStyle}>{new Date(p.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</td>
-                    <td style={tdStyle}>
-                      <strong>{p.profiles?.full_name || 'Utilisateur'}</strong>
-                      <br />
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F8FAFC', padding: '10px 12px', borderRadius: '10px' }}>
+                    <div>
+                      <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 700, textTransform: 'uppercase' }}>Offre</div>
+                      <div style={{ fontSize: '13px', fontWeight: 800, color: '#1E293B' }}>{formatPlanType(p.plan_type)}</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 700, textTransform: 'uppercase' }}>Montant</div>
+                      <div style={{ fontSize: '15px', fontWeight: 900, color: '#059669' }}>{p.amount ? `${p.amount} FCFA` : '—'}</div>
+                    </div>
+                  </div>
+
+                  <div style={{ fontSize: '11px', color: '#94A3B8', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>📅 {new Date(p.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                    {p.proof_url && (
+                      <button
+                        onClick={() => onZoomImage(p.proof_url)}
+                        style={{ padding: '4px 8px', fontSize: '0.75rem', borderRadius: '6px', border: '1px solid #CBD5E1', background: '#F1F5F9', cursor: 'pointer' }}
+                      >
+                        🖼️ Reçu
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Actions */}
+                  <div style={{ display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
+                    {p.status === 'pending' && (
+                      <>
+                        <button
+                          onClick={() => onValiderPaiement(p)}
+                          style={{ flex: 1, padding: '10px', background: '#16A34A', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 800, cursor: 'pointer', fontSize: '13px' }}
+                        >
+                          ✓ Valider
+                        </button>
+                        <button
+                          onClick={() => onRefuserPaiement(p.id)}
+                          style={{ flex: 1, padding: '10px', background: '#DC2626', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 800, cursor: 'pointer', fontSize: '13px' }}
+                        >
+                          ✕ Refuser
+                        </button>
+                      </>
+                    )}
+                    <button
+                      onClick={() => setSelectedTemplatePaiement(p)}
+                      style={{
+                        flex: 1,
+                        padding: '10px',
+                        background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '10px',
+                        fontWeight: 800,
+                        fontSize: '12px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '4px'
+                      }}
+                    >
+                      💬 WhatsApp
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* DESKTOP TABLE VIEW (With horizontal scroll wrapper) */}
+          <div className="desktop-only-payments" style={{ background: 'white', borderRadius: '16px', overflowX: 'auto', border: '1px solid #E2E8F0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
+            <table style={{ width: '100%', minWidth: '700px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
+              <thead style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0', color: '#64748B' }}>
+                <tr>
+                  <th style={thStyle}>Date</th>
+                  <th style={thStyle}>Vendeur</th>
+                  <th style={thStyle}>Formule / Offre</th>
+                  <th style={thStyle}>Montant</th>
+                  <th style={thStyle}>Trans. ID / Reçu</th>
+                  <th style={thStyle}>Statut</th>
+                  <th style={thStyle}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredList.map((p) => {
+                  const rawPhone = p.phone_used || p.phone_number || p.profiles?.phone_number || '';
+                  return (
+                    <tr key={p.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                      <td style={tdStyle}>{new Date(p.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</td>
+                      <td style={tdStyle}>
+                        <strong>{p.profiles?.full_name || 'Utilisateur'}</strong>
+                        <br />
                         <small style={{ color: '#64748B' }}>{rawPhone || 'N/A'}</small>
-                      </div>
-                    </td>
-                    <td style={tdStyle}>
-                      <span style={{ fontWeight: '700', color: '#1E293B' }}>{formatPlanType(p.plan_type)}</span>
-                    </td>
-                    <td style={tdStyle}>
-                      <strong style={{ color: '#059669' }}>{p.amount ? `${p.amount} FCFA` : '—'}</strong>
-                    </td>
-                    <td style={tdStyle}>
-                      <code>{p.transaction_id || 'N/A'}</code>
-                      {p.proof_url && (
-                        <button
-                          onClick={() => onZoomImage(p.proof_url)}
-                          style={{ marginLeft: '8px', padding: '4px 8px', fontSize: '0.75rem', borderRadius: '6px', border: '1px solid #CBD5E1', background: '#F8FAFC', cursor: 'pointer' }}
-                        >
-                          🖼️ Voir Reçu
-                        </button>
-                      )}
-                    </td>
-                    <td style={tdStyle}>
-                      <span style={statusBadgeStyle(p.status)}>
-                        {p.status === 'approved' ? '✅ Validé' : p.status === 'rejected' ? '❌ Refusé' : '⏳ En attente'}
-                      </span>
-                    </td>
-                    <td style={tdStyle}>
-                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
-                        {p.status === 'pending' && (
-                          <>
-                            <button
-                              onClick={() => onValiderPaiement(p)}
-                              style={{ padding: '6px 12px', background: '#16A34A', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', fontSize: '12px' }}
-                            >
-                              Valider
-                            </button>
-                            <button
-                              onClick={() => onRefuserPaiement(p.id)}
-                              style={{ padding: '6px 10px', background: '#DC2626', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', fontSize: '12px' }}
-                            >
-                              Refuser
-                            </button>
-                          </>
+                      </td>
+                      <td style={tdStyle}>
+                        <span style={{ fontWeight: '700', color: '#1E293B' }}>{formatPlanType(p.plan_type)}</span>
+                      </td>
+                      <td style={tdStyle}>
+                        <strong style={{ color: '#059669' }}>{p.amount ? `${p.amount} FCFA` : '—'}</strong>
+                      </td>
+                      <td style={tdStyle}>
+                        <code>{p.transaction_id || 'N/A'}</code>
+                        {p.proof_url && (
+                          <button
+                            onClick={() => onZoomImage(p.proof_url)}
+                            style={{ marginLeft: '8px', padding: '4px 8px', fontSize: '0.75rem', borderRadius: '6px', border: '1px solid #CBD5E1', background: '#F8FAFC', cursor: 'pointer' }}
+                          >
+                            🖼️ Reçu
+                          </button>
                         )}
-                        <button
-                          onClick={() => setSelectedTemplatePaiement(p)}
-                          style={{
-                            padding: '6px 10px',
-                            background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '8px',
-                            fontWeight: 800,
-                            fontSize: '11px',
-                            cursor: 'pointer',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '4px'
-                          }}
-                        >
-                          💬 Modèles WhatsApp
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
+                      </td>
+                      <td style={tdStyle}>
+                        <span style={statusBadgeStyle(p.status)}>
+                          {p.status === 'approved' ? '✅ Validé' : p.status === 'rejected' ? '❌ Refusé' : '⏳ En attente'}
+                        </span>
+                      </td>
+                      <td style={tdStyle}>
+                        <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+                          {p.status === 'pending' && (
+                            <>
+                              <button
+                                onClick={() => onValiderPaiement(p)}
+                                style={{ padding: '6px 12px', background: '#16A34A', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', fontSize: '12px' }}
+                              >
+                                Valider
+                              </button>
+                              <button
+                                onClick={() => onRefuserPaiement(p.id)}
+                                style={{ padding: '6px 10px', background: '#DC2626', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', fontSize: '12px' }}
+                              >
+                                Refuser
+                              </button>
+                            </>
+                          )}
+                          <button
+                            onClick={() => setSelectedTemplatePaiement(p)}
+                            style={{
+                              padding: '6px 10px',
+                              background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '8px',
+                              fontWeight: 800,
+                              fontSize: '11px',
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}
+                          >
+                            💬 WhatsApp
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
 
       {/* WhatsApp Template Selector Modal */}
       {selectedTemplatePaiement && (

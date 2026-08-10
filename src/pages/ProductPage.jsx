@@ -58,12 +58,20 @@ const ProductPage = () => {
         const viewKey = `viewed_${productId}`;
         if (!sessionStorage.getItem(viewKey) && (!user || user.id !== data.seller_id)) {
           sessionStorage.setItem(viewKey, 'true');
-          const newViews = (data.views_count || 0) + 1;
+          // Incrément atomique côté serveur pour éviter les race conditions
           supabase
-            .from('products')
-            .update({ views_count: newViews })
-            .eq('id', productId)
-            .then(() => {})
+            .rpc('increment_views', { product_id: productId })
+            .then(({ error }) => {
+              // Fallback si la fonction RPC n'existe pas encore
+              if (error) {
+                supabase
+                  .from('products')
+                  .update({ views_count: (data.views_count || 0) + 1 })
+                  .eq('id', productId)
+                  .then(() => {})
+                  .catch(console.error);
+              }
+            })
             .catch(console.error);
         }
 

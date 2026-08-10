@@ -2,22 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 
-const senegalLocations = {
-  "Dakar": ["Dakar Plateau", "Médina", "Fass-Colobane", "Point E", "Almadies", "Ngor", "Yoff", "Ouakam", "Mermoz-Sacré-Cœur", "Grand Dakar", "HLM", "Sicap-Liberté", "Dieuppeul-Derklé", "Parcelles Assainies", "Patte d'Oie", "Grand Yoff", "Pikine", "Guédiawaye", "Rufisque", "Keur Massar", "Diamniadio", "Sébikotane"],
-  "Thiès": ["Thiès Ville", "Mbour", "Saly Portudal", "Somone", "Ngaparou", "Popenguine", "Tivaouane", "Joal-Fadiouth"],
-  "Diourbel": ["Touba", "Mbacké", "Diourbel", "Bambey"],
-  "Saint-Louis": ["Saint-Louis Ville", "Richard-Toll", "Dagana", "Podor"],
-  "Ziguinchor": ["Ziguinchor Ville", "Bignona", "Cap Skirring", "Oussouye"],
-  "Kaolack": ["Kaolack Ville", "Nioro du Rip", "Guinguinéo"],
-  "Fatick": ["Fatick Ville", "Foundiougne", "Sokone"],
-  "Louga": ["Louga Ville", "Kébémer", "Linguère"],
-  "Kolda": ["Kolda Ville", "Vélingara"],
-  "Tambacounda": ["Tambacounda Ville", "Bakel", "Goudiry"],
-  "Kédougou": ["Kédougou Ville", "Saraya"],
-  "Matam": ["Matam Ville", "Ourossogui", "Kanel"],
-  "Kaffrine": ["Kaffrine Ville", "Koungheul"],
-  "Sédhiou": ["Sédhiou Ville", "Goudomp"]
-};
+import { senegalRegions as senegalLocations } from '../data/locations';
 
 const InputWrapper = ({ icon, children, label }) => (
   <div style={{ marginBottom: '1rem' }}>

@@ -111,11 +111,27 @@ const Navbar = () => {
         }
       }
 
+      const readNotifIds = JSON.parse(localStorage.getItem('colobane_read_notifs') || '[]');
+      const unreadNotifs = notifs.filter(n => !readNotifIds.includes(n.id));
+
       setNotifications(notifs);
-      setUnreadCount(notifs.length);
+      setUnreadCount(unreadNotifs.length);
     } catch (err) {
       console.error('Fetch notifications error:', err);
     }
+  };
+
+  const handleToggleNotifications = () => {
+    setShowNotificationsDrawer(prev => {
+      const nextState = !prev;
+      if (nextState && notifications.length > 0) {
+        const readNotifIds = JSON.parse(localStorage.getItem('colobane_read_notifs') || '[]');
+        const newReadIds = Array.from(new Set([...readNotifIds, ...notifications.map(n => n.id)]));
+        localStorage.setItem('colobane_read_notifs', JSON.stringify(newReadIds));
+        setUnreadCount(0);
+      }
+      return nextState;
+    });
   };
 
   const handleLogout = async () => {
@@ -139,7 +155,7 @@ const Navbar = () => {
           <span>📡 Mode Hors-Ligne Actif — Navigation sur le contenu en cache PWA</span>
         </div>
       )}
-      <header className="navbar-header" style={{ position: 'sticky', top: 0, zIndex: 100, background: theme === 'dark' ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.96)', backdropFilter: 'blur(12px)', borderBottom: theme === 'dark' ? '1px solid #1E293B' : '1px solid #E2E8F0', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
+      <header className="navbar-header" style={{ position: 'sticky', top: 0, zIndex: 9999, background: theme === 'dark' ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.96)', backdropFilter: 'blur(12px)', borderBottom: theme === 'dark' ? '1px solid #1E293B' : '1px solid #E2E8F0', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
         <div className="section-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '72px', padding: '0 1rem' }}>
           
           {/* Left: Logo */}
@@ -245,7 +261,7 @@ const Navbar = () => {
             {user && (
               <div style={{ position: 'relative' }}>
                 <button
-                  onClick={() => setShowNotificationsDrawer(prev => !prev)}
+                  onClick={handleToggleNotifications}
                   className="active-scale"
                   style={{
                     background: theme === 'dark' ? '#27272a' : '#F8FAFC',
@@ -289,13 +305,14 @@ const Navbar = () => {
                   <div style={{
                     position: 'absolute',
                     top: '48px',
-                    right: 0,
+                    right: '-10px',
                     width: '320px',
+                    maxWidth: 'calc(100vw - 24px)',
                     background: theme === 'dark' ? '#18181b' : '#FFFFFF',
                     borderRadius: '20px',
                     border: theme === 'dark' ? '1px solid #334155' : '1px solid #E2E8F0',
-                    boxShadow: theme === 'dark' ? '0 20px 40px rgba(0,0,0,0.5)' : '0 20px 40px rgba(0,0,0,0.15)',
-                    zIndex: 1000,
+                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4)',
+                    zIndex: 100000,
                     padding: '16px',
                     overflow: 'hidden'
                   }}>
@@ -348,26 +365,7 @@ const Navbar = () => {
               </div>
             )}
 
-            {isAdmin && (
-              <Link
-                to="/admin"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  textDecoration: 'none',
-                  color: '#BE123C',
-                  background: '#FFF1F2',
-                  padding: '6px 12px',
-                  borderRadius: '20px',
-                  fontWeight: 800,
-                  fontSize: '12px',
-                  border: '1px solid #FECDD3'
-                }}
-              >
-                <span>🛡️</span> Admin
-              </Link>
-            )}
+
 
             <Link to={user ? "/profile" : "/auth"} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none', color: 'var(--text-main)' }}>
               <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: theme === 'dark' ? '#27272a' : '#F8FAFC', border: theme === 'dark' ? '1px solid #334155' : '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

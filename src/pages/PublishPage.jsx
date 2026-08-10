@@ -11,7 +11,8 @@ import {
   checkIsUserSuspendedForModeration 
 } from '../utils/advancedModeration';
 
-const locations = ['Dakar', 'Pikine', 'Guédiawaye', 'Rufisque', 'Thiès', 'Saint-Louis', 'Touba', 'Kaolack', 'Ziguinchor', 'Mbour', 'Louga', 'Tambacounda', 'Autre'];
+import { locationsList as locations } from '../data/locations';
+
 const deliveries = ['Livraison Express (Tiak-Tiak)', 'Dakar uniquement', 'Point Relais (Dakar)', 'Expédition Régions', 'Aucune'];
 
 const categoryKeywords = {

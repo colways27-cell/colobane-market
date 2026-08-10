@@ -1,7 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
+
+import imageCompression from 'browser-image-compression';
+import { TOP_REELS_SOUNDS } from '../data/reelsSounds';
 
 const ReelsPage = () => {
   const navigate = useNavigate();
@@ -14,8 +17,14 @@ const ReelsPage = () => {
   const [tapIcon, setTapIcon] = useState('⏸️');
   const [likedMap, setLikedMap] = useState({});
   const [likesCountMap, setLikesCountMap] = useState({});
+  const [videoErrorMap, setVideoErrorMap] = useState({});
   const containerRef = useRef(null);
   const videoRefs = useRef({});
+
+  const handleVideoError = (productId) => {
+    console.warn(`Video playback error for reel ${productId}, falling back to image.`);
+    setVideoErrorMap(prev => ({ ...prev, [productId]: true }));
+  };
 
   // Reel Express Modal State
   const [user, setUser] = useState(null);
@@ -25,11 +34,63 @@ const ReelsPage = () => {
   const [showWaveModal, setShowWaveModal] = useState(false);
   const [reelTitle, setReelTitle] = useState('');
   const [reelPrice, setReelPrice] = useState('');
-  const [reelVideoUrl, setReelVideoUrl] = useState('');
   const [reelPhone, setReelPhone] = useState('');
-  const [isUploadingMedia, setIsUploadingMedia] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [wavePhoneInput, setWavePhoneInput] = useState('');
+
+  // Media Selection State (Video vs Photos)
+  const [mediaMode, setMediaMode] = useState('video'); // 'video' | 'photos'
+  const [reelVideoFile, setReelVideoFile] = useState(null);
+  const [reelImageFiles, setReelImageFiles] = useState([]);
+  const [reelMediaPreviews, setReelMediaPreviews] = useState([]);
+
+  // Top Sounds State
+  const [selectedSound, setSelectedSound] = useState(TOP_REELS_SOUNDS[0]);
+  const [previewSoundId, setPreviewSoundId] = useState(null);
+  const [customAudioFile, setCustomAudioFile] = useState(null);
+  const [customAudioName, setCustomAudioName] = useState('');
+  const previewAudioRef = useRef(null);
+  const bgAudioRef = useRef(null);
+
+  // 📹 Camera Recording State
+  const MAX_RECORD_SECONDS = 60;
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordTimeLeft, setRecordTimeLeft] = useState(MAX_RECORD_SECONDS);
+  const [cameraFacing, setCameraFacing] = useState('environment'); // 'user' | 'environment'
+  const cameraVideoRef = useRef(null);
+  const mediaStreamRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const recordedChunksRef = useRef([]);
+  const recordTimerRef = useRef(null);
+
+  // Auto-play background sound track when active Reel changes
+  useEffect(() => {
+    if (products.length === 0) return;
+    const activeProduct = products[activeIndex];
+    if (!activeProduct) return;
+
+    const soundUrl = activeProduct.metadata?.sound_url;
+
+    if (bgAudioRef.current) {
+      bgAudioRef.current.pause();
+      bgAudioRef.current = null;
+    }
+
+    if (soundUrl && !isMuted) {
+      const audio = new Audio(soundUrl);
+      audio.loop = true;
+      audio.play().catch(_e => {});
+      bgAudioRef.current = audio;
+    }
+
+    return () => {
+      if (bgAudioRef.current) {
+        bgAudioRef.current.pause();
+        bgAudioRef.current = null;
+      }
+    };
+  }, [activeIndex, products, isMuted]);
 
   // Demo videos fallbacks in case products don't have video files yet
   const sampleVideos = [
@@ -154,19 +215,41 @@ const ReelsPage = () => {
             is_verified
           )
         `)
-        .order('is_boosted', { ascending: false })
-        .order('views_count', { ascending: false })
-        .limit(12);
+        .order('created_at', { ascending: false })
+        .limit(30);
 
       if (error) throw error;
 
       if (data && data.length > 0) {
         setProducts(data);
-        const initialLikes = {};
-        data.forEach(p => {
-          initialLikes[p.id] = Math.floor(Math.random() * 45) + 12;
+
+        // Charger les vrais compteurs de likes depuis la table favorites
+        const productIds = data.map(p => p.id);
+        const likesPromises = productIds.map(async (pid) => {
+          const { count } = await supabase
+            .from('favorites')
+            .select('*', { count: 'exact', head: true })
+            .eq('product_id', pid);
+          return { id: pid, count: count || 0 };
         });
-        setLikesCountMap(initialLikes);
+        const likesResults = await Promise.all(likesPromises);
+        const countsMap = {};
+        likesResults.forEach(r => { countsMap[r.id] = r.count; });
+        setLikesCountMap(countsMap);
+
+        // Charger l'état liké de l'utilisateur connecté
+        if (user) {
+          const { data: userFavs } = await supabase
+            .from('favorites')
+            .select('product_id')
+            .eq('user_id', user.id)
+            .in('product_id', productIds);
+          if (userFavs) {
+            const likedState = {};
+            userFavs.forEach(f => { likedState[f.product_id] = true; });
+            setLikedMap(likedState);
+          }
+        }
       }
     } catch (err) {
       console.error('Error fetching reels:', err);
@@ -175,22 +258,209 @@ const ReelsPage = () => {
     }
   };
 
-  const [reelMediaFile, setReelMediaFile] = useState(null);
-
-  const handleMediaUpload = (e) => {
-    const file = e.target.files[0];
+  const handleVideoUpload = (e) => {
+    const file = e.target.files?.[0];
     if (!file) return;
 
     if (file.size > 50 * 1024 * 1024) {
-      toast.error("Le fichier vidéo ne doit pas dépasser 50 Mo.");
+      toast.error("La vidéo ne doit pas dépasser 50 Mo.");
       return;
     }
 
-    setReelMediaFile(file);
+    setReelVideoFile(file);
     const localUrl = URL.createObjectURL(file);
-    setReelVideoUrl(localUrl);
-    toast.success("📱 Média vidéo chargé avec succès !");
+    setReelMediaPreviews([localUrl]);
+    toast.success("📱 Vidéo chargée avec succès !");
   };
+
+  const handleImagesUpload = (e) => {
+    const files = Array.from(e.target.files || []).slice(0, 3);
+    if (files.length === 0) return;
+
+    const oversized = files.some(f => f.size > 15 * 1024 * 1024);
+    if (oversized) {
+      toast.error("Chaque image ne doit pas dépasser 15 Mo.");
+      return;
+    }
+
+    const localUrls = files.map(f => URL.createObjectURL(f));
+    setReelImageFiles(files);
+    setReelMediaPreviews(localUrls);
+    toast.success(`🖼️ ${files.length} photo(s) chargée(s) avec succès !`);
+  };
+
+  const handleCustomAudioUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 25 * 1024 * 1024) {
+      toast.error("L'audio ne doit pas dépasser 25 Mo.");
+      return;
+    }
+
+    setCustomAudioFile(file);
+    setCustomAudioName(file.name);
+    const localUrl = URL.createObjectURL(file);
+    setSelectedSound({
+      id: 'custom_audio',
+      title: `🎙️ ${file.name.replace(/\.[^/.]+$/, "").substring(0, 24)}`,
+      artist: userProfile?.full_name || 'Vendeur Colobane',
+      url: localUrl,
+      icon: '🎙️'
+    });
+    toast.success("🎙️ Son audio / Voix-Off personnalisé chargé avec succès !");
+  };
+
+  // ═══════════════════════════════════════════
+  // 📹 CAMERA RECORDING FUNCTIONS
+  // ═══════════════════════════════════════════
+  const openCamera = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: cameraFacing, width: { ideal: 1080 }, height: { ideal: 1920 } },
+        audio: true
+      });
+      mediaStreamRef.current = stream;
+      if (cameraVideoRef.current) {
+        cameraVideoRef.current.srcObject = stream;
+        cameraVideoRef.current.play();
+      }
+      setIsCameraOpen(true);
+      setRecordTimeLeft(MAX_RECORD_SECONDS);
+      toast.success("📹 Caméra ouverte ! Appuyez sur le bouton rouge pour filmer.");
+    } catch (err) {
+      console.error('Camera error:', err);
+      toast.error("Impossible d'accéder à la caméra. Vérifiez vos permissions.");
+    }
+  }, [cameraFacing]);
+
+  const closeCamera = useCallback(() => {
+    // Stop all tracks
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach(t => t.stop());
+      mediaStreamRef.current = null;
+    }
+    // Clear timer
+    if (recordTimerRef.current) {
+      clearInterval(recordTimerRef.current);
+      recordTimerRef.current = null;
+    }
+    // Reset recorder
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      try { mediaRecorderRef.current.stop(); } catch (_) {}
+    }
+    mediaRecorderRef.current = null;
+    recordedChunksRef.current = [];
+    setIsCameraOpen(false);
+    setIsRecording(false);
+    setRecordTimeLeft(MAX_RECORD_SECONDS);
+  }, []);
+
+  const startRecording = useCallback(() => {
+    if (!mediaStreamRef.current) return;
+
+    recordedChunksRef.current = [];
+    const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')
+      ? 'video/webm;codecs=vp9,opus'
+      : MediaRecorder.isTypeSupported('video/webm')
+        ? 'video/webm'
+        : 'video/mp4';
+    const recorder = new MediaRecorder(mediaStreamRef.current, { mimeType });
+
+    recorder.ondataavailable = (e) => {
+      if (e.data && e.data.size > 0) {
+        recordedChunksRef.current.push(e.data);
+      }
+    };
+
+    recorder.onstop = () => {
+      // Build the file from recorded chunks
+      const blob = new Blob(recordedChunksRef.current, { type: mimeType });
+      const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
+      const file = new File([blob], `reel-camera-${Date.now()}.${ext}`, { type: mimeType });
+
+      if (file.size > 50 * 1024 * 1024) {
+        toast.error("La vidéo filmée dépasse 50 Mo. Essayez une durée plus courte.");
+        return;
+      }
+
+      // Use the same flow as handleVideoUpload
+      setReelVideoFile(file);
+      const localUrl = URL.createObjectURL(file);
+      setReelMediaPreviews([localUrl]);
+      setMediaMode('video');
+      toast.success(`📹 Vidéo de ${MAX_RECORD_SECONDS - recordTimeLeft}s enregistrée !`);
+
+      // Close camera after saving
+      if (mediaStreamRef.current) {
+        mediaStreamRef.current.getTracks().forEach(t => t.stop());
+        mediaStreamRef.current = null;
+      }
+      setIsCameraOpen(false);
+      setIsRecording(false);
+    };
+
+    recorder.start(200); // Collect data every 200ms
+    mediaRecorderRef.current = recorder;
+    setIsRecording(true);
+    setRecordTimeLeft(MAX_RECORD_SECONDS);
+
+    // Countdown timer
+    recordTimerRef.current = setInterval(() => {
+      setRecordTimeLeft(prev => {
+        if (prev <= 1) {
+          // Auto-stop when time runs out
+          clearInterval(recordTimerRef.current);
+          recordTimerRef.current = null;
+          if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+            mediaRecorderRef.current.stop();
+          }
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, [recordTimeLeft]);
+
+  const stopRecording = useCallback(() => {
+    if (recordTimerRef.current) {
+      clearInterval(recordTimerRef.current);
+      recordTimerRef.current = null;
+    }
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+      mediaRecorderRef.current.stop();
+    }
+    setIsRecording(false);
+  }, []);
+
+  const flipCamera = useCallback(() => {
+    const newFacing = cameraFacing === 'environment' ? 'user' : 'environment';
+    setCameraFacing(newFacing);
+    // Re-open camera with new facing
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach(t => t.stop());
+    }
+    navigator.mediaDevices.getUserMedia({
+      video: { facingMode: newFacing, width: { ideal: 1080 }, height: { ideal: 1920 } },
+      audio: true
+    }).then(stream => {
+      mediaStreamRef.current = stream;
+      if (cameraVideoRef.current) {
+        cameraVideoRef.current.srcObject = stream;
+        cameraVideoRef.current.play();
+      }
+    }).catch(() => toast.error("Impossible de changer de caméra."));
+  }, [cameraFacing]);
+
+  // Cleanup camera on unmount
+  useEffect(() => {
+    return () => {
+      if (mediaStreamRef.current) {
+        mediaStreamRef.current.getTracks().forEach(t => t.stop());
+      }
+      if (recordTimerRef.current) clearInterval(recordTimerRef.current);
+    };
+  }, []);
 
   const handlePublishReelExpress = async (e) => {
     e.preventDefault();
@@ -199,12 +469,16 @@ const ReelsPage = () => {
       navigate('/auth');
       return;
     }
-    if (!reelVideoUrl) {
-      toast.error("Veuillez importer votre vidéo ou 3 photos.");
-      return;
-    }
     if (!reelTitle.trim()) {
       toast.error("Veuillez saisir un titre court pour le Reel.");
+      return;
+    }
+    if (mediaMode === 'video' && !reelVideoFile) {
+      toast.error("Veuillez choisir une vidéo MP4 / MOV.");
+      return;
+    }
+    if (mediaMode === 'photos' && reelImageFiles.length === 0) {
+      toast.error("Veuillez choisir au moins 1 photo (3 max).");
       return;
     }
 
@@ -225,23 +499,59 @@ const ReelsPage = () => {
       }
     }
 
-    // VIP or Pro under 3 count -> Instant live publish
     setIsPublishing(true);
-    toast.loading("Upload et publication de votre Reel...", { id: 'reel-express' });
+    toast.loading("Upload et publication de votre Reel en cours...", { id: 'reel-express' });
     try {
-      let finalVideoUrl = reelVideoUrl;
+      let uploadedUrls = [];
+      let isVideo = false;
+      let videoUrl = null;
+      let finalSoundUrl = selectedSound.url;
 
-      // Upload actual File to Supabase Storage if local file selected
-      if (reelMediaFile) {
-        const fileExt = reelMediaFile.name.split('.').pop() || 'mp4';
-        const fileName = `reel_${user.id}_${Date.now()}.${fileExt}`;
+      if (customAudioFile) {
+        const fileExt = customAudioFile.name.split('.').pop() || 'mp3';
+        const fileName = `reel_sound_${user.id}_${Date.now()}.${fileExt}`;
         const filePath = `${user.id}/${fileName}`;
-        const { error: uploadErr } = await supabase.storage.from('products').upload(filePath, reelMediaFile, { upsert: true });
+        const { error: soundErr } = await supabase.storage.from('products').upload(filePath, customAudioFile, { upsert: true });
+        if (!soundErr) {
+          const { data: pubData } = supabase.storage.from('products').getPublicUrl(filePath);
+          if (pubData?.publicUrl) {
+            finalSoundUrl = pubData.publicUrl;
+          }
+        }
+      }
+
+      if (mediaMode === 'video' && reelVideoFile) {
+        isVideo = true;
+        const fileExt = reelVideoFile.name.split('.').pop() || 'mp4';
+        const fileName = `reel_vid_${user.id}_${Date.now()}.${fileExt}`;
+        const filePath = `${user.id}/${fileName}`;
+        const { error: uploadErr } = await supabase.storage.from('products').upload(filePath, reelVideoFile, { upsert: true });
         if (uploadErr) throw uploadErr;
 
         const { data: pubData } = supabase.storage.from('products').getPublicUrl(filePath);
         if (pubData?.publicUrl) {
-          finalVideoUrl = pubData.publicUrl;
+          videoUrl = pubData.publicUrl;
+          uploadedUrls = [pubData.publicUrl];
+        }
+      } else if (mediaMode === 'photos' && reelImageFiles.length > 0) {
+        isVideo = false;
+        const options = { maxSizeMB: 0.8, maxWidthOrHeight: 1200, useWebWorker: true };
+        for (const imgFile of reelImageFiles) {
+          let compressed = imgFile;
+          try {
+            compressed = await imageCompression(imgFile, options);
+          } catch (_e) {
+            // Keep original if compression fails
+          }
+          const fileName = `reel_img_${user.id}_${Date.now()}_${Math.random().toString(36).substring(2, 6)}.webp`;
+          const filePath = `${user.id}/${fileName}`;
+          const { error: uploadErr } = await supabase.storage.from('products').upload(filePath, compressed, { upsert: true });
+          if (uploadErr) throw uploadErr;
+
+          const { data: pubData } = supabase.storage.from('products').getPublicUrl(filePath);
+          if (pubData?.publicUrl) {
+            uploadedUrls.push(pubData.publicUrl);
+          }
         }
       }
 
@@ -251,10 +561,15 @@ const ReelsPage = () => {
         price: Number(reelPrice) || 0,
         category: 'reels_express',
         location: userProfile?.city || 'Dakar',
-        images: [finalVideoUrl],
+        images: uploadedUrls,
         metadata: {
-          video_url: finalVideoUrl,
+          is_video: isVideo,
+          video_url: videoUrl,
           is_reel_only: true,
+          sound_id: selectedSound.id,
+          sound_title: selectedSound.title,
+          sound_artist: selectedSound.artist,
+          sound_url: finalSoundUrl,
           contact_whatsapp: reelPhone || userProfile?.whatsapp_number || userProfile?.phone_number || ''
         },
         status: 'available',
@@ -263,12 +578,13 @@ const ReelsPage = () => {
 
       if (error) throw error;
 
-      toast.success("🎬 Reel Express publié avec succès ! Retrouvez-le en direct dans le flux.", { id: 'reel-express' });
+      toast.success("🎬 Reel Express publié avec succès !", { id: 'reel-express' });
       setShowPublishModal(false);
       setReelTitle('');
       setReelPrice('');
-      setReelVideoUrl('');
-      setReelMediaFile(null);
+      setReelVideoFile(null);
+      setReelImageFiles([]);
+      setReelMediaPreviews([]);
       fetchReelProducts();
       checkCurrentUser();
     } catch (err) {
@@ -276,6 +592,27 @@ const ReelsPage = () => {
       toast.error(err.message || "Erreur lors de la publication du Reel.", { id: 'reel-express' });
     } finally {
       setIsPublishing(false);
+    }
+  };
+
+
+  // Handle background sound preview in modal
+  const toggleSoundPreview = (sound) => {
+    if (!sound.url) {
+      if (previewAudioRef.current) previewAudioRef.current.pause();
+      setPreviewSoundId(null);
+      return;
+    }
+    if (previewSoundId === sound.id) {
+      if (previewAudioRef.current) previewAudioRef.current.pause();
+      setPreviewSoundId(null);
+    } else {
+      if (previewAudioRef.current) previewAudioRef.current.pause();
+      const audio = new Audio(sound.url);
+      audio.play().catch(console.error);
+      previewAudioRef.current = audio;
+      setPreviewSoundId(sound.id);
+      audio.onended = () => setPreviewSoundId(null);
     }
   };
 
@@ -317,16 +654,46 @@ const ReelsPage = () => {
     }
   };
 
-  const toggleLike = (productId) => {
-    setLikedMap(prev => {
-      const isLiked = !prev[productId];
-      setLikesCountMap(l => ({
-        ...l,
-        [productId]: (l[productId] || 10) + (isLiked ? 1 : -1)
+  const toggleLike = async (productId) => {
+    if (!user) {
+      toast.error('Connectez-vous pour liker un Reel');
+      navigate('/auth');
+      return;
+    }
+
+    const wasLiked = likedMap[productId];
+    // Optimistic update
+    setLikedMap(prev => ({ ...prev, [productId]: !wasLiked }));
+    setLikesCountMap(prev => ({
+      ...prev,
+      [productId]: (prev[productId] || 0) + (wasLiked ? -1 : 1)
+    }));
+
+    try {
+      if (wasLiked) {
+        const { error } = await supabase
+          .from('favorites')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('product_id', productId);
+        if (error) throw error;
+      } else {
+        toast.success('Ajouté aux favoris ! ❤️', { duration: 2000 });
+        const { error } = await supabase
+          .from('favorites')
+          .insert({ user_id: user.id, product_id: productId });
+        if (error) throw error;
+      }
+    } catch (err) {
+      console.error('Error toggling like:', err);
+      // Rollback on error
+      setLikedMap(prev => ({ ...prev, [productId]: wasLiked }));
+      setLikesCountMap(prev => ({
+        ...prev,
+        [productId]: (prev[productId] || 0) + (wasLiked ? 1 : -1)
       }));
-      if (isLiked) toast.success('Ajouté aux favoris ! ❤️');
-      return { ...prev, [productId]: isLiked };
-    });
+      toast.error('Erreur lors du like');
+    }
   };
 
   const handleWhatsAppContact = (product) => {
@@ -512,8 +879,11 @@ const ReelsPage = () => {
         }}
       >
         {products.map((product, idx) => {
+          const rawVideoUrl = product.metadata?.video_url || (product.images?.[0] && product.images[0].match(/\.(mp4|mov|webm|m4v)$/i) ? product.images[0] : null);
+          const isVideoSupported = !!rawVideoUrl && !videoErrorMap[product.id];
+          const videoSrc = isVideoSupported ? rawVideoUrl : null;
+          const isVideo = isVideoSupported;
           const mainImg = product.images?.[0] || '/hero.png';
-          const videoSrc = product.metadata?.video_url || product.video_url || sampleVideos[idx % sampleVideos.length];
           const isLiked = likedMap[product.id];
           const likesCount = likesCountMap[product.id] || 15;
           const boutiqueName = product.profiles?.boutique_name || product.profiles?.full_name || 'Vendeur Colobane';
@@ -538,21 +908,35 @@ const ReelsPage = () => {
                 onClick={togglePlayPause}
                 style={{ position: 'absolute', inset: 0, overflow: 'hidden', cursor: 'pointer' }}
               >
-                {idx === activeIndex ? (
-                  <video
-                    ref={el => (videoRefs.current[idx] = el)}
-                    src={videoSrc}
-                    poster={mainImg}
-                    autoPlay
-                    loop
-                    muted={isMuted}
-                    playsInline
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover'
-                    }}
-                  />
+                {isVideo ? (
+                  idx === activeIndex ? (
+                    <video
+                      ref={el => (videoRefs.current[idx] = el)}
+                      src={videoSrc}
+                      poster={mainImg}
+                      autoPlay
+                      loop
+                      muted={isMuted}
+                      playsInline
+                      onError={() => handleVideoError(product.id)}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover'
+                      }}
+                    />
+                  ) : (
+                    <img
+                      src={mainImg}
+                      alt={product.title}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        filter: 'brightness(0.85)'
+                      }}
+                    />
+                  )
                 ) : (
                   <img
                     src={mainImg}
@@ -561,7 +945,9 @@ const ReelsPage = () => {
                       width: '100%',
                       height: '100%',
                       objectFit: 'cover',
-                      filter: 'brightness(0.85)'
+                      filter: 'brightness(0.9)',
+                      transition: 'transform 8s ease-out',
+                      transform: idx === activeIndex ? 'scale(1.06)' : 'scale(1)'
                     }}
                   />
                 )}
@@ -747,6 +1133,24 @@ const ReelsPage = () => {
                   </div>
                   <span style={{ fontSize: '12px', fontWeight: 600 }}>Partager</span>
                 </button>
+
+                {/* Spinning Music Vinyl Disk Icon */}
+                <div style={{
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #18181B 0%, #27272A 100%)',
+                  border: '3px solid rgba(255,255,255,0.3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '18px',
+                  boxShadow: '0 4px 14px rgba(0,0,0,0.6)',
+                  animation: isPlaying && !isMuted ? 'spin 3s linear infinite' : 'none',
+                  marginTop: '4px'
+                }}>
+                  💿
+                </div>
               </div>
 
               {/* Bottom Glassmorphic Product Overlay */}
@@ -838,7 +1242,7 @@ const ReelsPage = () => {
                 <div style={{
                   fontSize: '13px',
                   color: '#A1A1AA',
-                  marginBottom: '12px',
+                  marginBottom: '8px',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px'
@@ -846,6 +1250,28 @@ const ReelsPage = () => {
                   <span>📍 {product.location || 'Dakar'}</span>
                   <span>•</span>
                   <span>👁️ {product.views_count || 120} vues</span>
+                </div>
+
+                {/* Music Track Ticker Banner */}
+                <div style={{
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  color: '#F43F5E',
+                  background: 'rgba(0,0,0,0.5)',
+                  backdropFilter: 'blur(6px)',
+                  padding: '4px 10px',
+                  borderRadius: '20px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  marginBottom: '12px',
+                  border: '1px solid rgba(244, 63, 94, 0.3)',
+                  maxWidth: '100%',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap'
+                }}>
+                  <span>🎵</span> {product.metadata?.sound_title || 'Son d\'origine de la vidéo 🎤'}
                 </div>
 
                 {/* Price & Dual CTA Buttons */}
@@ -1002,11 +1428,350 @@ const ReelsPage = () => {
 
             {/* Form */}
             <form onSubmit={handlePublishReelExpress} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {/* Media Uploader */}
+              {/* Media Mode Selector */}
               <div>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '8px', color: '#E4E4E7' }}>
-                  📱 Importer une Vidéo MP4 (ou 3 photos max) *
+                  📱 Type de Média du Reel *
                 </label>
+                <div style={{ display: 'flex', gap: '10px', marginBottom: '12px' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMediaMode('video');
+                      setReelImageFiles([]);
+                      setReelMediaPreviews([]);
+                    }}
+                    style={{
+                      flex: 1,
+                      padding: '10px',
+                      borderRadius: '12px',
+                      border: mediaMode === 'video' ? '2px solid #E11D48' : '1px solid #3F3F46',
+                      background: mediaMode === 'video' ? 'rgba(225, 29, 72, 0.15)' : '#27272A',
+                      color: mediaMode === 'video' ? '#F43F5E' : '#A1A1AA',
+                      fontWeight: 700,
+                      fontSize: '13px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    🎥 Vidéo MP4 / MOV
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMediaMode('photos');
+                      setReelVideoFile(null);
+                      setReelMediaPreviews([]);
+                    }}
+                    style={{
+                      flex: 1,
+                      padding: '10px',
+                      borderRadius: '12px',
+                      border: mediaMode === 'photos' ? '2px solid #E11D48' : '1px solid #3F3F46',
+                      background: mediaMode === 'photos' ? 'rgba(225, 29, 72, 0.15)' : '#27272A',
+                      color: mediaMode === 'photos' ? '#F43F5E' : '#A1A1AA',
+                      fontWeight: 700,
+                      fontSize: '13px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    📸 Photos (1 à 3)
+                  </button>
+                </div>
+
+                {/* 📹 Filmer Direct Button */}
+                <button
+                  type="button"
+                  onClick={openCamera}
+                  style={{
+                    width: '100%',
+                    padding: '14px',
+                    borderRadius: '14px',
+                    border: '2px dashed #E11D48',
+                    background: 'linear-gradient(135deg, rgba(225, 29, 72, 0.12), rgba(168, 85, 247, 0.12))',
+                    color: '#F43F5E',
+                    fontWeight: 800,
+                    fontSize: '15px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '10px',
+                    marginBottom: '12px',
+                    transition: 'all 0.3s ease'
+                  }}
+                >
+                  <span style={{ fontSize: '22px' }}>📹</span>
+                  <span>Filmer Direct mon Reel (60s max)</span>
+                </button>
+
+                {/* ═══ CAMERA RECORDING OVERLAY ═══ */}
+                {isCameraOpen && (
+                  <div style={{
+                    position: 'fixed',
+                    top: 0, left: 0, right: 0, bottom: 0,
+                    zIndex: 99999,
+                    background: '#000',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    {/* Camera Preview */}
+                    <video
+                      ref={cameraVideoRef}
+                      autoPlay
+                      playsInline
+                      muted
+                      style={{
+                        position: 'absolute',
+                        top: 0, left: 0,
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        transform: cameraFacing === 'user' ? 'scaleX(-1)' : 'none'
+                      }}
+                    />
+
+                    {/* Top Bar */}
+                    <div style={{
+                      position: 'absolute',
+                      top: 0, left: 0, right: 0,
+                      padding: '16px 20px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      background: 'linear-gradient(to bottom, rgba(0,0,0,0.7), transparent)',
+                      zIndex: 2
+                    }}>
+                      {/* Close Button */}
+                      <button
+                        onClick={closeCamera}
+                        style={{
+                          background: 'rgba(255,255,255,0.15)',
+                          border: 'none',
+                          borderRadius: '50%',
+                          width: '40px', height: '40px',
+                          color: '#FFF',
+                          fontSize: '20px',
+                          cursor: 'pointer',
+                          backdropFilter: 'blur(8px)'
+                        }}
+                      >✕</button>
+
+                      {/* Timer Display */}
+                      <div style={{
+                        background: isRecording ? 'rgba(225, 29, 72, 0.85)' : 'rgba(0,0,0,0.5)',
+                        padding: '8px 18px',
+                        borderRadius: '25px',
+                        color: '#FFF',
+                        fontSize: '18px',
+                        fontWeight: 800,
+                        fontVariantNumeric: 'tabular-nums',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        backdropFilter: 'blur(8px)'
+                      }}>
+                        {isRecording && (
+                          <span style={{
+                            width: '10px', height: '10px',
+                            background: '#FF0000',
+                            borderRadius: '50%',
+                            animation: 'pulse 1s infinite'
+                          }} />
+                        )}
+                        <span>{recordTimeLeft}s</span>
+                        <span style={{ fontSize: '11px', opacity: 0.7 }}>/ 60s</span>
+                      </div>
+
+                      {/* Flip Camera */}
+                      <button
+                        onClick={flipCamera}
+                        style={{
+                          background: 'rgba(255,255,255,0.15)',
+                          border: 'none',
+                          borderRadius: '50%',
+                          width: '40px', height: '40px',
+                          color: '#FFF',
+                          fontSize: '18px',
+                          cursor: 'pointer',
+                          backdropFilter: 'blur(8px)'
+                        }}
+                      >🔄</button>
+                    </div>
+
+                    {/* Progress Bar */}
+                    {isRecording && (
+                      <div style={{
+                        position: 'absolute',
+                        top: '76px',
+                        left: '16px', right: '16px',
+                        height: '4px',
+                        background: 'rgba(255,255,255,0.2)',
+                        borderRadius: '4px',
+                        zIndex: 3,
+                        overflow: 'hidden'
+                      }}>
+                        <div style={{
+                          height: '100%',
+                          background: 'linear-gradient(90deg, #E11D48, #A855F7)',
+                          borderRadius: '4px',
+                          width: `${((60 - recordTimeLeft) / 60) * 100}%`,
+                          transition: 'width 1s linear'
+                        }} />
+                      </div>
+                    )}
+
+                    {/* Bottom Controls */}
+                    <div style={{
+                      position: 'absolute',
+                      bottom: '40px',
+                      left: 0, right: 0,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '16px',
+                      zIndex: 2
+                    }}>
+                      {/* Record / Stop Button */}
+                      {!isRecording ? (
+                        <button
+                          onClick={startRecording}
+                          style={{
+                            width: '80px', height: '80px',
+                            borderRadius: '50%',
+                            border: '5px solid rgba(255,255,255,0.8)',
+                            background: '#E11D48',
+                            cursor: 'pointer',
+                            boxShadow: '0 0 30px rgba(225, 29, 72, 0.6)',
+                            transition: 'transform 0.2s'
+                          }}
+                        />
+                      ) : (
+                        <button
+                          onClick={stopRecording}
+                          style={{
+                            width: '80px', height: '80px',
+                            borderRadius: '50%',
+                            border: '5px solid rgba(255,255,255,0.8)',
+                            background: 'transparent',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                        >
+                          <div style={{
+                            width: '30px', height: '30px',
+                            borderRadius: '6px',
+                            background: '#E11D48'
+                          }} />
+                        </button>
+                      )}
+
+                      <div style={{
+                        color: 'rgba(255,255,255,0.7)',
+                        fontSize: '13px',
+                        fontWeight: 600,
+                        textShadow: '0 1px 4px rgba(0,0,0,0.8)'
+                      }}>
+                        {isRecording ? '⏹ Appuyez pour arrêter' : '🔴 Appuyez pour filmer'}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Top Sounds Music Selector */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '8px', color: '#E4E4E7' }}>
+                    🎵 Musique & Sons Tendances (22 sons)
+                  </label>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '220px', overflowY: 'auto', paddingRight: '4px' }}>
+                    {TOP_REELS_SOUNDS.map((sound) => {
+                      const isSelected = selectedSound.id === sound.id;
+                      const isPreviewing = previewSoundId === sound.id;
+                      return (
+                        <div
+                          key={sound.id}
+                          onClick={() => setSelectedSound(sound)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '10px 12px',
+                            borderRadius: '12px',
+                            background: isSelected ? 'rgba(225, 29, 72, 0.18)' : '#27272A',
+                            border: isSelected ? '1.5px solid #E11D48' : '1px solid #3F3F46',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                            <span style={{ fontSize: '18px' }}>{sound.icon}</span>
+                            <div style={{ minWidth: 0 }}>
+                              <div style={{ fontSize: '13px', fontWeight: 700, color: isSelected ? '#F43F5E' : '#FFF', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {sound.title}
+                              </div>
+                              <div style={{ fontSize: '11px', color: '#A1A1AA' }}>{sound.artist}</div>
+                            </div>
+                          </div>
+
+                          {sound.url && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleSoundPreview(sound);
+                              }}
+                              style={{
+                                background: isPreviewing ? '#E11D48' : 'rgba(255,255,255,0.1)',
+                                border: 'none',
+                                color: '#FFF',
+                                padding: '6px 10px',
+                                borderRadius: '20px',
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                flexShrink: 0
+                              }}
+                            >
+                              {isPreviewing ? '⏸️ Stop' : '▶️ Ecouter'}
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Custom Audio Upload Button */}
+                  <div style={{ marginTop: '10px' }}>
+                    <label style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      padding: '10px 14px',
+                      borderRadius: '12px',
+                      background: customAudioFile ? 'rgba(16, 185, 129, 0.18)' : 'rgba(255, 255, 255, 0.05)',
+                      border: customAudioFile ? '1.5px solid #10B981' : '1px dashed #52525B',
+                      color: customAudioFile ? '#10B981' : '#E4E4E7',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}>
+                      <span>🎙️</span>
+                      <span>{customAudioName ? `Son chargé : ${customAudioName}` : 'Ou importer un MP3 / Voix off (Optionnel)'}</span>
+                      <input
+                        type="file"
+                        accept="audio/*"
+                        onChange={handleCustomAudioUpload}
+                        style={{ display: 'none' }}
+                      />
+                    </label>
+                  </div>
+                </div>
                 <div style={{
                   border: '2px dashed rgba(255, 255, 255, 0.2)',
                   borderRadius: '16px',
@@ -1016,25 +1781,53 @@ const ReelsPage = () => {
                   cursor: 'pointer',
                   position: 'relative'
                 }}>
-                  <input
-                    type="file"
-                    accept="video/*,image/*"
-                    onChange={handleMediaUpload}
-                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
-                  />
-                  {isUploadingMedia ? (
-                    <div style={{ color: '#F43F5E', fontWeight: 700 }}>Chargement de la vidéo en cours...</div>
-                  ) : reelVideoUrl ? (
-                    <div>
-                      <video src={reelVideoUrl} style={{ maxHeight: '140px', borderRadius: '12px', marginBottom: '8px' }} controls />
-                      <div style={{ fontSize: '12px', color: '#10B981', fontWeight: 700 }}>✓ Fichier vidéo prêt pour le Reel</div>
-                    </div>
+                  {mediaMode === 'video' ? (
+                    <>
+                      <input
+                        type="file"
+                        accept="video/*"
+                        onChange={handleVideoUpload}
+                        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
+                      />
+                      {reelMediaPreviews[0] ? (
+                        <div>
+                          <video src={reelMediaPreviews[0]} style={{ maxHeight: '140px', borderRadius: '12px', marginBottom: '8px' }} controls />
+                          <div style={{ fontSize: '12px', color: '#10B981', fontWeight: 700 }}>✓ Vidéo prête pour le Reel</div>
+                        </div>
+                      ) : (
+                        <div>
+                          <div style={{ fontSize: '28px', marginBottom: '4px' }}>📲</div>
+                          <div style={{ fontSize: '13px', fontWeight: 700, color: '#FFFFFF' }}>Cliquez pour choisir une vidéo</div>
+                          <div style={{ fontSize: '11px', color: '#71717A', marginTop: '2px' }}>MP4, MOV, WebM (Max 50 Mo)</div>
+                        </div>
+                      )}
+                    </>
                   ) : (
-                    <div>
-                      <div style={{ fontSize: '28px', marginBottom: '4px' }}>📲</div>
-                      <div style={{ fontSize: '13px', fontWeight: 700, color: '#FFFFFF' }}>Cliquez pour choisir une vidéo depuis votre téléphone</div>
-                      <div style={{ fontSize: '11px', color: '#71717A', marginTop: '2px' }}>MP4, MOV, WebM (Max 50 Mo)</div>
-                    </div>
+                    <>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleImagesUpload}
+                        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
+                      />
+                      {reelMediaPreviews.length > 0 ? (
+                        <div>
+                          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '8px', flexWrap: 'wrap' }}>
+                            {reelMediaPreviews.map((url, i) => (
+                              <img key={i} src={url} alt="" style={{ width: '64px', height: '64px', borderRadius: '8px', objectFit: 'cover', border: '1px solid #E11D48' }} />
+                            ))}
+                          </div>
+                          <div style={{ fontSize: '12px', color: '#10B981', fontWeight: 700 }}>✓ {reelMediaPreviews.length} photo(s) prête(s) pour le Reel</div>
+                        </div>
+                      ) : (
+                        <div>
+                          <div style={{ fontSize: '28px', marginBottom: '4px' }}>🖼️</div>
+                          <div style={{ fontSize: '13px', fontWeight: 700, color: '#FFFFFF' }}>Cliquez pour choisir 1 à 3 photos</div>
+                          <div style={{ fontSize: '11px', color: '#71717A', marginTop: '2px' }}>JPG, PNG, WebP (Max 3 photos)</div>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
@@ -1112,7 +1905,7 @@ const ReelsPage = () => {
               {/* Action Button */}
               <button
                 type="submit"
-                disabled={isPublishing || isUploadingMedia}
+                disabled={isPublishing}
                 style={{
                   width: '100%',
                   padding: '14px',
