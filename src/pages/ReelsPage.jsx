@@ -223,33 +223,25 @@ const ReelsPage = () => {
       if (data && data.length > 0) {
         setProducts(data);
 
-        // Charger les vrais compteurs de likes depuis la table favorites
+        // Charger les likes en 1 seule requête réseau au lieu de 30 requêtes individuelles
         const productIds = data.map(p => p.id);
-        const likesPromises = productIds.map(async (pid) => {
-          const { count } = await supabase
-            .from('favorites')
-            .select('*', { count: 'exact', head: true })
-            .eq('product_id', pid);
-          return { id: pid, count: count || 0 };
-        });
-        const likesResults = await Promise.all(likesPromises);
-        const countsMap = {};
-        likesResults.forEach(r => { countsMap[r.id] = r.count; });
-        setLikesCountMap(countsMap);
+        const { data: allFavs } = await supabase
+          .from('favorites')
+          .select('product_id, user_id')
+          .in('product_id', productIds);
 
-        // Charger l'état liké de l'utilisateur connecté
-        if (user) {
-          const { data: userFavs } = await supabase
-            .from('favorites')
-            .select('product_id')
-            .eq('user_id', user.id)
-            .in('product_id', productIds);
-          if (userFavs) {
-            const likedState = {};
-            userFavs.forEach(f => { likedState[f.product_id] = true; });
-            setLikedMap(likedState);
-          }
+        const countsMap = {};
+        const likedState = {};
+        if (allFavs) {
+          allFavs.forEach(f => {
+            countsMap[f.product_id] = (countsMap[f.product_id] || 0) + 1;
+            if (user && f.user_id === user.id) {
+              likedState[f.product_id] = true;
+            }
+          });
         }
+        setLikesCountMap(countsMap);
+        setLikedMap(likedState);
       }
     } catch (err) {
       console.error('Error fetching reels:', err);
@@ -918,6 +910,7 @@ const ReelsPage = () => {
                       loop
                       muted={isMuted}
                       playsInline
+                      preload="auto"
                       onError={() => handleVideoError(product.id)}
                       style={{
                         width: '100%',
@@ -925,10 +918,27 @@ const ReelsPage = () => {
                         objectFit: 'cover'
                       }}
                     />
+                  ) : idx === activeIndex + 1 ? (
+                    <>
+                      <img
+                        src={mainImg}
+                        alt={product.title}
+                        loading="lazy"
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.85)' }}
+                      />
+                      <video
+                        src={videoSrc}
+                        preload="auto"
+                        muted
+                        playsInline
+                        style={{ display: 'none' }}
+                      />
+                    </>
                   ) : (
                     <img
                       src={mainImg}
                       alt={product.title}
+                      loading="lazy"
                       style={{
                         width: '100%',
                         height: '100%',
