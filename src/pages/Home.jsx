@@ -255,59 +255,103 @@ const Home = () => {
       const from = currentPage * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
 
-      // Requêtes parallèles pour accélérer l'affichage initial
+      // Requête principale directe infaillible avec select('*')
       const mainQueryPromise = supabase
         .from('products')
-        .select(`
-          *,
-          profiles:seller_id (account_type, boutique_name, is_verified, phone_number, whatsapp_number)
-        `)
+        .select('*')
         .order('created_at', { ascending: false })
         .range(from, to);
 
       if (!isLoadMore) {
         const boostedQueryPromise = supabase
           .from('products')
-          .select(`
-            *,
-            profiles:seller_id (account_type, boutique_name, is_verified, phone_number, whatsapp_number)
-          `)
+          .select('*')
           .eq('is_boosted', true)
           .order('created_at', { ascending: false })
           .limit(10);
 
-        const [{ data, error }, boostedRes] = await Promise.all([
+        const [{ data: mainData, error: mainErr }, boostedRes] = await Promise.all([
           mainQueryPromise,
           boostedQueryPromise.catch(() => ({ data: [] }))
         ]);
 
-        if (error) throw error;
+        if (mainErr) console.error('Supabase main products fetch error:', mainErr);
 
         let boostedData = boostedRes?.data || [];
         if (!boostedData || boostedData.length === 0) {
           const { data: topData } = await supabase
             .from('products')
-            .select(`*, profiles:seller_id (account_type, boutique_name, is_verified, phone_number, whatsapp_number)`)
+            .select('*')
             .order('views_count', { ascending: false })
             .limit(8);
           boostedData = topData || [];
         }
 
-        setBoostedProducts(boostedData);
+        const data = mainData || [];
 
-        if (data && data.length > 0) {
-          setProducts(data);
-          if (data.length < PAGE_SIZE) setHasMore(false);
+        // Enrichir les annonces avec les profils vendeurs de manière sécurisée
+        const allProdsToEnrich = [...data, ...boostedData];
+        const sellerIds = [...new Set(allProdsToEnrich.map(p => p.seller_id).filter(Boolean))];
+        let profilesMap = {};
+        if (sellerIds.length > 0) {
+          try {
+            const { data: profilesData } = await supabase
+              .from('profiles')
+              .select('id, account_type, boutique_name, is_verified, phone_number, whatsapp_number')
+              .in('id', sellerIds);
+            if (profilesData) {
+              profilesData.forEach(pr => { profilesMap[pr.id] = pr; });
+            }
+          } catch (_pErr) {
+            console.warn('Profiles fetch error:', _pErr);
+          }
+        }
+
+        const enrichedMain = data.map(p => ({
+          ...p,
+          profiles: p.profiles || profilesMap[p.seller_id] || null
+        }));
+
+        const enrichedBoosted = boostedData.map(p => ({
+          ...p,
+          profiles: p.profiles || profilesMap[p.seller_id] || null
+        }));
+
+        setBoostedProducts(enrichedBoosted);
+
+        if (enrichedMain.length > 0) {
+          setProducts(enrichedMain);
+          if (enrichedMain.length < PAGE_SIZE) setHasMore(false);
         } else {
           setProducts([]);
           setHasMore(false);
         }
       } else {
-        const { data, error } = await mainQueryPromise;
-        if (error) throw error;
+        const { data: moreData, error: moreErr } = await mainQueryPromise;
+        if (moreErr) console.error('Supabase load more error:', moreErr);
 
-        if (data && data.length > 0) {
-          setProducts(prev => [...prev, ...data]);
+        const data = moreData || [];
+        if (data.length > 0) {
+          const sellerIds = [...new Set(data.map(p => p.seller_id).filter(Boolean))];
+          let profilesMap = {};
+          if (sellerIds.length > 0) {
+            try {
+              const { data: profilesData } = await supabase
+                .from('profiles')
+                .select('id, account_type, boutique_name, is_verified, phone_number, whatsapp_number')
+                .in('id', sellerIds);
+              if (profilesData) {
+                profilesData.forEach(pr => { profilesMap[pr.id] = pr; });
+              }
+            } catch (_pErr) {}
+          }
+
+          const enrichedMore = data.map(p => ({
+            ...p,
+            profiles: p.profiles || profilesMap[p.seller_id] || null
+          }));
+
+          setProducts(prev => [...prev, ...enrichedMore]);
           if (data.length < PAGE_SIZE) setHasMore(false);
         } else {
           setHasMore(false);
