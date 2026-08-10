@@ -158,13 +158,22 @@ const Home = () => {
   const processedProducts = useMemo(() => {
     let list = products;
 
-    // 1. Filtrer strictement par la région / ville sélectionnée
+    // 1. Filtrer intelligemment par la région / quartier
     const activeReg = (selectedQuartier || selectedRegion || '').trim().toLowerCase();
     if (activeReg && activeReg !== 'all') {
-      list = list.filter(p => {
+      const dakarKeywords = ['dakar', 'sebi', 'sébi', 'point e', 'mermoz', 'fass', 'colobane', 'plateau', 'almadies', 'ngor', 'ouakam', 'medina', 'yoff', 'parcelles', 'pikine', 'guediawaye', 'rufisque', 'diamniadio', 'sacré-cœur', 'sacre-coeur'];
+      
+      const filtered = list.filter(p => {
         const loc = (p.location || '').toLowerCase();
+        if (activeReg === 'dakar') {
+          return dakarKeywords.some(kw => loc.includes(kw));
+        }
         return loc.includes(activeReg) || activeReg.includes(loc);
       });
+
+      if (filtered.length > 0) {
+        list = filtered;
+      }
     }
 
     // 2. Trier/filtrer par proximité GPS si actif
