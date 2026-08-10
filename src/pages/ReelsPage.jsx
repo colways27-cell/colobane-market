@@ -1077,6 +1077,45 @@ const ReelsPage = () => {
                   )}
                 </div>
 
+                {/* Bouton Publier Reel Direct */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (!user) {
+                      toast.error('Connectez-vous pour publier un Reel.');
+                      navigate('/auth');
+                    } else {
+                      setShowPublishModal(true);
+                    }
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#FFFFFF',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '4px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <div style={{
+                    width: '48px',
+                    height: '48px',
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #E11D48 0%, #BE123C 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '22px',
+                    boxShadow: '0 4px 16px rgba(225, 29, 72, 0.5)',
+                    border: '2px solid rgba(255, 255, 255, 0.8)'
+                  }}>
+                    ➕
+                  </div>
+                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#FFF', textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}>Publier</span>
+                </button>
+
                 {/* Like Button */}
                 <button
                   onClick={() => toggleLike(product.id)}
