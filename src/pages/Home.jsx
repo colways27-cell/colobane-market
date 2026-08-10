@@ -187,10 +187,14 @@ const Home = () => {
   const displayProducts = groupedView ? groupProducts(processedProducts) : processedProducts;
 
   const homeCategoryFilteredProducts = useMemo(() => {
+    if (!displayProducts || displayProducts.length === 0) return [];
     if (!selectedHomePillCategory || selectedHomePillCategory === 'all') return displayProducts;
-    if (selectedHomePillCategory === 'boosted') return displayProducts.filter(p => p.is_boosted);
+    if (selectedHomePillCategory === 'boosted') {
+      const boosted = displayProducts.filter(p => p.is_boosted);
+      return boosted.length > 0 ? boosted : displayProducts;
+    }
     
-    return displayProducts.filter(p => {
+    const filtered = displayProducts.filter(p => {
       const cat = (p.category || '').toLowerCase();
       const title = (p.title || '').toLowerCase();
       const pill = selectedHomePillCategory.toLowerCase();
@@ -199,7 +203,7 @@ const Home = () => {
         return cat.includes('telephon') || cat.includes('tablette') || cat.includes('electronique') || cat.includes('multimedia') || title.includes('iphone') || title.includes('samsung');
       }
       if (pill === 'habillement' || pill === 'mode') {
-        return cat.includes('habillement') || cat.includes('mode') || cat.includes('vetement') || title.includes('robe') || title.includes('sac') || title.includes('chaussure');
+        return cat.includes('habillement') || cat.includes('mode') || cat.includes('vetement') || title.includes('robe') || title.includes('sac') || title.includes('chaussure') || title.includes('ensemble') || title.includes('sandale') || title.includes('crocs');
       }
       if (pill === 'accessoires') {
         return cat.includes('accessoire') || title.includes('montre') || title.includes('lunette') || title.includes('bijou');
@@ -208,13 +212,16 @@ const Home = () => {
         return cat.includes('vehicule') || cat.includes('auto') || cat.includes('moto') || title.includes('voiture') || title.includes('kia') || title.includes('jeep') || title.includes('toyota');
       }
       if (pill === 'beaute_sante') {
-        return cat.includes('beaute') || cat.includes('sante') || title.includes('crème') || title.includes('cosmétique') || title.includes('baume');
+        return cat.includes('beaute') || cat.includes('sante') || title.includes('crème') || title.includes('cosmétique') || title.includes('baume') || title.includes('dentaire');
       }
       if (pill === 'immobilier') {
         return cat.includes('immob') || cat.includes('maison') || cat.includes('appartement');
       }
       return cat.includes(pill) || title.includes(pill);
     });
+
+    // Protection Senior Engineer : Si le filtrage par catégorie renvoie 0 alors que des annonces existent, afficher la liste complète.
+    return filtered.length > 0 ? filtered : displayProducts;
   }, [displayProducts, selectedHomePillCategory]);
 
   const handleTouchStart = (e) => {

@@ -162,7 +162,10 @@ export const sortProductsByProximity = (userCoords, products, maxRadiusKm = null
   // Filtrer par rayon max si spécifié
   let filtered = productsWithDistance;
   if (maxRadiusKm && maxRadiusKm > 0) {
-    filtered = productsWithDistance.filter(p => p.distanceKm !== null && p.distanceKm <= maxRadiusKm);
+    const withinRadius = productsWithDistance.filter(p => p.distanceKm !== null && p.distanceKm <= maxRadiusKm);
+    if (withinRadius.length > 0) {
+      filtered = withinRadius;
+    }
   }
 
   // Trier du plus proche au plus éloigné
