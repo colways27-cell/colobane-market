@@ -1631,3 +1631,107 @@ select {
     display: block !important;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   🌙 ULTIMATE DARK MODE CONTRAST & VISIBILITY FIXES
+   ═══════════════════════════════════════════════════════════════ */
+
+[data-theme="dark"] {
+  --bg-color: #09090b;
+  --card-bg: #18181b;
+  --text-main: #f8fafc;
+  --text-muted: #cbd5e1;
+  --border-color: #27272a;
+}
+
+[data-theme="dark"] body {
+  background-color: #09090b !important;
+  color: #f8fafc !important;
+}
+
+/* Override inline dark text colors to bright readable white/slate */
+[data-theme="dark"] [style*="color: #1E293B"],
+[data-theme="dark"] [style*="color: #1e293b"],
+[data-theme="dark"] [style*="color:#1E293B"],
+[data-theme="dark"] [style*="color:#1e293b"],
+[data-theme="dark"] [style*="color: #0F172A"],
+[data-theme="dark"] [style*="color: #0f172a"],
+[data-theme="dark"] [style*="color:#0F172A"],
+[data-theme="dark"] [style*="color:#0f172a"],
+[data-theme="dark"] [style*="color: #000"],
+[data-theme="dark"] [style*="color: #000000"],
+[data-theme="dark"] [style*="color:#000"],
+[data-theme="dark"] [style*="color: black"],
+[data-theme="dark"] [style*="color: #111827"],
+[data-theme="dark"] [style*="color: #1f2937"],
+[data-theme="dark"] [style*="color: #334155"] {
+  color: #f8fafc !important;
+}
+
+/* Override inline muted dark text colors to readable slate-300 */
+[data-theme="dark"] [style*="color: #64748B"],
+[data-theme="dark"] [style*="color: #64748b"],
+[data-theme="dark"] [style*="color:#64748B"],
+[data-theme="dark"] [style*="color:#64748b"],
+[data-theme="dark"] [style*="color: #475569"],
+[data-theme="dark"] [style*="color: #4b5563"],
+[data-theme="dark"] [style*="color: #6b7280"] {
+  color: #cbd5e1 !important;
+}
+
+/* Override inline bright white containers in dark mode */
+[data-theme="dark"] [style*="background: #FFFFFF"],
+[data-theme="dark"] [style*="background: #ffffff"],
+[data-theme="dark"] [style*="background:#FFFFFF"],
+[data-theme="dark"] [style*="background:#ffffff"],
+[data-theme="dark"] [style*="background-color: #FFFFFF"],
+[data-theme="dark"] [style*="background-color: #ffffff"],
+[data-theme="dark"] [style*="background: #F8FAFC"],
+[data-theme="dark"] [style*="background: #f8fafc"],
+[data-theme="dark"] [style*="background:#F8FAFC"],
+[data-theme="dark"] [style*="background:#f8fafc"],
+[data-theme="dark"] [style*="background-color: #F8FAFC"],
+[data-theme="dark"] [style*="background-color: #f8fafc"],
+[data-theme="dark"] [style*="background: white"] {
+  background: #18181b !important;
+  color: #f8fafc !important;
+  border-color: #27272a !important;
+}
+
+/* Override inline light grey containers in dark mode */
+[data-theme="dark"] [style*="background: #F1F5F9"],
+[data-theme="dark"] [style*="background: #f1f5f9"],
+[data-theme="dark"] [style*="background:#F1F5F9"],
+[data-theme="dark"] [style*="background:#f1f5f9"],
+[data-theme="dark"] [style*="background: #E2E8F0"],
+[data-theme="dark"] [style*="background: #e2e8f0"],
+[data-theme="dark"] [style*="background:#E2E8F0"],
+[data-theme="dark"] [style*="background:#e2e8f0"] {
+  background: #27272a !important;
+  color: #f8fafc !important;
+  border-color: #3f3f46 !important;
+}
+
+/* Fix Inputs, Selects, and Textareas in dark mode */
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* Fix Modals & Cards in Dark Mode */
+[data-theme="dark"] .modal-content,
+[data-theme="dark"] .card,
+[data-theme="dark"] .product-card,
+[data-theme="dark"] .drawer-content {
+  background-color: #18181b !important;
+  color: #f8fafc !important;
+  border-color: #27272a !important;
+}
