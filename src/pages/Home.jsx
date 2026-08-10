@@ -296,112 +296,95 @@ const Home = () => {
       const from = currentPage * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
 
-      // Requête principale directe infaillible avec select('*')
-      const mainQueryPromise = supabase
-        .from('products')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .range(from, to);
+      // 1. Chargement principal direct et sécurisé
+      let mainData = null;
+      let mainErr = null;
 
-      if (!isLoadMore) {
-        const boostedQueryPromise = supabase
+      try {
+        const res = await supabase
+          .from('products')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .range(from, to);
+        mainData = res.data;
+        mainErr = res.error;
+      } catch (e) {
+        mainErr = e;
+      }
+
+      // Secours ultime : si la pagination range échoue ou renvoie 0 produit sur la page initiale
+      if (!isLoadMore && (!mainData || mainData.length === 0)) {
+        try {
+          const fallbackRes = await supabase
+            .from('products')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(50);
+          if (fallbackRes.data && fallbackRes.data.length > 0) {
+            mainData = fallbackRes.data;
+          }
+        } catch (_fErr) {
+          console.error('Fallback query error:', _fErr);
+        }
+      }
+
+      const data = mainData || [];
+
+      // 2. Chargement sécurisé des annonces sponsorisées
+      let boostedData = [];
+      try {
+        const { data: bData } = await supabase
           .from('products')
           .select('*')
           .eq('is_boosted', true)
           .order('created_at', { ascending: false })
           .limit(10);
+        boostedData = bData || [];
+      } catch (_bErr) {}
 
-        const [{ data: mainData, error: mainErr }, boostedRes] = await Promise.all([
-          mainQueryPromise,
-          boostedQueryPromise.catch(() => ({ data: [] }))
-        ]);
-
-        if (mainErr) console.error('Supabase main products fetch error:', mainErr);
-
-        let boostedData = boostedRes?.data || [];
-        if (!boostedData || boostedData.length === 0) {
-          const { data: topData } = await supabase
-            .from('products')
-            .select('*')
-            .order('views_count', { ascending: false })
-            .limit(8);
-          boostedData = topData || [];
-        }
-
-        const data = mainData || [];
-
-        // Enrichir les annonces avec les profils vendeurs de manière sécurisée
-        const allProdsToEnrich = [...data, ...boostedData];
-        const sellerIds = [...new Set(allProdsToEnrich.map(p => p.seller_id).filter(Boolean))];
-        let profilesMap = {};
-        if (sellerIds.length > 0) {
-          try {
-            const { data: profilesData } = await supabase
-              .from('profiles')
-              .select('id, account_type, boutique_name, is_verified, phone_number, whatsapp_number')
-              .in('id', sellerIds);
-            if (profilesData) {
-              profilesData.forEach(pr => { profilesMap[pr.id] = pr; });
-            }
-          } catch (_pErr) {
-            console.warn('Profiles fetch error:', _pErr);
-          }
-        }
-
-        const enrichedMain = data.map(p => ({
-          ...p,
-          profiles: p.profiles || profilesMap[p.seller_id] || null
-        }));
-
-        const enrichedBoosted = boostedData.map(p => ({
-          ...p,
-          profiles: p.profiles || profilesMap[p.seller_id] || null
-        }));
-
-        setBoostedProducts(enrichedBoosted);
-
-        if (enrichedMain.length > 0) {
-          setProducts(enrichedMain);
-          if (enrichedMain.length < PAGE_SIZE) setHasMore(false);
-        } else {
-          setProducts([]);
-          setHasMore(false);
-        }
-      } else {
-        const { data: moreData, error: moreErr } = await mainQueryPromise;
-        if (moreErr) console.error('Supabase load more error:', moreErr);
-
-        const data = moreData || [];
-        if (data.length > 0) {
-          const sellerIds = [...new Set(data.map(p => p.seller_id).filter(Boolean))];
-          let profilesMap = {};
-          if (sellerIds.length > 0) {
-            try {
-              const { data: profilesData } = await supabase
-                .from('profiles')
-                .select('id, account_type, boutique_name, is_verified, phone_number, whatsapp_number')
-                .in('id', sellerIds);
-              if (profilesData) {
-                profilesData.forEach(pr => { profilesMap[pr.id] = pr; });
-              }
-            } catch (_pErr) {}
-          }
-
-          const enrichedMore = data.map(p => ({
-            ...p,
-            profiles: p.profiles || profilesMap[p.seller_id] || null
-          }));
-
-          setProducts(prev => [...prev, ...enrichedMore]);
-          if (data.length < PAGE_SIZE) setHasMore(false);
-        } else {
-          setHasMore(false);
-        }
+      if (!boostedData || boostedData.length === 0) {
+        boostedData = data.slice(0, 6);
       }
+
+      // 3. Enrichissement sécurisé des profils vendeurs
+      const allProdsToEnrich = [...data, ...boostedData];
+      const sellerIds = [...new Set(allProdsToEnrich.map(p => p.seller_id).filter(Boolean))];
+      let profilesMap = {};
+
+      if (sellerIds.length > 0) {
+        try {
+          const { data: profilesData } = await supabase
+            .from('profiles')
+            .select('id, account_type, boutique_name, is_verified, phone_number, whatsapp_number')
+            .in('id', sellerIds);
+          if (profilesData) {
+            profilesData.forEach(pr => { profilesMap[pr.id] = pr; });
+          }
+        } catch (_pErr) {}
+      }
+
+      const enrichedMain = data.map(p => ({
+        ...p,
+        profiles: p.profiles || profilesMap[p.seller_id] || null
+      }));
+
+      const enrichedBoosted = boostedData.map(p => ({
+        ...p,
+        profiles: p.profiles || profilesMap[p.seller_id] || null
+      }));
+
+      setBoostedProducts(enrichedBoosted);
+
+      if (isLoadMore) {
+        setProducts(prev => [...prev, ...enrichedMain]);
+      } else {
+        setProducts(enrichedMain);
+      }
+
+      if (data.length < PAGE_SIZE) setHasMore(false);
+
     } catch (err) {
-      console.error('Real Supabase fetch error:', err);
-      if (!isLoadMore) setProducts([]);
-      setHasMore(false);
+      console.error('Supabase fetch error:', err);
     } finally {
       setLoading(false);
       setLoadingMore(false);
@@ -409,10 +392,7 @@ const Home = () => {
   };
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchProducts(0);
-    }, 0);
-    return () => clearTimeout(timer);
+    fetchProducts(0);
   }, []);
 
   const handleLoadMore = () => {
