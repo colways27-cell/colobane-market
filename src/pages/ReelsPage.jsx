@@ -919,12 +919,13 @@ const ReelsPage = () => {
                       }}
                     />
                   ) : idx === activeIndex + 1 ? (
-                    <>
+                    <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${mainImg})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(30px) brightness(0.35)', transform: 'scale(1.2)' }} />
                       <img
                         src={mainImg}
                         alt={product.title}
                         loading="lazy"
-                        style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.85)' }}
+                        style={{ position: 'relative', maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', zIndex: 2 }}
                       />
                       <video
                         src={videoSrc}
@@ -933,33 +934,56 @@ const ReelsPage = () => {
                         playsInline
                         style={{ display: 'none' }}
                       />
-                    </>
+                    </div>
                   ) : (
+                    <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${mainImg})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(30px) brightness(0.35)', transform: 'scale(1.2)' }} />
+                      <img
+                        src={mainImg}
+                        alt={product.title}
+                        loading="lazy"
+                        style={{
+                          position: 'relative',
+                          maxWidth: '100%',
+                          maxHeight: '100%',
+                          objectFit: 'contain',
+                          zIndex: 2
+                        }}
+                      />
+                    </div>
+                  )
+                ) : (
+                  <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {/* Arrière-plan flou d'ambiance TikTok / Instagram */}
+                    <div 
+                      style={{ 
+                        position: 'absolute', 
+                        inset: 0, 
+                        backgroundImage: `url(${mainImg})`, 
+                        backgroundSize: 'cover', 
+                        backgroundPosition: 'center', 
+                        filter: 'blur(30px) brightness(0.35)', 
+                        transform: 'scale(1.25)' 
+                      }} 
+                    />
+                    {/* Image Produit Nette & 100% visible sans rognage */}
                     <img
                       src={mainImg}
                       alt={product.title}
-                      loading="lazy"
                       style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover',
-                        filter: 'brightness(0.85)'
+                        position: 'relative',
+                        maxWidth: '100%',
+                        maxHeight: '100%',
+                        width: 'auto',
+                        height: 'auto',
+                        objectFit: 'contain',
+                        zIndex: 2,
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+                        transition: 'transform 8s ease-out',
+                        transform: idx === activeIndex ? 'scale(1.04)' : 'scale(1)'
                       }}
                     />
-                  )
-                ) : (
-                  <img
-                    src={mainImg}
-                    alt={product.title}
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                      filter: 'brightness(0.9)',
-                      transition: 'transform 8s ease-out',
-                      transform: idx === activeIndex ? 'scale(1.06)' : 'scale(1)'
-                    }}
-                  />
+                  </div>
                 )}
 
                 {/* Tap Feedback Animation Indicator */}
