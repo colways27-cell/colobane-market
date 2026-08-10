@@ -255,54 +255,63 @@ const Home = () => {
       const from = currentPage * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
 
-      // 1. Fetch boosted products for top banner (fallback to top items)
-      if (!isLoadMore) {
-        try {
-          let { data: boostedData } = await supabase
-            .from('products')
-            .select(`*, profiles:seller_id (account_type, boutique_name, is_verified, phone_number, whatsapp_number)`)
-            .eq('is_boosted', true)
-            .order('created_at', { ascending: false })
-            .limit(10);
-
-          // Fallback to top items if no boosted items
-          if (!boostedData || boostedData.length === 0) {
-            const { data: topData } = await supabase
-              .from('products')
-              .select(`*, profiles:seller_id (account_type, boutique_name, is_verified, phone_number, whatsapp_number)`)
-              .order('views_count', { ascending: false })
-              .limit(8);
-            boostedData = topData || [];
-          }
-
-          setBoostedProducts(boostedData || []);
-        } catch (bErr) {
-          console.warn('Boosted products error:', bErr);
-        }
-      }
-
-      // 2. Fetch main products from real Supabase database
-      const { data, error } = await supabase
+      // Requêtes parallèles pour accélérer l'affichage initial
+      const mainQueryPromise = supabase
         .from('products')
         .select(`
-          *,
+          id, title, price, original_price, category, condition, location, images, views_count, is_boosted, created_at, seller_id, metadata,
           profiles:seller_id (account_type, boutique_name, is_verified, phone_number, whatsapp_number)
         `)
         .order('created_at', { ascending: false })
         .range(from, to);
 
-      if (error) throw error;
+      if (!isLoadMore) {
+        const boostedQueryPromise = supabase
+          .from('products')
+          .select(`
+            id, title, price, original_price, category, condition, location, images, views_count, is_boosted, created_at, seller_id, metadata,
+            profiles:seller_id (account_type, boutique_name, is_verified, phone_number, whatsapp_number)
+          `)
+          .eq('is_boosted', true)
+          .order('created_at', { ascending: false })
+          .limit(10);
 
-      if (data && data.length > 0) {
-        if (isLoadMore) {
-          setProducts(prev => [...prev, ...data]);
-        } else {
-          setProducts(data);
+        const [{ data, error }, boostedRes] = await Promise.all([
+          mainQueryPromise,
+          boostedQueryPromise.catch(() => ({ data: [] }))
+        ]);
+
+        if (error) throw error;
+
+        let boostedData = boostedRes?.data || [];
+        if (!boostedData || boostedData.length === 0) {
+          const { data: topData } = await supabase
+            .from('products')
+            .select(`id, title, price, original_price, category, condition, location, images, views_count, is_boosted, created_at, seller_id, metadata, profiles:seller_id (account_type, boutique_name, is_verified, phone_number, whatsapp_number)`)
+            .order('views_count', { ascending: false })
+            .limit(8);
+          boostedData = topData || [];
         }
-        if (data.length < PAGE_SIZE) setHasMore(false);
+
+        setBoostedProducts(boostedData);
+
+        if (data && data.length > 0) {
+          setProducts(data);
+          if (data.length < PAGE_SIZE) setHasMore(false);
+        } else {
+          setProducts([]);
+          setHasMore(false);
+        }
       } else {
-        if (!isLoadMore) setProducts([]);
-        setHasMore(false);
+        const { data, error } = await mainQueryPromise;
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          setProducts(prev => [...prev, ...data]);
+          if (data.length < PAGE_SIZE) setHasMore(false);
+        } else {
+          setHasMore(false);
+        }
       }
     } catch (err) {
       console.error('Real Supabase fetch error:', err);
@@ -1382,15 +1391,15 @@ const Home = () => {
                 className="product-card active-scale" 
                 style={{ cursor: 'pointer', border: '1px solid transparent', background: 'var(--card-bg)', borderRadius: 'var(--radius-md)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
               >
-                {/* Image 1:1 Swipeable */}
+                {/* Image 1:1 Optimisée */}
                 <div style={{ position: 'relative', width: '100%', paddingTop: '100%', background: '#F1F5F9', overflow: 'hidden' }}>
-                  <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', overflowX: 'auto', scrollSnapType: 'x mandatory', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
-                    {(product.images && product.images.length > 0 ? product.images.slice(0, 4) : ['/hero.png']).map((img, i) => (
-                      <div key={i} style={{ flex: '0 0 100%', height: '100%', scrollSnapAlign: 'start', position: 'relative' }}>
-                        <img src={img} alt={`${product.title} ${i+1}`} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      </div>
-                    ))}
-                  </div>
+                  <img 
+                    src={imageUrl} 
+                    alt={product.title} 
+                    loading="lazy" 
+                    decoding="async"
+                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }} 
+                  />
 
                   {/* Dots indicator */}
                   {product.images && product.images.length > 1 && (
