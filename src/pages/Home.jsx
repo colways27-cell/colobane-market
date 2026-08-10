@@ -178,9 +178,34 @@ const Home = () => {
   const displayProducts = groupedView ? groupProducts(processedProducts) : processedProducts;
 
   const homeCategoryFilteredProducts = useMemo(() => {
-    if (selectedHomePillCategory === 'all') return displayProducts;
+    if (!selectedHomePillCategory || selectedHomePillCategory === 'all') return displayProducts;
     if (selectedHomePillCategory === 'boosted') return displayProducts.filter(p => p.is_boosted);
-    return displayProducts.filter(p => (p.category || '').toLowerCase().includes(selectedHomePillCategory.toLowerCase()));
+    
+    return displayProducts.filter(p => {
+      const cat = (p.category || '').toLowerCase();
+      const title = (p.title || '').toLowerCase();
+      const pill = selectedHomePillCategory.toLowerCase();
+
+      if (pill === 'telephones' || pill === 'electronique') {
+        return cat.includes('telephon') || cat.includes('tablette') || cat.includes('electronique') || cat.includes('multimedia') || title.includes('iphone') || title.includes('samsung');
+      }
+      if (pill === 'habillement' || pill === 'mode') {
+        return cat.includes('habillement') || cat.includes('mode') || cat.includes('vetement') || title.includes('robe') || title.includes('sac') || title.includes('chaussure');
+      }
+      if (pill === 'accessoires') {
+        return cat.includes('accessoire') || title.includes('montre') || title.includes('lunette') || title.includes('bijou');
+      }
+      if (pill === 'vehicules') {
+        return cat.includes('vehicule') || cat.includes('auto') || cat.includes('moto') || title.includes('voiture') || title.includes('kia') || title.includes('jeep') || title.includes('toyota');
+      }
+      if (pill === 'beaute_sante') {
+        return cat.includes('beaute') || cat.includes('sante') || title.includes('crème') || title.includes('cosmétique') || title.includes('baume');
+      }
+      if (pill === 'immobilier') {
+        return cat.includes('immob') || cat.includes('maison') || cat.includes('appartement');
+      }
+      return cat.includes(pill) || title.includes(pill);
+    });
   }, [displayProducts, selectedHomePillCategory]);
 
   const handleTouchStart = (e) => {
@@ -1366,11 +1391,11 @@ const Home = () => {
         <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', marginBottom: '16px', paddingBottom: '4px', scrollbarWidth: 'none' }}>
           {[
             { id: 'all', label: '⚡ Tout', icon: '⚡' },
-            { id: 'electronique', label: '📱 Téléphones', icon: '📱' },
+            { id: 'telephones', label: '📱 Téléphones & Tech', icon: '📱' },
+            { id: 'habillement', label: '👗 Mode & Habits', icon: '👗' },
+            { id: 'accessoires', label: '⌚ Accessoires', icon: '⌚' },
             { id: 'vehicules', label: '🚗 Véhicules', icon: '🚗' },
-            { id: 'mode', label: '👗 Mode & Wax', icon: '👗' },
-            { id: 'immobilier', label: '🏠 Immobilier', icon: '🏠' },
-            { id: 'multimedia', label: '💻 High-Tech', icon: '💻' },
+            { id: 'beaute_sante', label: '✨ Beauté & Santé', icon: '✨' },
             { id: 'boosted', label: '⭐ Sponsorisés', icon: '⭐' }
           ].map((pill) => (
             <button
