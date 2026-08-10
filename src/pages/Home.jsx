@@ -156,7 +156,8 @@ const Home = () => {
   };
 
   const processedProducts = useMemo(() => {
-    let list = products;
+    // Exclure les Reels vidéo (reels_express) de la liste principale des annonces
+    let list = products.filter(p => p.category !== 'reels_express');
 
     // 1. Filtrer intelligemment par la région / quartier
     const activeReg = (selectedQuartier || selectedRegion || '').trim().toLowerCase();

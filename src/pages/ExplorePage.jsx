@@ -164,6 +164,8 @@ const ExplorePage = () => {
         } else {
           query = query.eq('category', activeCategory);
         }
+      } else {
+        query = query.neq('category', 'reels_express');
       }
 
       // 1b. Filtre par Sous-catégorie
