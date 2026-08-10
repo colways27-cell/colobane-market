@@ -259,7 +259,7 @@ const Home = () => {
       const mainQueryPromise = supabase
         .from('products')
         .select(`
-          id, title, price, original_price, category, condition, location, images, views_count, is_boosted, created_at, seller_id, metadata,
+          *,
           profiles:seller_id (account_type, boutique_name, is_verified, phone_number, whatsapp_number)
         `)
         .order('created_at', { ascending: false })
@@ -269,7 +269,7 @@ const Home = () => {
         const boostedQueryPromise = supabase
           .from('products')
           .select(`
-            id, title, price, original_price, category, condition, location, images, views_count, is_boosted, created_at, seller_id, metadata,
+            *,
             profiles:seller_id (account_type, boutique_name, is_verified, phone_number, whatsapp_number)
           `)
           .eq('is_boosted', true)
@@ -287,7 +287,7 @@ const Home = () => {
         if (!boostedData || boostedData.length === 0) {
           const { data: topData } = await supabase
             .from('products')
-            .select(`id, title, price, original_price, category, condition, location, images, views_count, is_boosted, created_at, seller_id, metadata, profiles:seller_id (account_type, boutique_name, is_verified, phone_number, whatsapp_number)`)
+            .select(`*, profiles:seller_id (account_type, boutique_name, is_verified, phone_number, whatsapp_number)`)
             .order('views_count', { ascending: false })
             .limit(8);
           boostedData = topData || [];
