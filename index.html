@@ -14,31 +14,7 @@
 
     <!-- ═══════════ VIEWPORT ═══════════ -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script>
-      (function() {
-        var CURRENT_VERSION = 'v220';
-        if (localStorage.getItem('colobane_app_ver') !== CURRENT_VERSION) {
-          localStorage.setItem('colobane_app_ver', CURRENT_VERSION);
-          if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(function(regs) {
-              for (var i = 0; i < regs.length; i++) {
-                regs[i].unregister();
-              }
-            });
-          }
-          if ('caches' in window) {
-            caches.keys().then(function(keys) {
-              for (var j = 0; j < keys.length; j++) {
-                caches.delete(keys[j]);
-              }
-            });
-          }
-          setTimeout(function() {
-            window.location.reload(true);
-          }, 200);
-        }
-      })();
-    </script>
+
 
     <!-- ═══════════ SEO DE BASE ═══════════ -->
     <title>ColobaneMarket — Marketplace N°1 du Sénégal</title>
