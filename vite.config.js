@@ -40,15 +40,23 @@ export default defineConfig({
         ]
       },
       workbox: {
-        cacheId: 'colobane-market-v103',
+        cacheId: 'colobane-market-v105',
         skipWaiting: true,
         clientsClaim: true,
         cleanupOutdatedCaches: true,
         navigateFallbackDenylist: [/^\/api/],
         importScripts: ['/sw-push.js'],
         maximumFileSizeToCacheInBytes: 20 * 1024 * 1024,
-        globPatterns: ['**/*.{js,css,html}'],
+        globPatterns: ['**/*.{js,css,png,svg,webp,ico}'],
         runtimeCaching: [
+          {
+            urlPattern: ({ request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'html-navigate-cache',
+              networkTimeoutSeconds: 3
+            }
+          },
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
             handler: 'CacheFirst',
