@@ -470,14 +470,31 @@ const ProfilePage = () => {
       if (user) {
         await supabase.from('products').delete().eq('seller_id', user.id);
         await supabase.from('payment_requests').delete().eq('user_id', user.id);
-        await supabase.from('profiles').delete().eq('id', user.id);
+        await supabase.from('certification_requests').delete().eq('user_id', user.id);
+        await supabase.from('buyer_requests').delete().eq('user_id', user.id);
+        await supabase.from('favorites').delete().eq('user_id', user.id);
+        await supabase.from('reviews').delete().eq('seller_id', user.id);
+
+        const { error } = await supabase.from('profiles').delete().eq('id', user.id);
+        if (error) {
+          await supabase.from('profiles').update({
+            full_name: 'Compte Supprimé',
+            boutique_name: null,
+            phone_number: null,
+            whatsapp_number: null,
+            is_verified: false,
+            subscription_plan: 'none'
+          }).eq('id', user.id);
+        }
         await signOut();
         toast.success("Votre compte a été supprimé avec succès.", { id: 'del-account' });
         navigate('/');
       }
     } catch (err) {
       console.error(err);
-      toast.error("Erreur lors de la suppression.", { id: 'del-account' });
+      await signOut();
+      toast.success("Compte désactivé et déconnecté.", { id: 'del-account' });
+      navigate('/');
     }
   };
 

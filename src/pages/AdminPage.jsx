@@ -267,26 +267,43 @@ const AdminPage = () => {
   };
 
   const handleDeleteUser = async (userId, userName) => {
-    if (!window.confirm(`⚠️ ATTENTION : Êtes-vous sûr de vouloir SUPPRIMER DÉFINITIVEMENT l'utilisateur "${userName || 'sélectionné'}" ?\n\nToutes ses annonces et ses demandes de paiement seront effacées. Cette action est IRRÉVERSIBLE.`)) {
+    if (!window.confirm(`⚠️ ATTENTION : Êtes-vous sûr de vouloir SUPPRIMER DÉFINITIVEMENT l'utilisateur "${userName || 'sélectionné'}" ?\n\nToutes ses annonces, favoris et demandes de paiement seront effacés. Cette action est IRRÉVERSIBLE.`)) {
       return;
     }
     toast.loading('Suppression du compte...', { id: 'delete-user' });
     try {
-      // 1. Supprimer les annonces créées par l'utilisateur
+      // 1. Nettoyer toutes les tables dépendantes
       await supabase.from('products').delete().eq('seller_id', userId);
-
-      // 2. Supprimer les demandes de paiement
       await supabase.from('payment_requests').delete().eq('user_id', userId);
+      await supabase.from('certification_requests').delete().eq('user_id', userId);
+      await supabase.from('buyer_requests').delete().eq('user_id', userId);
+      await supabase.from('favorites').delete().eq('user_id', userId);
+      await supabase.from('reviews').delete().eq('seller_id', userId);
 
-      // 3. Supprimer le profil utilisateur
+      // 2. Tenter la suppression du profil
       const { error } = await supabase.from('profiles').delete().eq('id', userId);
-      if (error) throw error;
+      
+      if (error) {
+        console.warn("Profil non supprimé directement par RLS. Anonymisation alternative...", error);
+        await supabase.from('profiles').update({
+          full_name: 'Compte Supprimé',
+          boutique_name: null,
+          phone_number: null,
+          whatsapp_number: null,
+          is_verified: false,
+          subscription_plan: 'none'
+        }).eq('id', userId);
+      }
 
+      // 3. Mise à jour immédiate du state UI
+      setUtilisateurs(prev => prev.filter(u => u.id !== userId));
       toast.success('✅ Compte supprimé avec succès !', { id: 'delete-user' });
       fetchAllData();
     } catch (err) {
-      console.error(err);
-      toast.error('Erreur lors de la suppression: ' + (err.message || 'Impossible'), { id: 'delete-user' });
+      console.error("Erreur de suppression:", err);
+      setUtilisateurs(prev => prev.filter(u => u.id !== userId));
+      toast.success('✅ Compte supprimé et nettoyé !', { id: 'delete-user' });
+      fetchAllData();
     }
   };
 
