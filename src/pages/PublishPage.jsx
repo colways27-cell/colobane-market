@@ -208,17 +208,39 @@ const PublishPage = () => {
   const [boostTab, setBoostTab] = useState('boost'); // 'boost' or 'standard'
   const [boostRequested, setBoostRequested] = useState(false);
   const [categorySearch, setCategorySearch] = useState('');
+  const [categoryViewMode, setCategoryViewMode] = useState('compact');
+  const [recentCategories, setRecentCategories] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
   const [monthlyCount, setMonthlyCount] = useState(0);
   const [hasReachedLimit, setHasReachedLimit] = useState(false);
   const locationQuery = useLocation();
 
   useEffect(() => {
+    try {
+      const savedCats = JSON.parse(localStorage.getItem('colobane_recent_cats') || '[]');
+      if (Array.isArray(savedCats)) setRecentCategories(savedCats);
+    } catch (_e) {}
+
     const params = new URLSearchParams(locationQuery.search);
     if (params.get('mode') === 'reel') {
       toast('🎬 Mode Publication Reel TikTok activé ! Ajoutez le lien de votre vidéo.', { icon: '🎥', duration: 4000 });
     }
   }, [locationQuery]);
+
+  const handleSelectCategory = (catId) => {
+    setSelectedCategory(catId);
+    setCategorySearch('');
+    try {
+      const updated = [catId, ...recentCategories.filter(c => c !== catId)].slice(0, 4);
+      setRecentCategories(updated);
+      localStorage.setItem('colobane_recent_cats', JSON.stringify(updated));
+    } catch (_e) {}
+
+    const selectedCatObj = categories.find((c) => c.id === catId);
+    const subcat = getSubcategoryField(selectedCatObj);
+    if (subcat) setStep(2);
+    else setStep(3);
+  };
 
   const renderLivePreview = () => (
     <div style={{ background: 'white', border: '1px solid #E2E8F0', borderRadius: '24px', padding: '20px', boxShadow: '0 10px 30px rgba(0,0,0,0.06)', position: 'sticky', top: '100px' }}>
@@ -876,36 +898,71 @@ const PublishPage = () => {
               )}
             </div>
 
-            {/* Quick Helper Suggestion Pills */}
-            <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '8px', scrollbarWidth: 'none', marginBottom: '16px' }}>
-              {[
-                { label: '🍲 Restauration & Traiteur', catId: 'alimentation' },
-                { label: '👚 Friperie & Balles', catId: 'friperie' },
-                { label: '📱 iPhone & Samsung', catId: 'telephones_tablettes' },
-                { label: '👗 Robes & Baskets', catId: 'habillement' },
-                { label: '🚗 Voitures & Motos', catId: 'vehicules' },
-                { label: '💻 Ordinateurs & PC', catId: 'informatique' },
-                { label: '💄 Parfums & Soins', catId: 'beaute_sante' },
-                { label: '🏠 Meubles & Lits', catId: 'maison_jardin' },
-                { label: '🐑 Moutons & Animaux', catId: 'animaux' }
-              ].map((pill) => (
+            {/* Recent Categories (if seller published before) */}
+            {recentCategories.length > 0 && !categorySearch && (
+              <div style={{ marginBottom: '16px', background: '#FFFBEB', borderRadius: '16px', padding: '12px 14px', border: '1px solid #FDE68A' }}>
+                <div style={{ fontSize: '0.78rem', fontWeight: '800', color: '#B45309', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span>⭐</span> Vos catégories récentes (Accès 1-Clic) :
+                </div>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  {recentCategories.map(catId => {
+                    const catObj = categories.find(c => c.id === catId);
+                    if (!catObj) return null;
+                    return (
+                      <button
+                        key={catId}
+                        type="button"
+                        onClick={() => handleSelectCategory(catId)}
+                        className="active-scale"
+                        style={{ padding: '6px 12px', borderRadius: '12px', background: '#F59E0B', color: 'white', border: 'none', fontWeight: '800', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                      >
+                        <span>{catObj.icon}</span>
+                        <span>{catObj.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Barre de recherche de catégorie */}
+            <div style={{ position: 'relative', marginBottom: '16px' }}>
+              <div style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              </div>
+              <input 
+                type="text" 
+                value={categorySearch} 
+                onChange={(e) => setCategorySearch(e.target.value)} 
+                placeholder="Rechercher : iPhone, voiture, robe, mouton..." 
+                style={{ width: '100%', padding: '14px 14px 14px 42px', borderRadius: '14px', border: '1.5px solid #E2E8F0', outline: 'none', fontSize: '0.95rem', background: '#FAFAF9', boxSizing: 'border-box', transition: 'border-color 0.2s' }}
+                onFocus={(e) => e.target.style.borderColor = 'var(--primary)'}
+                onBlur={(e) => e.target.style.borderColor = '#E2E8F0'}
+              />
+              {categorySearch && (
+                <button onClick={() => setCategorySearch('')} style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', fontSize: '1.2rem', padding: 0 }}>✕</button>
+              )}
+            </div>
+
+            {/* View Mode Switcher */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', background: '#F8FAFC', padding: '8px 12px', borderRadius: '14px', border: '1px solid #E2E8F0' }}>
+              <span style={{ fontSize: '0.82rem', fontWeight: '800', color: '#475569' }}>Disposition d'affichage :</span>
+              <div style={{ display: 'flex', gap: '4px', background: '#E2E8F0', padding: '3px', borderRadius: '10px' }}>
                 <button
-                  key={pill.label}
                   type="button"
-                  onClick={() => {
-                    setSelectedCategory(pill.catId);
-                    setCategorySearch('');
-                    const selectedCatObj = categories.find((c) => c.id === pill.catId);
-                    const subcat = getSubcategoryField(selectedCatObj);
-                    if (subcat) setStep(2);
-                    else setStep(3);
-                  }}
-                  className="active-scale"
-                  style={{ flexShrink: 0, padding: '8px 14px', borderRadius: '20px', background: '#FEF3C7', color: '#B45309', border: '1px solid #FDE68A', fontSize: '0.82rem', fontWeight: '800', cursor: 'pointer' }}
+                  onClick={() => setCategoryViewMode('compact')}
+                  style={{ padding: '5px 12px', borderRadius: '8px', border: 'none', background: categoryViewMode === 'compact' ? 'var(--primary)' : 'transparent', color: categoryViewMode === 'compact' ? 'white' : '#475569', fontWeight: '800', fontSize: '0.78rem', cursor: 'pointer', transition: 'all 0.2s' }}
                 >
-                  {pill.label}
+                  ⚡ Tout voir (Sans Scroll)
                 </button>
-              ))}
+                <button
+                  type="button"
+                  onClick={() => setCategoryViewMode('grid')}
+                  style={{ padding: '5px 12px', borderRadius: '8px', border: 'none', background: categoryViewMode === 'grid' ? 'var(--primary)' : 'transparent', color: categoryViewMode === 'grid' ? 'white' : '#475569', fontWeight: '800', fontSize: '0.78rem', cursor: 'pointer', transition: 'all 0.2s' }}
+                >
+                  🔲 Cartes
+                </button>
+              </div>
             </div>
 
             {(() => {
@@ -939,19 +996,13 @@ const PublishPage = () => {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <span style={{ fontSize: '1.3rem' }}>✨</span>
                         <div>
-                          <div style={{ fontSize: '0.78rem', color: '#1E40AF', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Catégorie suggérée</div>
+                          <div style={{ fontSize: '0.78rem', color: '#1E40AF', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Catégorie détectée</div>
                           <div style={{ fontSize: '1rem', fontWeight: '900', color: '#1E3A8A' }}>{filtered[0].name}</div>
                         </div>
                       </div>
                       <button
                         type="button"
-                        onClick={() => {
-                          setSelectedCategory(filtered[0].id);
-                          setCategorySearch('');
-                          const subcat = getSubcategoryField(filtered[0]);
-                          if (subcat) setStep(2);
-                          else setStep(3);
-                        }}
+                        onClick={() => handleSelectCategory(filtered[0].id)}
                         className="active-scale hover-lift"
                         style={{ padding: '8px 16px', borderRadius: '12px', background: '#2563EB', color: 'white', border: 'none', fontWeight: '800', fontSize: '0.85rem', cursor: 'pointer', boxShadow: '0 4px 12px rgba(37,99,235,0.3)' }}
                       >
@@ -966,21 +1017,52 @@ const PublishPage = () => {
                   <p style={{ fontWeight: '600', fontSize: '1rem', margin: '0 0 6px 0' }}>Aucune catégorie trouvée</p>
                   <p style={{ fontSize: '0.85rem', margin: 0 }}>Essayez un autre mot-clé ou <button onClick={() => setCategorySearch('')} style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: '700', cursor: 'pointer', padding: 0, fontSize: '0.85rem' }}>voir toutes les catégories</button></p>
                 </div>
+              ) : categoryViewMode === 'compact' ? (
+                /* Mode Ultra-Compact (Tout voir sur un seul écran sans scroller) */
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '8px' }}>
+                  {filtered.map((cat) => (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => handleSelectCategory(cat.id)}
+                      className="touch-target active-scale"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        background: selectedCategory === cat.id ? 'var(--primary)' : '#FAFAF9',
+                        border: selectedCategory === cat.id ? 'none' : '1px solid #E2E8F0',
+                        borderRadius: '14px',
+                        padding: '10px 12px',
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                        boxShadow: selectedCategory === cat.id ? '0 4px 12px rgba(139, 28, 49, 0.2)' : 'none',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <span style={{ fontSize: '20px', flexShrink: 0 }}>{cat.icon}</span>
+                      <span style={{
+                        fontWeight: '800',
+                        fontSize: '0.83rem',
+                        color: selectedCategory === cat.id ? 'white' : 'var(--text-main)',
+                        lineHeight: '1.2',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                      }}>
+                        {cat.name}
+                      </span>
+                    </button>
+                  ))}
+                </div>
               ) : (
+                /* Mode Cartes Détaillées */
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
                   {filtered.map((cat) => (
                     <button 
                       key={cat.id}
-                      onClick={() => { 
-                        setSelectedCategory(cat.id); 
-                        setCategorySearch('');
-                        setTimeout(() => {
-                          const selectedCatObj = categories.find((c) => c.id === cat.id);
-                          const subcat = getSubcategoryField(selectedCatObj);
-                          if (subcat) setStep(2);
-                          else setStep(3);
-                        }, 300); 
-                      }}
+                      type="button"
+                      onClick={() => handleSelectCategory(cat.id)}
                       className="touch-target active-scale"
                       style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', background: selectedCategory === cat.id ? 'var(--primary)' : '#FAFAF9', border: selectedCategory === cat.id ? 'none' : '1px solid #E2E8F0', borderRadius: '20px', padding: '18px 10px', gap: '8px', boxShadow: selectedCategory === cat.id ? '0 8px 20px rgba(139, 28, 49, 0.2)' : 'none', transition: 'all 0.2s' }}
                     >
