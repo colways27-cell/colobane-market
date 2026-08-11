@@ -719,6 +719,30 @@ const ReelsPage = () => {
     }
   };
 
+  const handleDeleteReel = async (reelId) => {
+    if (!user) return;
+    if (!window.confirm("Êtes-vous sûr de vouloir supprimer ce Reel ? Cette action est définitive.")) {
+      return;
+    }
+    const toastId = toast.loading("Suppression du Reel en cours...");
+    try {
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', reelId);
+
+      if (error) throw error;
+
+      toast.dismiss(toastId);
+      toast.success("🎬 Reel supprimé avec succès !");
+      setProducts(prev => prev.filter(p => p.id !== reelId));
+    } catch (err) {
+      toast.dismiss(toastId);
+      console.error("Erreur de suppression du Reel:", err);
+      toast.error("Impossible de supprimer ce Reel pour le moment.");
+    }
+  };
+
   if (loading) {
     return (
       <div style={{
@@ -1206,6 +1230,42 @@ const ReelsPage = () => {
                   </div>
                   <span style={{ fontSize: '12px', fontWeight: 600 }}>Partager</span>
                 </button>
+
+                {/* Owner / Admin Delete Reel Button */}
+                {(product.seller_id === user?.id || userProfile?.is_admin) && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteReel(product.id);
+                    }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#FFFFFF',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '4px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <div style={{
+                      width: '46px',
+                      height: '46px',
+                      borderRadius: '50%',
+                      background: 'rgba(225, 29, 72, 0.9)',
+                      backdropFilter: 'blur(8px)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '20px',
+                      boxShadow: '0 4px 16px rgba(225, 29, 72, 0.5)'
+                    }}>
+                      🗑️
+                    </div>
+                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#FFD1D1', textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}>Supprimer</span>
+                  </button>
+                )}
 
                 {/* Spinning Music Vinyl Disk Icon */}
                 <div style={{
