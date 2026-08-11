@@ -305,6 +305,7 @@ const Home = () => {
         const res = await supabase
           .from('products')
           .select('*')
+          .order('is_boosted', { ascending: false, nullsFirst: false })
           .order('created_at', { ascending: false })
           .range(from, to);
         mainData = res.data;
@@ -319,6 +320,7 @@ const Home = () => {
           const fallbackRes = await supabase
             .from('products')
             .select('*')
+            .order('is_boosted', { ascending: false, nullsFirst: false })
             .order('created_at', { ascending: false })
             .limit(50);
           if (fallbackRes.data && fallbackRes.data.length > 0) {
@@ -339,7 +341,7 @@ const Home = () => {
           .select('*')
           .eq('is_boosted', true)
           .order('created_at', { ascending: false })
-          .limit(10);
+          .limit(20);
         boostedData = bData || [];
       } catch (_bErr) {}
 

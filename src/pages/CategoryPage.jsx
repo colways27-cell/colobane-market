@@ -31,6 +31,7 @@ const CategoryPage = () => {
         let query = supabase
           .from('products')
           .select('*')
+          .order('is_boosted', { ascending: false, nullsFirst: false })
           .order('created_at', { ascending: false });
 
         if (['alimentation', 'restauration', 'cuisine', 'traiteur'].includes(catTargetId)) {
