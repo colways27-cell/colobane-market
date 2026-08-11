@@ -17,6 +17,7 @@ const InputWrapper = ({ icon, children, label }) => (
 );
 
 const AuthPage = () => {
+  const navigate = useNavigate();
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [loading, setLoading] = useState(false);
