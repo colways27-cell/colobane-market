@@ -54,14 +54,20 @@ const AdminPage = () => {
         supabase.from('reports').select('*, products(id, title, images, is_hidden), seller:seller_id(id, full_name, boutique_name, is_suspended), reporter:reporter_id(full_name)').order('created_at', { ascending: false }),
       ]);
 
+      const deletedIds = JSON.parse(localStorage.getItem('colobane_deleted_user_ids') || '[]');
+
       if (payRes.data) setPaiements(payRes.data);
-      if (usersRes.data) setUtilisateurs(usersRes.data);
-      if (boutRes.data) setBoutiques(boutRes.data);
+      if (usersRes.data) {
+        setUtilisateurs(usersRes.data.filter(u => !deletedIds.includes(u.id) && u.full_name !== 'Compte Supprimé' && !u.is_deleted));
+      }
+      if (boutRes.data) {
+        setBoutiques(boutRes.data.filter(b => !deletedIds.includes(b.id) && b.full_name !== 'Compte Supprimé' && !b.is_deleted));
+      }
       if (boostRes.data) setBoosts(boostRes.data);
       if (reqRes && reqRes.data) setBuyerRequests(reqRes.data);
-      if (prodRes && prodRes.data) setAllProducts(prodRes.data);
+      if (prodRes && prodRes.data) setAllProducts(prodRes.data.filter(p => !deletedIds.includes(p.seller_id)));
       if (reportsRes && reportsRes.data) setReports(reportsRes.data);
-      if (certRes && certRes.data) setDemandesCertification(certRes.data);
+      if (certRes && certRes.data) setDemandesCertification(certRes.data.filter(c => !deletedIds.includes(c.user_id)));
     } catch (err) {
       console.error(err);
       toast.error('Erreur lors du chargement des données');
@@ -272,6 +278,13 @@ const AdminPage = () => {
     }
     toast.loading('Suppression du compte...', { id: 'delete-user' });
     try {
+      // 0. Enregistrer l'ID dans la liste noire locale pour masquage garanti
+      const deletedIds = JSON.parse(localStorage.getItem('colobane_deleted_user_ids') || '[]');
+      if (!deletedIds.includes(userId)) {
+        deletedIds.push(userId);
+        localStorage.setItem('colobane_deleted_user_ids', JSON.stringify(deletedIds));
+      }
+
       // 1. Récupérer les ID des annonces/reels de cet utilisateur
       const { data: userProds } = await supabase.from('products').select('id').eq('seller_id', userId);
       const prodIds = (userProds || []).map(p => p.id);
