@@ -18,23 +18,27 @@ try {
   // Ignore sessionStorage error
 }
 
-// Wrapper to handle dynamic import failures safely
+// Wrapper to handle dynamic import failures safely by purging caches and hard-redirecting
 const lazyWithRetry = (componentImport) => {
   return lazy(async () => {
     try {
       return await componentImport();
     } catch (error) {
-      console.error("Error loading lazy page:", error);
+      console.error("Error loading lazy page, purging cache and retrying:", error);
       try {
-        const hasReloaded = window.sessionStorage.getItem('chunk-failed-reloaded');
-        if (!hasReloaded) {
-          window.sessionStorage.setItem('chunk-failed-reloaded', 'true');
-          window.location.reload();
+        if ('serviceWorker' in navigator) {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          for (let reg of registrations) reg.unregister();
         }
-      } catch (_e) {
-        // Ignore reload flag error
-      }
-      throw error;
+        if ('caches' in window) {
+          const keys = await caches.keys();
+          for (let key of keys) await caches.delete(key);
+        }
+      } catch (_e) {}
+
+      const cleanUrl = window.location.origin + window.location.pathname + '?v=' + Date.now();
+      window.location.href = cleanUrl;
+      return { default: () => () => null };
     }
   });
 };

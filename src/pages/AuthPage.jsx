@@ -27,6 +27,7 @@ const AuthPage = () => {
   const [prenom, setPrenom] = useState('');
   const [nom, setNom] = useState('');
   const [phone, setPhone] = useState('');
+  const [phoneWarning, setPhoneWarning] = useState('');
   const [pseudo, setPseudo] = useState('');
   const [email, setEmail] = useState('');
 
