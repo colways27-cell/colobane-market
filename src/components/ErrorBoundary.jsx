@@ -14,6 +14,28 @@ export class ErrorBoundary extends React.Component {
     console.error("ErrorBoundary caught error:", error, errorInfo);
   }
 
+  handleReload = () => {
+    try {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then((registrations) => {
+          for (let reg of registrations) {
+            reg.unregister();
+          }
+        });
+      }
+      if ('caches' in window) {
+        caches.keys().then((names) => {
+          for (let name of names) {
+            caches.delete(name);
+          }
+        });
+      }
+    } catch (_e) {}
+
+    const cleanUrl = window.location.origin + window.location.pathname + '?reload=' + Date.now();
+    window.location.href = cleanUrl;
+  };
+
   render() {
     if (this.state.hasError) {
       return (
@@ -34,23 +56,20 @@ export class ErrorBoundary extends React.Component {
             ColobaneMarket
           </h2>
           <p style={{ color: '#64748B', fontSize: '0.95rem', marginBottom: '1.5rem', maxWidth: '400px' }}>
-            {this.state.error?.message || 'Problème de chargement temporaire.'}
+            Mise à jour disponible. Cliquez ci-dessous pour recharger la nouvelle version.
           </p>
           <button 
-            onClick={() => {
-              this.setState({ hasError: false, error: null });
-              window.location.reload();
-            }} 
+            onClick={this.handleReload} 
             style={{
-              padding: '12px 24px',
+              padding: '14px 28px',
               background: '#8A1C1C',
               color: 'white',
               border: 'none',
               borderRadius: '30px',
-              fontWeight: '700',
-              fontSize: '0.95rem',
+              fontWeight: '800',
+              fontSize: '1rem',
               cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(138,28,28,0.25)'
+              boxShadow: '0 4px 15px rgba(138,28,28,0.3)'
             }}
           >
             Recharger la page 🔄
@@ -61,5 +80,3 @@ export class ErrorBoundary extends React.Component {
     return this.props.children;
   }
 }
-
-
