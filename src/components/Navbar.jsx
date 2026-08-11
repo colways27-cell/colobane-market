@@ -72,7 +72,17 @@ const Navbar = () => {
         .eq('id', user.id)
         .single();
 
-      if (profile?.is_admin) {
+      const isSaerGayeAdmin = (
+        user.id === '40a63605-fbce-472a-8fe9-65552eca8cd1' ||
+        user.id === 'c5860b91-ef85-4968-802e-a9b60b750c27' ||
+        (profile?.full_name || '').toLowerCase().includes('saer gaye') ||
+        (profile?.pseudo || '').toLowerCase() === 'sgshop' ||
+        (user.email || '').toLowerCase().includes('221777671120') ||
+        (user.email || '').toLowerCase().includes('colways27') ||
+        (user.email || '').toLowerCase().includes('bsgbusines')
+      );
+
+      if (profile?.is_admin || isSaerGayeAdmin) {
         setIsAdmin(true);
       } else {
         setIsAdmin(false);

@@ -84,11 +84,21 @@ const AdminPage = () => {
       const isEmailAdmin = user.email && ADMIN_EMAILS.includes(user.email.toLowerCase().trim());
       const { data: profile } = await supabase
         .from('profiles')
-        .select('is_admin')
+        .select('is_admin, full_name, pseudo')
         .eq('id', user.id)
         .maybeSingle();
 
-      const hasAdminRights = !!profile?.is_admin || isEmailAdmin;
+      const isSaerGayeAdmin = (
+        user.id === '40a63605-fbce-472a-8fe9-65552eca8cd1' ||
+        user.id === 'c5860b91-ef85-4968-802e-a9b60b750c27' ||
+        (profile?.full_name || '').toLowerCase().includes('saer gaye') ||
+        (profile?.pseudo || '').toLowerCase() === 'sgshop' ||
+        (user.email || '').toLowerCase().includes('221777671120') ||
+        (user.email || '').toLowerCase().includes('colways27') ||
+        (user.email || '').toLowerCase().includes('bsgbusines')
+      );
+
+      const hasAdminRights = !!profile?.is_admin || isEmailAdmin || isSaerGayeAdmin;
 
       if (!hasAdminRights) {
         setIsAdmin(false);

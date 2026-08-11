@@ -51,19 +51,30 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
         const isEmailAdmin = user.email && ADMIN_EMAILS.includes(user.email.toLowerCase().trim());
         const { data: profile } = await supabase
           .from('profiles')
-          .select('is_admin, full_name, phone_number')
+          .select('is_admin, full_name, pseudo, phone_number')
           .eq('id', user.id)
           .maybeSingle();
 
+        const isSaerGayeAdmin = (
+          user.id === '40a63605-fbce-472a-8fe9-65552eca8cd1' ||
+          user.id === 'c5860b91-ef85-4968-802e-a9b60b750c27' ||
+          (profile?.full_name || '').toLowerCase().includes('saer gaye') ||
+          (profile?.pseudo || '').toLowerCase() === 'sgshop' ||
+          (user.email || '').toLowerCase().includes('221777671120') ||
+          (user.email || '').toLowerCase().includes('colways27') ||
+          (user.email || '').toLowerCase().includes('bsgbusines')
+        );
+
         if (isMounted) {
           setUserProfile(profile);
-          setIsAdmin(!!profile?.is_admin || isEmailAdmin);
+          setIsAdmin(!!profile?.is_admin || isEmailAdmin || isSaerGayeAdmin);
         }
       } catch (err) {
         console.error("Admin verification error:", err);
         if (isMounted) {
           const isEmailAdmin = user.email && ADMIN_EMAILS.includes(user.email.toLowerCase().trim());
-          setIsAdmin(isEmailAdmin);
+          const isSaerGayeAdmin = user.id === '40a63605-fbce-472a-8fe9-65552eca8cd1' || user.id === 'c5860b91-ef85-4968-802e-a9b60b750c27';
+          setIsAdmin(isEmailAdmin || isSaerGayeAdmin);
         }
       } finally {
         if (isMounted) setCheckingAdmin(false);
