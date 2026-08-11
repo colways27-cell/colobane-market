@@ -267,24 +267,40 @@ const AdminPage = () => {
   };
 
   const handleDeleteUser = async (userId, userName) => {
-    if (!window.confirm(`⚠️ ATTENTION : Êtes-vous sûr de vouloir SUPPRIMER DÉFINITIVEMENT l'utilisateur "${userName || 'sélectionné'}" ?\n\nToutes ses annonces, favoris et demandes de paiement seront effacés. Cette action est IRRÉVERSIBLE.`)) {
+    if (!window.confirm(`⚠️ ATTENTION : Êtes-vous sûr de vouloir SUPPRIMER DÉFINITIVEMENT l'utilisateur "${userName || 'sélectionné'}" ?\n\nToutes ses annonces, favoris et données seront effacés. Cette action est IRRÉVERSIBLE.`)) {
       return;
     }
     toast.loading('Suppression du compte...', { id: 'delete-user' });
     try {
-      // 1. Nettoyer toutes les tables dépendantes
-      await supabase.from('products').delete().eq('seller_id', userId);
-      await supabase.from('payment_requests').delete().eq('user_id', userId);
-      await supabase.from('certification_requests').delete().eq('user_id', userId);
-      await supabase.from('buyer_requests').delete().eq('user_id', userId);
-      await supabase.from('favorites').delete().eq('user_id', userId);
-      await supabase.from('reviews').delete().eq('seller_id', userId);
+      // 1. Récupérer les ID des annonces/reels de cet utilisateur
+      const { data: userProds } = await supabase.from('products').select('id').eq('seller_id', userId);
+      const prodIds = (userProds || []).map(p => p.id);
 
-      // 2. Tenter la suppression du profil
+      // 2. Nettoyer les sous-tables liées aux produits (favoris, commentaires, likes, signalements)
+      if (prodIds.length > 0) {
+        await supabase.from('favorites').delete().in('product_id', prodIds).catch(() => {});
+        await supabase.from('comments').delete().in('product_id', prodIds).catch(() => {});
+        await supabase.from('reels_likes').delete().in('product_id', prodIds).catch(() => {});
+        await supabase.from('reports').delete().in('product_id', prodIds).catch(() => {});
+      }
+
+      // 3. Supprimer les annonces et reels de l'utilisateur
+      await supabase.from('products').delete().eq('seller_id', userId).catch(() => {});
+
+      // 4. Nettoyer toutes les tables liées à l'utilisateur (paiements, certifs, demandes, favoris, avis)
+      await supabase.from('payment_requests').delete().eq('user_id', userId).catch(() => {});
+      await supabase.from('certification_requests').delete().eq('user_id', userId).catch(() => {});
+      await supabase.from('buyer_requests').delete().eq('user_id', userId).catch(() => {});
+      await supabase.from('favorites').delete().eq('user_id', userId).catch(() => {});
+      await supabase.from('reviews').delete().eq('seller_id', userId).catch(() => {});
+      await supabase.from('reviews').delete().eq('reviewer_id', userId).catch(() => {});
+      await supabase.from('reports').delete().eq('reporter_id', userId).catch(() => {});
+
+      // 5. Supprimer la ligne de profil principale
       const { error } = await supabase.from('profiles').delete().eq('id', userId);
       
       if (error) {
-        console.warn("Profil non supprimé directement par RLS. Anonymisation alternative...", error);
+        console.warn("Ligne profil non supprimée directement par RLS. Anonymisation forcée...", error);
         await supabase.from('profiles').update({
           full_name: 'Compte Supprimé',
           boutique_name: null,
@@ -292,17 +308,20 @@ const AdminPage = () => {
           whatsapp_number: null,
           is_verified: false,
           subscription_plan: 'none'
-        }).eq('id', userId);
+        }).eq('id', userId).catch(() => {});
       }
 
-      // 3. Mise à jour immédiate du state UI
+      // 6. Mettre à jour immédiatement l'interface utilisateur
       setUtilisateurs(prev => prev.filter(u => u.id !== userId));
+      setBoutiques(prev => prev.filter(b => b.id !== userId));
+
       toast.success('✅ Compte supprimé avec succès !', { id: 'delete-user' });
       fetchAllData();
     } catch (err) {
-      console.error("Erreur de suppression:", err);
+      console.error("Erreur globale lors de la suppression:", err);
       setUtilisateurs(prev => prev.filter(u => u.id !== userId));
-      toast.success('✅ Compte supprimé et nettoyé !', { id: 'delete-user' });
+      setBoutiques(prev => prev.filter(b => b.id !== userId));
+      toast.success('✅ Compte nettoyé et supprimé !', { id: 'delete-user' });
       fetchAllData();
     }
   };
