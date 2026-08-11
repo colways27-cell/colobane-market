@@ -879,25 +879,6 @@ const PublishPage = () => {
             <h2 style={{ fontSize: '1.5rem', fontWeight: '800', marginBottom: '8px', fontFamily: 'var(--font-heading)' }}>Que vendez-vous ?</h2>
             <p style={{ color: 'var(--text-muted)', marginBottom: '16px', fontSize: '0.95rem' }}>Sélectionnez la catégorie qui correspond le mieux à votre article.</p>
             
-            {/* Barre de recherche de catégorie */}
-            <div style={{ position: 'relative', marginBottom: '20px' }}>
-              <div style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-              </div>
-              <input 
-                type="text" 
-                value={categorySearch} 
-                onChange={(e) => setCategorySearch(e.target.value)} 
-                placeholder="Rechercher : iPhone, voiture, robe, mouton..." 
-                style={{ width: '100%', padding: '14px 14px 14px 42px', borderRadius: '14px', border: '1.5px solid #E2E8F0', outline: 'none', fontSize: '0.95rem', background: '#FAFAF9', boxSizing: 'border-box', transition: 'border-color 0.2s' }}
-                onFocus={(e) => e.target.style.borderColor = 'var(--primary)'}
-                onBlur={(e) => e.target.style.borderColor = '#E2E8F0'}
-              />
-              {categorySearch && (
-                <button onClick={() => setCategorySearch('')} style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', fontSize: '1.2rem', padding: 0 }}>✕</button>
-              )}
-            </div>
-
             {/* Recent Categories (if seller published before) */}
             {recentCategories.length > 0 && !categorySearch && (
               <div style={{ marginBottom: '16px', background: '#FFFBEB', borderRadius: '16px', padding: '12px 14px', border: '1px solid #FDE68A' }}>
