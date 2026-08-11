@@ -209,11 +209,13 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
               Veuillez vous connecter avec vos identifiants Administrateur pour ouvrir le Back-Office.
             </p>
 
-            <form onSubmit={handleAdminLogin} style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'left' }}>
+            <form onSubmit={handleAdminLogin} autoComplete="on" style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'left' }}>
               <div>
                 <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#475569', marginBottom: '4px', display: 'block' }}>Email Admin</label>
                 <input
                   type="email"
+                  name="email"
+                  autoComplete="username"
                   placeholder="admin@colobanemarket.com"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
@@ -225,6 +227,8 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
                 <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#475569', marginBottom: '4px', display: 'block' }}>Mot de passe</label>
                 <input
                   type="password"
+                  name="password"
+                  autoComplete="current-password"
                   placeholder="••••••••"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
