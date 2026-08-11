@@ -26,7 +26,7 @@ const PageLoader = () => (
 );
 
 const ProtectedRoute = ({ children, requireAdmin = false }) => {
-  const { user, signOut } = useAuth();
+  const { user, loading: authLoading, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [checkingAdmin, setCheckingAdmin] = useState(requireAdmin);
@@ -155,6 +155,11 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
     await signOut();
     navigate('/auth');
   };
+
+  // Wait for initial session restoration before deciding redirects
+  if (authLoading) {
+    return <PageLoader />;
+  }
 
   // Standard non-admin protection: redirect to /auth
   if (!requireAdmin && !user) {

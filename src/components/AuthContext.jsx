@@ -53,6 +53,7 @@ export const AuthProvider = ({ children }) => {
 
   const value = {
     user,
+    loading,
     signOut: () => supabase.auth.signOut(),
   };
 
