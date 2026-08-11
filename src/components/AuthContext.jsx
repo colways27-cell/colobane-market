@@ -13,8 +13,35 @@ export const AuthProvider = ({ children }) => {
     const initAuth = async () => {
       try {
         const { data } = await supabase.auth.getSession();
+        let currentSessionUser = data?.session?.user ?? null;
+
+        // Auto Silent Re-authentication fallback if session is empty but remembered credentials exist
+        if (!currentSessionUser) {
+          try {
+            const rememberedRaw = localStorage.getItem('colobane_remembered_user');
+            if (rememberedRaw) {
+              const remembered = JSON.parse(rememberedRaw);
+              if (remembered?.phone && remembered?.password) {
+                const digits = (remembered.phone || '').replace(/\s+/g, '').replace(/^0+/, '');
+                const formattedPhone = (remembered.phone || '').startsWith('+') ? remembered.phone : `+221${digits}`;
+                const fakeEmail = `${formattedPhone.replace('+', '')}@colobanemarket.local`;
+
+                const res = await supabase.auth.signInWithPassword({
+                  email: fakeEmail,
+                  password: remembered.password
+                });
+                if (res.data?.user) {
+                  currentSessionUser = res.data.user;
+                }
+              }
+            }
+          } catch (autoLoginErr) {
+            console.warn("Auto-relogin fallback silent warning:", autoLoginErr);
+          }
+        }
+
         if (mounted) {
-          setUser(data?.session?.user ?? null);
+          setUser(currentSessionUser);
         }
       } catch (err) {
         console.warn("Auth getSession warning:", err);
@@ -27,16 +54,12 @@ export const AuthProvider = ({ children }) => {
 
     initAuth();
 
-    // Safety fallback timeout to ensure app NEVER stays blank
-    const safetyTimer = setTimeout(() => {
-      if (mounted) setLoading(false);
-    }, 1500);
-
     let subscription;
     try {
       const { data } = supabase.auth.onAuthStateChange((_event, session) => {
         if (mounted) {
           setUser(session?.user ?? null);
+          setLoading(false);
         }
       });
       subscription = data?.subscription;
@@ -46,7 +69,6 @@ export const AuthProvider = ({ children }) => {
 
     return () => {
       mounted = false;
-      clearTimeout(safetyTimer);
       if (subscription) subscription.unsubscribe();
     };
   }, []);
@@ -54,7 +76,12 @@ export const AuthProvider = ({ children }) => {
   const value = {
     user,
     loading,
-    signOut: () => supabase.auth.signOut(),
+    signOut: () => {
+      try {
+        localStorage.removeItem('colobane_remembered_user');
+      } catch (_e) {}
+      return supabase.auth.signOut();
+    },
   };
 
   return (

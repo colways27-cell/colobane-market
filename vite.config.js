@@ -40,10 +40,11 @@ export default defineConfig({
         ]
       },
       workbox: {
-        cacheId: 'colobane-market-v102',
+        cacheId: 'colobane-market-v103',
         skipWaiting: true,
         clientsClaim: true,
         cleanupOutdatedCaches: true,
+        navigateFallbackDenylist: [/^\/api/],
         importScripts: ['/sw-push.js'],
         maximumFileSizeToCacheInBytes: 20 * 1024 * 1024,
         globPatterns: ['**/*.{js,css,html}'],
