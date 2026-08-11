@@ -30,6 +30,8 @@ const AuthPage = () => {
   const [phoneWarning, setPhoneWarning] = useState('');
   const [pseudo, setPseudo] = useState('');
   const [email, setEmail] = useState('');
+  const [city, setCity] = useState('Dakar');
+  const [showPassword, setShowPassword] = useState(false);
 
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
