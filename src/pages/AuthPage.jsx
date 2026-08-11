@@ -17,6 +17,10 @@ const InputWrapper = ({ icon, children, label }) => (
 );
 
 const AuthPage = () => {
+  const [errorMsg, setErrorMsg] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
+  const [loading, setLoading] = useState(false);
+
   const [isRegister, setIsRegister] = useState(true);
   const [isResetMode, setIsResetMode] = useState(false);
   const [isRecoveryMode, setIsRecoveryMode] = useState(false);
