@@ -50,7 +50,7 @@ const AdminPage = () => {
         supabase.from('products').select('id, title, seller_id, is_boosted, boost_end_date, images, profiles(full_name, boutique_name, phone_number)').eq('is_boosted', true).order('boost_end_date', { ascending: true }),
         supabase.from('certification_requests').select('*, profiles(full_name, whatsapp_number, avatar_url)').order('created_at', { ascending: false }),
         supabase.from('buyer_requests').select('*').order('created_at', { ascending: false }),
-        supabase.from('products').select('*, profiles(full_name, boutique_name, pseudo, phone_number)').order('created_at', { ascending: false }).limit(200),
+        supabase.from('products').select('*, profiles(full_name, boutique_name, pseudo, phone_number)').order('created_at', { ascending: false }).limit(1000),
         supabase.from('reports').select('*, products(id, title, images, is_hidden), seller:seller_id(id, full_name, boutique_name, is_suspended), reporter:reporter_id(full_name)').order('created_at', { ascending: false }),
       ]);
 
@@ -404,6 +404,7 @@ const AdminPage = () => {
 
   const tabs = [
     { id: 'overview', label: '📊 Aperçu Général' },
+    { id: 'annonces', label: `📦 Toutes les Annonces / Pubs (${allProducts.length})` },
     { id: 'reels', label: `🎬 Boosts Reels (${paiements.filter(p => p.plan_type === 'boost_reel_7j' && p.status === 'pending').length})` },
     { id: 'paiements', label: `💳 Paiements (${paiements.filter(p => p.status === 'pending').length})` },
     { id: 'utilisateurs', label: `👥 Utilisateurs (${utilisateurs.length})` },
@@ -570,7 +571,7 @@ const AdminPage = () => {
           />
         )}
 
-        {activeTab === 'moderation' && (
+        {(activeTab === 'annonces' || activeTab === 'moderation') && (
           <ProductModerationTab
             allProducts={allProducts}
             reports={reports}
