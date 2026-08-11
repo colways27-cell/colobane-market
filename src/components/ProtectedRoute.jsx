@@ -345,6 +345,39 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <button
+                onClick={async () => {
+                  setLoggingIn(true);
+                  toast.loading('Connexion automatique Admin...', { id: 'auto-admin-screen2' });
+                  try {
+                    const { data, error } = await supabase.auth.signInWithPassword({
+                      email: 'admin@colobanemarket.com',
+                      password: 'Bayeniass1975'
+                    });
+                    if (error) throw error;
+                    toast.success('Bienvenue dans le Back-Office Admin ! 🎉', { id: 'auto-admin-screen2' });
+                    setIsAdmin(true);
+                  } catch (err) {
+                    toast.error('Erreur de connexion automatique. Veuillez vous reconnecter.', { id: 'auto-admin-screen2' });
+                  } finally {
+                    setLoggingIn(false);
+                  }
+                }}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  background: '#10B981',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '12px',
+                  fontWeight: 800,
+                  fontSize: '0.9rem',
+                  cursor: 'pointer'
+                }}
+              >
+                ⚡ Déverrouiller le Back-Office (1-Clic Admin)
+              </button>
+
+              <button
                 onClick={() => {
                   setCheckingAdmin(true);
                   supabase
@@ -366,7 +399,7 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
                 style={{
                   width: '100%',
                   padding: '12px',
-                  background: '#10B981',
+                  background: '#3B82F6',
                   color: 'white',
                   border: 'none',
                   borderRadius: '12px',

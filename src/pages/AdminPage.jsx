@@ -262,6 +262,11 @@ const AdminPage = () => {
         .eq('id', userId);
 
       if (error) throw error;
+
+      if (plan === 'premium' || plan === 'forfait_premium') {
+        await supabase.from('products').update({ is_boosted: true }).eq('seller_id', userId);
+      }
+
       toast.success('Utilisateur mis à jour !', { id: 'update-user' });
       fetchAllData();
     } catch (err) {

@@ -664,6 +664,7 @@ const PublishPage = () => {
         category: selectedCategory,
         images: finalImages,
         metadata: processedMetadata,
+        is_boosted: isPremium,
         status: 'available'
       }]).select('id, title').single();
 
