@@ -156,54 +156,119 @@ const AdminOverview = ({
         gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
         gap: '16px'
       }}>
+        {/* Revenu Net Plateforme */}
         <div style={cardStyle('linear-gradient(135deg, #0F172A 0%, #1E293B 100%)', '#FFFFFF')}>
-          <div style={iconStyle}>💳</div>
+          <div style={{
+            fontSize: '1.8rem',
+            background: 'rgba(255,255,255,0.12)',
+            width: '48px',
+            height: '48px',
+            borderRadius: '12px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0
+          }}>💳</div>
           <div>
-            <div style={labelStyle}>Revenu Net Plateforme</div>
-            <div style={{ ...valueStyle, color: '#34D399' }}>{totalRevenue.toLocaleString()} FCFA</div>
-            <div style={{ fontSize: '11px', opacity: 0.8, marginTop: '2px' }}>
-              En attente Wave : +{pendingRevenue.toLocaleString()} FCFA
+            <div style={{ fontSize: '0.85rem', fontWeight: '700', color: '#94A3B8' }}>Revenu Net Plateforme</div>
+            <div style={{ fontSize: '1.45rem', fontWeight: '900', color: '#34D399', marginTop: '2px', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
+              {totalRevenue.toLocaleString('fr-FR')} FCFA
+            </div>
+            <div style={{ fontSize: '11px', color: '#CBD5E1', fontWeight: 600, marginTop: '2px' }}>
+              En attente Wave : +{pendingRevenue.toLocaleString('fr-FR')} FCFA
             </div>
           </div>
         </div>
 
-        <div style={cardStyle('linear-gradient(135deg, #312E81 0%, #4338CA 100%)', '#FFFFFF')}>
-          <div style={iconStyle}>💎</div>
+        {/* Volume GMV Produits */}
+        <div style={cardStyle('linear-gradient(135deg, #1E1B4B 0%, #312E81 100%)', '#FFFFFF')}>
+          <div style={{
+            fontSize: '1.8rem',
+            background: 'rgba(255,255,255,0.18)',
+            width: '48px',
+            height: '48px',
+            borderRadius: '12px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0
+          }}>💎</div>
           <div>
-            <div style={labelStyle}>Volume GMV Produits</div>
-            <div style={{ ...valueStyle, color: '#A5B4FC' }}>{gmvListings.toLocaleString()} FCFA</div>
-            <div style={{ fontSize: '11px', opacity: 0.8, marginTop: '2px' }}>
+            <div style={{ fontSize: '0.85rem', fontWeight: '700', color: '#E0E7FF' }}>Volume GMV Produits</div>
+            <div style={{ fontSize: '1.45rem', fontWeight: '900', color: '#FFFFFF', marginTop: '2px', textShadow: '0 2px 4px rgba(0,0,0,0.4)' }}>
+              {gmvListings.toLocaleString('fr-FR')} FCFA
+            </div>
+            <div style={{ fontSize: '11px', color: '#C7D2FE', fontWeight: 700, marginTop: '2px' }}>
               {allProducts.length} annonces en ligne
             </div>
           </div>
         </div>
 
-        <div onClick={() => onNavigateTab('reels')} style={{ ...cardStyle('#FFF1F2', '#BE123C'), cursor: 'pointer' }}>
-          <div style={iconStyle}>🎬</div>
+        {/* Revenus Boosts Reels */}
+        <div onClick={() => onNavigateTab('reels')} style={{ ...cardStyle('linear-gradient(135deg, #881337 0%, #BE123C 100%)', '#FFFFFF'), cursor: 'pointer' }}>
+          <div style={{
+            fontSize: '1.8rem',
+            background: 'rgba(255,255,255,0.18)',
+            width: '48px',
+            height: '48px',
+            borderRadius: '12px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0
+          }}>🎬</div>
           <div>
-            <div style={labelStyle}>Revenus Boosts Reels</div>
-            <div style={valueStyle}>{reelRevenue.toLocaleString()} FCFA</div>
-            <div style={{ fontSize: '11px', fontWeight: '700', marginTop: '2px' }}>
+            <div style={{ fontSize: '0.85rem', fontWeight: '700', color: '#FFE4E6' }}>Revenus Boosts Reels</div>
+            <div style={{ fontSize: '1.45rem', fontWeight: '900', color: '#FFFFFF', marginTop: '2px', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
+              {reelRevenue.toLocaleString('fr-FR')} FCFA
+            </div>
+            <div style={{ fontSize: '11px', color: '#FECDD3', fontWeight: 700, marginTop: '2px' }}>
               SLA moyen : &lt; 15 min
             </div>
           </div>
         </div>
 
-        <div onClick={() => onNavigateTab('paiements')} style={{ ...cardStyle('#FEF3C7', '#D97706'), cursor: 'pointer' }}>
-          <div style={iconStyle}>⏳</div>
+        {/* Paiements en Attente */}
+        <div onClick={() => onNavigateTab('paiements')} style={{ ...cardStyle('linear-gradient(135deg, #78350F 0%, #D97706 100%)', '#FFFFFF'), cursor: 'pointer' }}>
+          <div style={{
+            fontSize: '1.8rem',
+            background: 'rgba(255,255,255,0.18)',
+            width: '48px',
+            height: '48px',
+            borderRadius: '12px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0
+          }}>⏳</div>
           <div>
-            <div style={labelStyle}>Paiements en Attente</div>
-            <div style={valueStyle}>{pendingPayments.length}</div>
-            <div style={{ fontSize: '11px', opacity: 0.9, marginTop: '2px' }}>À valider rapidement</div>
+            <div style={{ fontSize: '0.85rem', fontWeight: '700', color: '#FEF3C7' }}>Paiements en Attente</div>
+            <div style={{ fontSize: '1.45rem', fontWeight: '900', color: '#FFFFFF', marginTop: '2px', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
+              {pendingPayments.length}
+            </div>
+            <div style={{ fontSize: '11px', color: '#FDE68A', fontWeight: 700, marginTop: '2px' }}>À valider rapidement</div>
           </div>
         </div>
 
-        <div onClick={() => onNavigateTab('moderation')} style={{ ...cardStyle('#FEF2F2', '#B91C1C'), cursor: 'pointer' }}>
-          <div style={iconStyle}>🚨</div>
+        {/* Signalements Acheteurs */}
+        <div onClick={() => onNavigateTab('moderation')} style={{ ...cardStyle('linear-gradient(135deg, #7F1D1D 0%, #B91C1C 100%)', '#FFFFFF'), cursor: 'pointer' }}>
+          <div style={{
+            fontSize: '1.8rem',
+            background: 'rgba(255,255,255,0.18)',
+            width: '48px',
+            height: '48px',
+            borderRadius: '12px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0
+          }}>🚨</div>
           <div>
-            <div style={labelStyle}>Signalements Acheteurs</div>
-            <div style={valueStyle}>{pendingReports.length}</div>
-            <div style={{ fontSize: '11px', opacity: 0.9, marginTop: '2px' }}>Modération à traiter</div>
+            <div style={{ fontSize: '0.85rem', fontWeight: '700', color: '#FEE2E2' }}>Signalements Acheteurs</div>
+            <div style={{ fontSize: '1.45rem', fontWeight: '900', color: '#FFFFFF', marginTop: '2px', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
+              {pendingReports.length}
+            </div>
+            <div style={{ fontSize: '11px', color: '#FCA5A5', fontWeight: 700, marginTop: '2px' }}>Modération à traiter</div>
           </div>
         </div>
       </div>
