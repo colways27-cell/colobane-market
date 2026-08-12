@@ -211,6 +211,7 @@ const PublishPage = () => {
   const [categoryViewMode, setCategoryViewMode] = useState('compact');
   const [recentCategories, setRecentCategories] = useState([]);
   const [activeSubcatModal, setActiveSubcatModal] = useState(null);
+  const [showMobilePreviewModal, setShowMobilePreviewModal] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [monthlyCount, setMonthlyCount] = useState(0);
   const [hasReachedLimit, setHasReachedLimit] = useState(false);
@@ -833,12 +834,86 @@ const PublishPage = () => {
             )}
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%', maxWidth: '360px' }}>
-            <button onClick={() => navigate(`/product/${publishedProduct.id}`)} className="active-scale" style={{ width: '100%', padding: '15px', borderRadius: '12px', fontWeight: '800', fontSize: '1.05rem', background: 'var(--primary)', color: 'white', border: 'none', cursor: 'pointer', boxShadow: '0 4px 15px rgba(139, 28, 49, 0.2)' }}>
-              Voir mon annonce
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%', maxWidth: '380px' }}>
+            <button
+              type="button"
+              onClick={() => {
+                const productUrl = `https://colobanemarketplac.com/product/${publishedProduct.id}`;
+                const text = encodeURIComponent(
+                  `🔥 Nouveau produit disponible sur ColobaneMarket !\n📌 ${publishedProduct.title}\n💰 Prix : ${publishedProduct.price ? Number(publishedProduct.price).toLocaleString('fr-FR') + ' FCFA' : 'Sur demande'}\n\n👉 Cliquez ici pour voir et commander : ${productUrl}`
+                );
+                window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+              }}
+              className="active-scale hover-lift"
+              style={{
+                width: '100%',
+                padding: '16px',
+                borderRadius: '16px',
+                fontWeight: '800',
+                fontSize: '1.05rem',
+                background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
+                color: 'white',
+                border: 'none',
+                cursor: 'pointer',
+                boxShadow: '0 6px 20px rgba(37, 211, 102, 0.35)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '10px'
+              }}
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+              📲 Partager sur mon Statut WhatsApp
             </button>
-            <button onClick={() => navigate('/')} className="active-scale" style={{ width: '100%', padding: '15px', borderRadius: '12px', fontWeight: '800', fontSize: '1.05rem', background: '#F1F5F9', color: 'var(--text-main)', border: 'none', cursor: 'pointer' }}>
-              Retour aux annonces
+
+            <button
+              type="button"
+              onClick={() => {
+                setPublishedProduct(null);
+                setImages([]);
+                setPreviews([]);
+                setVideoFile(null);
+                setFormData({ title: '', description: '', price_type: 'Fixe', price: '', location: 'Dakar', delivery: 'Aucune', contact_whatsapp: '' });
+                setSelectedCategory('');
+                setStep(1);
+                toast.success("Prêt pour la publication suivante ! ⚡");
+              }}
+              className="active-scale"
+              style={{
+                width: '100%',
+                padding: '14px',
+                borderRadius: '14px',
+                fontWeight: '800',
+                fontSize: '0.98rem',
+                background: '#F1F5F9',
+                color: 'var(--text-main)',
+                border: '1.5px solid #E2E8F0',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px'
+              }}
+            >
+              ⚡ Enchaîner avec une autre annonce (5s)
+            </button>
+
+            <button 
+              onClick={() => navigate(`/product/${publishedProduct.id}`)} 
+              className="active-scale" 
+              style={{
+                width: '100%',
+                padding: '12px',
+                borderRadius: '12px',
+                fontWeight: '700',
+                fontSize: '0.9rem',
+                background: 'transparent',
+                color: 'var(--primary)',
+                border: 'none',
+                cursor: 'pointer'
+              }}
+            >
+              👉 Voir mon annonce en ligne
             </button>
           </div>
         </div>
@@ -1203,8 +1278,37 @@ const PublishPage = () => {
             
             <div className="publish-layout">
               <div>
-                <h2 style={{ fontSize: '1.5rem', fontWeight: '800', marginBottom: '24px', fontFamily: 'var(--font-heading)' }}>Détails et Photos</h2>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: '800', marginBottom: '16px', fontFamily: 'var(--font-heading)' }}>Détails et Photos</h2>
                 
+                {/* Mobile Floating Live Preview Button */}
+                <button
+                  type="button"
+                  onClick={() => setShowMobilePreviewModal(true)}
+                  className="active-scale hide-on-desktop"
+                  style={{
+                    width: '100%',
+                    marginBottom: '20px',
+                    padding: '12px 16px',
+                    borderRadius: '16px',
+                    background: 'linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)',
+                    border: '1.5px solid #93C5FD',
+                    color: '#1E40AF',
+                    fontWeight: '800',
+                    fontSize: '0.88rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 12px rgba(37,99,235,0.12)'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '1.2rem' }}>👁️</span>
+                    <span>Aperçu de votre Annonce en Direct</span>
+                  </div>
+                  <span style={{ background: '#2563EB', color: 'white', padding: '4px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: '900' }}>LIVE</span>
+                </button>
+
                 <InputWrapper label="Titre de l'annonce" required icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>}>
                   <FastInput type="text" name="title" placeholder="Ex: iPhone 14 Pro Max 256Go" value={formData.title} onChange={handleInputChange} style={{ flex: 1, padding: '1rem 1rem 1rem 0', border: 'none', background: 'transparent', outline: 'none', fontSize: '0.95rem' }} />
                 </InputWrapper>
@@ -1720,6 +1824,58 @@ const PublishPage = () => {
                   ));
                 })()}
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Mobile Live Preview Modal Drawer */}
+        {showMobilePreviewModal && (
+          <div 
+            onClick={() => setShowMobilePreviewModal(false)} 
+            style={{
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(15, 23, 42, 0.65)',
+              backdropFilter: 'blur(6px)',
+              zIndex: 9999,
+              display: 'flex',
+              alignItems: 'flex-end',
+              justifyContent: 'center',
+              animation: 'fadeIn 0.2s ease-out'
+            }}
+          >
+            <div 
+              onClick={(e) => e.stopPropagation()} 
+              style={{
+                width: '100%',
+                maxWidth: '520px',
+                background: 'white',
+                borderTopLeftRadius: '28px',
+                borderTopRightRadius: '28px',
+                padding: '24px 20px 32px 20px',
+                boxShadow: '0 -10px 40px rgba(0,0,0,0.2)',
+                animation: 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                maxHeight: '85vh',
+                overflowY: 'auto'
+              }}
+            >
+              {/* Handle bar */}
+              <div style={{ width: '44px', height: '4px', background: '#CBD5E1', borderRadius: '2px', margin: '0 auto 16px auto' }} />
+
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                <div style={{ fontWeight: '900', fontSize: '1.1rem', color: '#0F172A', fontFamily: 'var(--font-heading)' }}>
+                  👁️ Aperçu de votre Annonce
+                </div>
+                <button 
+                  type="button" 
+                  onClick={() => setShowMobilePreviewModal(false)} 
+                  style={{ background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748B', fontWeight: '800' }}
+                >
+                  ✕
+                </button>
+              </div>
+
+              {renderLivePreview()}
             </div>
           </div>
         )}
