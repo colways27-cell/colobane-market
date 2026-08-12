@@ -8,6 +8,7 @@ import { shareProduct, shareWhatsAppStatus, copyToClipboard } from '../utils/soc
 import toast from 'react-hot-toast';
 import { Shield, Tag, Gauge, Settings, Fuel, MapPin, Share2, AlertTriangle, MoreVertical } from 'lucide-react';
 import { categories } from '../data/categories';
+import FollowButton from '../components/FollowButton';
 
 const ProductPage = () => {
   const { productId } = useParams();
@@ -749,7 +750,14 @@ const ProductPage = () => {
               </div>
             </div>
           </div>
-          <div style={{ color: 'var(--primary)', fontWeight: '600', fontSize: '14px' }}>Voir le profil</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <FollowButton 
+              boutiqueId={product.seller_id || product.profiles?.id}
+              boutiqueName={product.profiles?.boutique_name || product.profiles?.full_name || 'Vendeur'}
+              size="sm"
+            />
+            <div style={{ color: 'var(--primary)', fontWeight: '700', fontSize: '13px' }}>Profil →</div>
+          </div>
         </div>
 
         {/* Security Banner */}

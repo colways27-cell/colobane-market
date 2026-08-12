@@ -12,6 +12,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Store, BadgeCheck, MapPin, Star, QrCode } from 'lucide-react';
 import { isBoutiqueExpired } from '../utils/boutiqueHelpers';
+import FollowButton from '../components/FollowButton';
 
 const BoutiqueProfilePage = () => {
   const { boutiqueId } = useParams();
@@ -304,9 +305,14 @@ const BoutiqueProfilePage = () => {
             </div>
           </div>
 
-          {/* Boutons de Contact */}
+          {/* Boutons de Contact et Abonnement */}
           <div className="boutique-profile-actions" style={{ marginTop: '1.5rem' }}>
-            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+              <FollowButton 
+                boutiqueId={boutiqueId} 
+                boutiqueName={boutiqueName} 
+                size="lg" 
+              />
               <a 
                 href={whatsappNumber ? whatsappUrl : '#'} 
                 onClick={(e) => { if (!whatsappNumber) { e.preventDefault(); toast.error("Cette boutique n'a pas renseigné son WhatsApp."); } }}

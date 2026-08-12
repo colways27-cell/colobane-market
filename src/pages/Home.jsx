@@ -11,6 +11,8 @@ import { Store, ChevronDown, ChevronUp, Search, MapPin, Navigation, Compass } fr
 import totemLapin from '../assets/totem-lapin.webp';
 import { getUserCoordinates, sortProductsByProximity, SENEGAL_LOCATION_COORDS } from '../utils/geolocation';
 import AroundMeModal from '../components/AroundMeModal';
+import { getFollowedBoutiques } from '../utils/followHelpers';
+import FollowButton from '../components/FollowButton';
 
 const Home = () => {
   const [products, setProducts] = useState([]);
@@ -20,6 +22,15 @@ const Home = () => {
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(0);
   const [activeCategorySlide, setActiveCategorySlide] = useState(null);
+  const [followedCount, setFollowedCount] = useState(() => getFollowedBoutiques().length);
+
+  useEffect(() => {
+    const handleFollowChange = () => {
+      setFollowedCount(getFollowedBoutiques().length);
+    };
+    window.addEventListener('colobane_follow_change', handleFollowChange);
+    return () => window.removeEventListener('colobane_follow_change', handleFollowChange);
+  }, []);
 
   // Discrete Long Press Reporting System State
   const [contextMenu, setContextMenu] = useState({ visible: false, productId: null });
@@ -190,6 +201,11 @@ const Home = () => {
   const homeCategoryFilteredProducts = useMemo(() => {
     if (!displayProducts || displayProducts.length === 0) return [];
     if (!selectedHomePillCategory || selectedHomePillCategory === 'all') return displayProducts;
+    if (selectedHomePillCategory === 'followed') {
+      const followedIds = getFollowedBoutiques();
+      if (followedIds.length === 0) return [];
+      return displayProducts.filter(p => followedIds.includes(p.seller_id));
+    }
     if (selectedHomePillCategory === 'boosted') {
       const boosted = displayProducts.filter(p => p.is_boosted);
       return boosted.length > 0 ? boosted : displayProducts;
@@ -1390,6 +1406,7 @@ const Home = () => {
         <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', marginBottom: '16px', paddingBottom: '4px', scrollbarWidth: 'none' }}>
           {[
             { id: 'all', label: '⚡ Tout', icon: '⚡' },
+            { id: 'followed', label: `🔔 Suivies ${followedCount > 0 ? `(${followedCount})` : ''}`, icon: '🔔' },
             { id: 'telephones', label: '📱 Téléphones & Tech', icon: '📱' },
             { id: 'habillement', label: '👗 Mode & Habits', icon: '👗' },
             { id: 'accessoires', label: '⌚ Accessoires', icon: '⌚' },
