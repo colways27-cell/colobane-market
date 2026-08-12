@@ -210,6 +210,7 @@ const PublishPage = () => {
   const [categorySearch, setCategorySearch] = useState('');
   const [categoryViewMode, setCategoryViewMode] = useState('compact');
   const [recentCategories, setRecentCategories] = useState([]);
+  const [activeSubcatModal, setActiveSubcatModal] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [monthlyCount, setMonthlyCount] = useState(0);
   const [hasReachedLimit, setHasReachedLimit] = useState(false);
@@ -237,9 +238,23 @@ const PublishPage = () => {
     } catch (_e) {}
 
     const selectedCatObj = categories.find((c) => c.id === catId);
-    const subcat = getSubcategoryField(selectedCatObj);
-    if (subcat) setStep(2);
-    else setStep(3);
+    if (selectedCatObj) {
+      setActiveSubcatModal(selectedCatObj);
+    }
+  };
+
+  const handlePickSubcategory = (subcatOption) => {
+    if (!activeSubcatModal) return;
+    const catId = activeSubcatModal.id;
+    setSelectedCategory(catId);
+    
+    const subcatField = activeSubcatModal.fields?.find(f => f.name === 'type' || f.name === 'subcategory') || activeSubcatModal.fields?.[0];
+    if (subcatField && subcatOption && subcatOption !== 'Toutes') {
+      setFormData(prev => ({ ...prev, [subcatField.name]: subcatOption }));
+    }
+    
+    setActiveSubcatModal(null);
+    setStep(3);
   };
 
   const renderLivePreview = () => (
@@ -1524,7 +1539,7 @@ const PublishPage = () => {
                     cursor: 'pointer',
                     boxShadow: '0 6px 20px rgba(139, 28, 49, 0.35)',
                     display: 'flex',
-                    justify: 'center',
+                    justifyContent: 'center',
                     alignItems: 'center',
                     gap: '10px'
                   }}
@@ -1539,11 +1554,129 @@ const PublishPage = () => {
             </div>
           </div>
         )}
+        {/* Subcategory Mini-Sheet Modal */}
+        {activeSubcatModal && (
+          <div 
+            onClick={() => setActiveSubcatModal(null)} 
+            style={{
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(15, 23, 42, 0.65)',
+              backdropFilter: 'blur(6px)',
+              zIndex: 9999,
+              display: 'flex',
+              alignItems: 'flex-end',
+              justifyContent: 'center',
+              animation: 'fadeIn 0.2s ease-out'
+            }}
+          >
+            <div 
+              onClick={(e) => e.stopPropagation()} 
+              style={{
+                width: '100%',
+                maxWidth: '520px',
+                background: 'white',
+                borderTopLeftRadius: '28px',
+                borderTopRightRadius: '28px',
+                padding: '24px 20px 32px 20px',
+                boxShadow: '0 -10px 40px rgba(0,0,0,0.2)',
+                animation: 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                maxHeight: '82vh',
+                overflowY: 'auto'
+              }}
+            >
+              {/* Handle bar */}
+              <div style={{ width: '44px', height: '4px', background: '#CBD5E1', borderRadius: '2px', margin: '0 auto 16px auto' }} />
+
+              {/* Header */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px', paddingBottom: '14px', borderBottom: '1px solid #F1F5F9' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ width: '48px', height: '48px', borderRadius: '16px', background: `${activeSubcatModal.color}18`, color: activeSubcatModal.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>
+                    {activeSubcatModal.icon}
+                  </div>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '900', fontFamily: 'var(--font-heading)', color: '#0F172A' }}>
+                      {activeSubcatModal.name}
+                    </h3>
+                    <p style={{ margin: '2px 0 0 0', fontSize: '0.82rem', color: '#64748B', fontWeight: '500' }}>
+                      Sélectionnez la sous-catégorie
+                    </p>
+                  </div>
+                </div>
+                <button 
+                  type="button" 
+                  onClick={() => setActiveSubcatModal(null)} 
+                  style={{ background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748B', fontWeight: '800', fontSize: '1rem' }}
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Subcategories Pills */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => handlePickSubcategory('Toutes')}
+                  className="touch-target active-scale"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '14px 18px',
+                    borderRadius: '16px',
+                    background: 'linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%)',
+                    border: '1.5px solid #E2E8F0',
+                    color: 'var(--text-main)',
+                    fontWeight: '800',
+                    fontSize: '0.95rem',
+                    cursor: 'pointer',
+                    textAlign: 'left'
+                  }}
+                >
+                  <span>⚡ Tout dans {activeSubcatModal.name}</span>
+                  <span style={{ color: 'var(--primary)', fontWeight: '800' }}>➔</span>
+                </button>
+
+                {(() => {
+                  const subField = activeSubcatModal.fields?.find(f => f.name === 'type' || f.name === 'subcategory') || activeSubcatModal.fields?.[0];
+                  const options = subField?.options || [];
+                  return options.map((opt) => (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => handlePickSubcategory(opt)}
+                      className="touch-target active-scale"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '14px 18px',
+                        borderRadius: '16px',
+                        background: 'white',
+                        border: '1.5px solid #E2E8F0',
+                        color: 'var(--text-main)',
+                        fontWeight: '700',
+                        fontSize: '0.95rem',
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <span>{opt}</span>
+                      <span style={{ color: 'var(--primary)', fontWeight: '900', fontSize: '1.1rem' }}>+</span>
+                    </button>
+                  ));
+                })()}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
       </>
-      )}
-      </>
-      )}
+    )}
+    </>
+    )}
     </div>
   );
 };
