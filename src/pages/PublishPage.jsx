@@ -229,6 +229,53 @@ const PublishPage = () => {
     }
   }, [locationQuery]);
 
+  // Draft Recovery & Auto-saving (Option B)
+  useEffect(() => {
+    try {
+      const savedDraft = JSON.parse(localStorage.getItem('colobane_publish_draft_v1') || 'null');
+      if (savedDraft && savedDraft.formData && (savedDraft.formData.title || savedDraft.previews?.length)) {
+        toast((t) => (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ fontWeight: '800', fontSize: '0.85rem', color: '#0F172A' }}>📝 Brouillon d'annonce retrouvé !</div>
+            <div style={{ display: 'flex', gap: '6px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  if (savedDraft.formData) setFormData(savedDraft.formData);
+                  if (savedDraft.selectedCategory) setSelectedCategory(savedDraft.selectedCategory);
+                  if (savedDraft.previews) setPreviews(savedDraft.previews);
+                  toast.dismiss(t.id);
+                  toast.success("Brouillon restauré avec succès ! ✨");
+                }}
+                style={{ padding: '6px 12px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '800', fontSize: '0.78rem', cursor: 'pointer' }}
+              >
+                Restaurer
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  localStorage.removeItem('colobane_publish_draft_v1');
+                  toast.dismiss(t.id);
+                }}
+                style={{ padding: '6px 12px', background: '#F1F5F9', color: '#64748B', border: 'none', borderRadius: '8px', fontWeight: '700', fontSize: '0.78rem', cursor: 'pointer' }}
+              >
+                Effacer
+              </button>
+            </div>
+          </div>
+        ), { duration: 8000 });
+      }
+    } catch (_e) {}
+  }, []);
+
+  useEffect(() => {
+    if (formData.title || formData.price || previews.length > 0) {
+      try {
+        localStorage.setItem('colobane_publish_draft_v1', JSON.stringify({ formData, selectedCategory, previews }));
+      } catch (_e) {}
+    }
+  }, [formData, selectedCategory, previews]);
+
   const handleSelectCategory = (catId) => {
     setSelectedCategory(catId);
     setCategorySearch('');
@@ -435,6 +482,22 @@ const PublishPage = () => {
     const newPreviews = previews.filter((_, i) => i !== index);
     setImages(newImages);
     setPreviews(newPreviews);
+  };
+
+  const setCoverImage = (index) => {
+    if (index === 0 || previews.length <= 1) return;
+    const newPreviews = [...previews];
+    const [selectedPrev] = newPreviews.splice(index, 1);
+    newPreviews.unshift(selectedPrev);
+    setPreviews(newPreviews);
+
+    if (images.length > index) {
+      const newImages = [...images];
+      const [selectedImg] = newImages.splice(index, 1);
+      newImages.unshift(selectedImg);
+      setImages(newImages);
+    }
+    toast.success("Photo principale de couverture mise à jour ! ⭐");
   };
 
   const nextStep = async () => {
