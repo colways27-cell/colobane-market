@@ -238,19 +238,35 @@ const EditProductPage = () => {
   };
 
   const uploadImages = async () => {
-    const uploadedUrls = [];
-    for (const image of images) {
-      const fileExt = image.name.split('.').pop();
-      const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+    const allowedImageExts = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp'];
+    
+    const uploadPromises = images.map(async (image) => {
+      const originalExt = (image.name.split('.').pop() || 'jpg').toLowerCase();
+      if (!allowedImageExts.includes(originalExt)) {
+        throw new Error(`Format d'image non supporté: .${originalExt}`);
+      }
+
+      // Options de compression d'image
+      const compressionOptions = {
+        maxSizeMB: 0.8,
+        maxWidthOrHeight: 1920,
+        useWebWorker: true,
+        fileType: 'image/webp'
+      };
+
+      const compressedImage = await imageCompression(image, compressionOptions);
+      const fileExt = 'webp';
+      const fileName = `${crypto.randomUUID()}.${fileExt}`;
       const filePath = `${user.id}/${fileName}`;
 
-      const { error: uploadError } = await supabase.storage.from('products').upload(filePath, image);
+      const { error: uploadError } = await supabase.storage.from('products').upload(filePath, compressedImage);
       if (uploadError) throw uploadError;
 
       const { data } = supabase.storage.from('products').getPublicUrl(filePath);
-      uploadedUrls.push(data.publicUrl);
-    }
-    return uploadedUrls;
+      return data.publicUrl;
+    });
+
+    return Promise.all(uploadPromises);
   };
 
   const handleSubmit = async (e) => {
