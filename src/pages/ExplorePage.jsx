@@ -44,8 +44,16 @@ const ExplorePage = () => {
   // Filtres
   const [activeCategory, setActiveCategory] = useState(initialCategory);
   const [searchQuery, setSearchQuery] = useState(initialSearch);
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(initialSearch);
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 450); // wait 450ms
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
   const [sortBy, setSortBy] = useState('newest'); // newest, price_asc, price_desc
   const [activeSubcategory, setActiveSubcategory] = useState(initialSubcategory);
   const [conditionFilter, setConditionFilter] = useState('all');
@@ -143,8 +151,8 @@ const ExplorePage = () => {
     else if (e.key === 'Enter' && suggestionIndex >= 0) {
       e.preventDefault();
       setSearchQuery(suggestions[suggestionIndex].title);
+      setDebouncedSearchQuery(suggestions[suggestionIndex].title);
       setSuggestionsOpen(false);
-      setTimeout(fetchProducts, 0);
       setTimeout(scrollToResults, 150);
     } else if (e.key === 'Escape') { setSuggestionsOpen(false); }
   };
@@ -181,8 +189,8 @@ const ExplorePage = () => {
       }
 
       // 2. Recherche par mot-clé (Titre ou Description)
-      if (searchQuery.trim() !== '') {
-        query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
+      if (debouncedSearchQuery.trim() !== '') {
+        query = query.or(`title.ilike.%${debouncedSearchQuery}%,description.ilike.%${debouncedSearchQuery}%`);
       }
 
       // 3. Filtre de Prix Min
@@ -253,7 +261,7 @@ const ExplorePage = () => {
     } finally {
       setLoading(false);
     }
-  }, [activeCategory, activeSubcategory, searchQuery, minPrice, maxPrice, conditionFilter, locationFilter, selectedRegion, selectedQuartier, sortBy, isBoostedOnly, activeUserCoords, selectedRadius]);
+  }, [activeCategory, activeSubcategory, debouncedSearchQuery, minPrice, maxPrice, conditionFilter, locationFilter, selectedRegion, selectedQuartier, sortBy, isBoostedOnly, activeUserCoords, selectedRadius]);
 
   // Synchronize state with URL search params if they change
   useEffect(() => {
@@ -298,15 +306,15 @@ const ExplorePage = () => {
 
   // Défilement automatique vers les résultats lorsqu'un filtre est actif
   useEffect(() => {
-    if (activeCategory !== 'all' || activeSubcategory !== 'all' || searchQuery !== '' || conditionFilter !== 'all' || locationFilter !== 'all' || sortBy !== 'newest' || isBoostedOnly) {
+    if (activeCategory !== 'all' || activeSubcategory !== 'all' || conditionFilter !== 'all' || locationFilter !== 'all' || sortBy !== 'newest' || isBoostedOnly) {
       const timeoutId = setTimeout(scrollToResults, 150);
       return () => clearTimeout(timeoutId);
     }
-  }, [activeCategory, activeSubcategory, searchQuery, conditionFilter, locationFilter, sortBy, isBoostedOnly, scrollToResults]);
+  }, [activeCategory, activeSubcategory, conditionFilter, locationFilter, sortBy, isBoostedOnly, scrollToResults]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    fetchProducts();
+    setDebouncedSearchQuery(searchQuery);
     setTimeout(scrollToResults, 150);
   };
 
@@ -314,13 +322,13 @@ const ExplorePage = () => {
     setActiveCategory('all');
     setActiveSubcategory('all');
     setSearchQuery('');
+    setDebouncedSearchQuery('');
     setMinPrice('');
     setMaxPrice('');
     setConditionFilter('all');
     setLocationFilter('all');
     setSortBy('newest');
     setIsBoostedOnly(false);
-    setTimeout(() => fetchProducts(), 0);
   };
 
   return (
@@ -356,7 +364,7 @@ const ExplorePage = () => {
                   {suggestions.map((s, i) => (
                     <div
                       key={i}
-                      onClick={() => { setSearchQuery(s.title); setSuggestionsOpen(false); setTimeout(fetchProducts, 0); setTimeout(scrollToResults, 150); }}
+                      onClick={() => { setSearchQuery(s.title); setDebouncedSearchQuery(s.title); setSuggestionsOpen(false); setTimeout(scrollToResults, 150); }}
                       style={{ padding: '0.9rem 1.2rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', background: i === suggestionIndex ? '#FEF2F2' : 'white', borderBottom: i < suggestions.length - 1 ? '1px solid #F1F5F9' : 'none', transition: 'background 0.15s' }}
                       onMouseEnter={e => e.currentTarget.style.background = '#FEF2F2'}
                       onMouseLeave={e => e.currentTarget.style.background = i === suggestionIndex ? '#FEF2F2' : 'white'}
@@ -376,7 +384,7 @@ const ExplorePage = () => {
                   ))}
                   {suggestions.length > 0 && (
                     <div
-                      onClick={() => { setSuggestionsOpen(false); fetchProducts(); setTimeout(scrollToResults, 150); }}
+                      onClick={() => { setSuggestionsOpen(false); setDebouncedSearchQuery(searchQuery); setTimeout(scrollToResults, 150); }}
                       style={{ padding: '0.8rem 1.2rem', background: '#F8FAFC', cursor: 'pointer', textAlign: 'center', fontSize: '0.85rem', fontWeight: '600', color: 'var(--primary)' }}
                     >
                       Voir tous les résultats pour "{searchQuery}" →
