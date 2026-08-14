@@ -18,6 +18,10 @@ const ReelsPage = () => {
   const [likedMap, setLikedMap] = useState({});
   const [likesCountMap, setLikesCountMap] = useState({});
   const [videoErrorMap, setVideoErrorMap] = useState({});
+  const [imageSlideIndex, setImageSlideIndex] = useState({});
+  const lastTapRef = useRef(0);
+  const [doubleTapHeart, setDoubleTapHeart] = useState(null);
+  const [isBuffering, setIsBuffering] = useState(false);
   const containerRef = useRef(null);
   const videoRefs = useRef({});
 
@@ -91,6 +95,29 @@ const ReelsPage = () => {
       }
     };
   }, [activeIndex, products, isMuted]);
+
+  // Auto-slideshow for image-based Reels
+  useEffect(() => {
+    if (products.length === 0) return;
+    const activeProduct = products[activeIndex];
+    if (!activeProduct) return;
+    
+    const rawVideoUrl = activeProduct.metadata?.video_url || (activeProduct.images?.[0] && activeProduct.images[0].match(/\.(mp4|mov|webm|m4v)$/i) ? activeProduct.images[0] : null);
+    const isVideo = !!rawVideoUrl && !videoErrorMap[activeProduct.id];
+    
+    // Only auto-slide for image-based Reels with multiple images
+    if (isVideo || !activeProduct.images || activeProduct.images.length <= 1) return;
+    
+    const interval = setInterval(() => {
+      setImageSlideIndex(prev => {
+        const currentIdx = prev[activeProduct.id] || 0;
+        const nextIdx = (currentIdx + 1) % activeProduct.images.length;
+        return { ...prev, [activeProduct.id]: nextIdx };
+      });
+    }, 3500); // Change image every 3.5 seconds
+    
+    return () => clearInterval(interval);
+  }, [activeIndex, products, videoErrorMap]);
 
   // Demo videos fallbacks in case products don't have video files yet
   const sampleVideos = [
@@ -759,6 +786,33 @@ const ReelsPage = () => {
     }
   };
 
+  const handleMediaTap = (e, product, isVideo) => {
+    const now = Date.now();
+    const DOUBLE_TAP_DELAY = 300;
+    
+    if (now - lastTapRef.current < DOUBLE_TAP_DELAY) {
+      // Double tap - LIKE
+      e.preventDefault();
+      if (!likedMap[product.id]) {
+        toggleLike(product.id);
+      }
+      setDoubleTapHeart({ x: e.clientX || e.touches?.[0]?.clientX || window.innerWidth / 2, y: e.clientY || e.touches?.[0]?.clientY || window.innerHeight / 2 });
+      setTimeout(() => setDoubleTapHeart(null), 900);
+    } else {
+      // Single tap
+      if (isVideo) {
+        togglePlayPause();
+      } else if (product.images && product.images.length > 1) {
+        setImageSlideIndex(prev => {
+          const currentIdx = prev[product.id] || 0;
+          const nextIdx = (currentIdx + 1) % product.images.length;
+          return { ...prev, [product.id]: nextIdx };
+        });
+      }
+    }
+    lastTapRef.current = now;
+  };
+
   if (loading) {
     return (
       <div style={{
@@ -806,6 +860,16 @@ const ReelsPage = () => {
       zIndex: 9999,
       overflow: 'hidden'
     }}>
+      <style>{`
+        @keyframes heartBurst {
+          0% { transform: scale(0); opacity: 1; }
+          50% { transform: scale(1.3); opacity: 1; }
+          100% { transform: scale(1.6); opacity: 0; }
+        }
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
       {/* Top Header Overlay */}
       <div style={{
         position: 'absolute',
@@ -951,7 +1015,7 @@ const ReelsPage = () => {
             >
               {/* Media Player: Video if active, animated image fallback */}
               <div 
-                onClick={togglePlayPause}
+                onClick={(e) => handleMediaTap(e, product, isVideo)}
                 style={{ position: 'absolute', inset: 0, overflow: 'hidden', cursor: 'pointer' }}
               >
                 {isVideo ? (
@@ -966,6 +1030,9 @@ const ReelsPage = () => {
                       playsInline
                       preload="auto"
                       onError={() => handleVideoError(product.id)}
+                      onWaiting={() => setIsBuffering(true)}
+                      onPlaying={() => setIsBuffering(false)}
+                      onCanPlay={() => setIsBuffering(false)}
                       style={{
                         width: '100%',
                         height: '100%',
@@ -1008,35 +1075,72 @@ const ReelsPage = () => {
                   )
                 ) : (
                   <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {/* Arrière-plan flou d'ambiance TikTok / Instagram */}
+                    {/* Arrière-plan flou d'ambiance */}
                     <div 
                       style={{ 
                         position: 'absolute', 
                         inset: 0, 
-                        backgroundImage: `url(${mainImg})`, 
+                        backgroundImage: `url(${product.images?.[imageSlideIndex[product.id] || 0] || mainImg})`, 
                         backgroundSize: 'cover', 
                         backgroundPosition: 'center', 
                         filter: 'blur(30px) brightness(0.35)', 
-                        transform: 'scale(1.25)' 
+                        transform: 'scale(1.25)',
+                        transition: 'background-image 0.8s ease-in-out'
                       }} 
                     />
-                    {/* Image Produit Nette & 100% visible sans rognage */}
-                    <img
-                      src={mainImg}
-                      alt={product.title}
-                      style={{
-                        position: 'relative',
-                        maxWidth: '100%',
-                        maxHeight: '100%',
-                        width: 'auto',
-                        height: 'auto',
-                        objectFit: 'contain',
-                        zIndex: 2,
-                        boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
-                        transition: 'transform 8s ease-out',
-                        transform: idx === activeIndex ? 'scale(1.04)' : 'scale(1)'
-                      }}
-                    />
+                    {/* Images with crossfade */}
+                    {(product.images || [mainImg]).map((imgUrl, imgIdx) => (
+                      <img
+                        key={imgIdx}
+                        src={imgUrl}
+                        alt={`${product.title} ${imgIdx + 1}`}
+                        style={{
+                          position: 'absolute',
+                          top: '50%',
+                          left: '50%',
+                          transform: `translate(-50%, -50%) scale(${(imageSlideIndex[product.id] || 0) === imgIdx && idx === activeIndex ? 1.04 : 1})`,
+                          maxWidth: '100%',
+                          maxHeight: '100%',
+                          width: 'auto',
+                          height: 'auto',
+                          objectFit: 'contain',
+                          zIndex: (imageSlideIndex[product.id] || 0) === imgIdx ? 3 : 2,
+                          opacity: (imageSlideIndex[product.id] || 0) === imgIdx ? 1 : 0,
+                          transition: 'opacity 0.8s ease-in-out, transform 8s ease-out',
+                          boxShadow: '0 8px 32px rgba(0,0,0,0.6)'
+                        }}
+                      />
+                    ))}
+                    {/* Dot indicators for multiple images */}
+                    {product.images && product.images.length > 1 && (
+                      <div style={{
+                        position: 'absolute',
+                        bottom: '120px',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        display: 'flex',
+                        gap: '6px',
+                        zIndex: 10
+                      }}>
+                        {product.images.map((_, dotIdx) => (
+                          <div
+                            key={dotIdx}
+                            style={{
+                              width: (imageSlideIndex[product.id] || 0) === dotIdx ? '20px' : '8px',
+                              height: '8px',
+                              borderRadius: '4px',
+                              background: (imageSlideIndex[product.id] || 0) === dotIdx ? '#fff' : 'rgba(255,255,255,0.4)',
+                              transition: 'all 0.3s ease',
+                              cursor: 'pointer'
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setImageSlideIndex(prev => ({ ...prev, [product.id]: dotIdx }));
+                            }}
+                          />
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -1061,6 +1165,40 @@ const ReelsPage = () => {
                     animation: 'pulse 0.4s ease-out'
                   }}>
                     {tapIcon}
+                  </div>
+                )}
+
+                {/* Double-tap heart animation */}
+                {doubleTapHeart && idx === activeIndex && (
+                  <div style={{
+                    position: 'fixed',
+                    left: doubleTapHeart.x - 40,
+                    top: doubleTapHeart.y - 40,
+                    fontSize: '80px',
+                    zIndex: 9999,
+                    pointerEvents: 'none',
+                    animation: 'heartBurst 0.9s ease-out forwards'
+                  }}>❤️</div>
+                )}
+
+                {/* Buffering spinner */}
+                {isBuffering && isVideo && idx === activeIndex && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    zIndex: 20,
+                    pointerEvents: 'none'
+                  }}>
+                    <div style={{
+                      width: '48px',
+                      height: '48px',
+                      border: '3px solid rgba(255,255,255,0.2)',
+                      borderTopColor: '#fff',
+                      borderRadius: '50%',
+                      animation: 'spin 0.8s linear infinite'
+                    }} />
                   </div>
                 )}
 
