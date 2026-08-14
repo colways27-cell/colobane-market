@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 import { senegalRegions as senegalLocations } from '../data/locations';
 
@@ -18,6 +18,7 @@ const InputWrapper = ({ icon, children, label }) => (
 
 const AuthPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [loading, setLoading] = useState(false);
@@ -220,7 +221,8 @@ const AuthPage = () => {
 
 
 
-        navigate('/');
+        const redirectUrl = location.state?.redirectUrl || '/';
+        navigate(redirectUrl);
       }
     } catch (error) {
       setErrorMsg(error.message || "Une erreur est survenue.");

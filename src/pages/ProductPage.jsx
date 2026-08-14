@@ -77,7 +77,7 @@ const ProductPage = () => {
         }
 
         // Tokenisation pour la recherche de vendeurs du même produit
-        const titleTokens = (data.title || '').toLowerCase().replace(/[^a-z0-9]/g, ' ').split(/\s+/).filter(w => w.length > 2 && !['de','du','des','le','la','les','en','pour','avec','sans','un','une','vends','vend'].includes(w));
+        const titleTokens = (data.title || '').toLowerCase().replace(/[^a-z0-9]/g, ' ').split(/\s+/).filter(w => w.length > 2 && !['de','du','des','le','la','les','en','pour','avec','sans','un','une','vends','vend','bi','yi','ci','ak','bu','am','na','ko'].includes(w));
         const searchKeyword = titleTokens[0] || '';
 
         // Exécution en parallèle de toutes les requêtes secondaires avec Promise.all()
@@ -120,6 +120,11 @@ const ProductPage = () => {
             : Promise.resolve({ data: [] })
         ]);
 
+        if (similarRes.error) console.warn('Error fetching similar products:', similarRes.error);
+        if (sameItemRes.error) console.warn('Error fetching same item sellers:', sameItemRes.error);
+        if (favRes.error) console.warn('Error checking favorite status:', favRes.error);
+        if (reviewsRes.error) console.warn('Error fetching reviews:', reviewsRes.error);
+
         setSimilarProducts(similarRes.data || []);
         setSameItemSellers(sameItemRes.data || []);
         if (favRes.data) setIsFavorite(true);
@@ -149,7 +154,7 @@ const ProductPage = () => {
   const toggleFavorite = async () => {
     if (!user) {
       toast.error('Vous devez être connecté pour ajouter aux favoris');
-      navigate('/auth');
+      navigate('/auth', { state: { redirectUrl: window.location.pathname } });
       return;
     }
 
@@ -387,7 +392,7 @@ const ProductPage = () => {
             e.stopPropagation();
             if (activeImage > 0) setActiveImage(a => a - 1);
           }}
-          style={{ position: 'absolute', top: 0, left: 0, width: '35%', height: '100%', zIndex: 20, cursor: 'pointer' }}
+          style={{ position: 'absolute', top: 0, left: 0, width: '35%', height: (hasVideo && activeImage === 0) ? '80%' : '100%', zIndex: 20, cursor: 'pointer' }}
         />
         <div 
           onClick={(e) => {
@@ -396,7 +401,7 @@ const ProductPage = () => {
             if (activeImage < total - 1) setActiveImage(a => a + 1);
             else setIsLightboxOpen(true);
           }}
-          style={{ position: 'absolute', top: 0, right: 0, width: '65%', height: '100%', zIndex: 20, cursor: 'pointer' }}
+          style={{ position: 'absolute', top: 0, right: 0, width: '65%', height: (hasVideo && activeImage === 0) ? '80%' : '100%', zIndex: 20, cursor: 'pointer' }}
         />
 
         {/* Story Counter Badge & Expand Fullscreen Pill */}
@@ -468,11 +473,24 @@ const ProductPage = () => {
 
           {/* Fullscreen Story Main Image */}
           <div style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-            <img 
-              src={imageUrl} 
-              alt={product.title} 
-              style={{ maxWidth: '100%', maxHeight: '82vh', objectFit: 'contain', transition: 'transform 0.2s ease' }} 
-            />
+            {hasVideo && activeImage === 0 ? (
+              <video 
+                src={videoUrl} 
+                poster={imageUrl}
+                controls 
+                autoPlay 
+                muted 
+                loop 
+                playsInline 
+                style={{ maxWidth: '100%', maxHeight: '82vh', objectFit: 'contain' }} 
+              />
+            ) : (
+              <img 
+                src={imageUrl} 
+                alt={product.title} 
+                style={{ maxWidth: '100%', maxHeight: '82vh', objectFit: 'contain', transition: 'transform 0.2s ease' }} 
+              />
+            )}
             {/* Story Tap Navigation Left / Right */}
             <div 
               onClick={() => {
