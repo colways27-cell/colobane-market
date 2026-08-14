@@ -144,7 +144,7 @@ const ReelsPage = () => {
     const currentVid = videoRefs.current[activeIndex];
     if (currentVid) {
       if (currentVid.paused) {
-        currentVid.play();
+        currentVid.play().catch(() => {});
         setIsPlaying(true);
         triggerTapFeedback('▶️');
       } else {
@@ -315,7 +315,7 @@ const ReelsPage = () => {
       mediaStreamRef.current = stream;
       if (cameraVideoRef.current) {
         cameraVideoRef.current.srcObject = stream;
-        cameraVideoRef.current.play();
+        cameraVideoRef.current.play().catch(() => {});
       }
       setIsCameraOpen(true);
       setRecordTimeLeft(MAX_RECORD_SECONDS);
@@ -439,7 +439,7 @@ const ReelsPage = () => {
       mediaStreamRef.current = stream;
       if (cameraVideoRef.current) {
         cameraVideoRef.current.srcObject = stream;
-        cameraVideoRef.current.play();
+        cameraVideoRef.current.play().catch(() => {});
       }
     }).catch(() => toast.error("Impossible de changer de caméra."));
   }, [cameraFacing]);
@@ -514,7 +514,13 @@ const ReelsPage = () => {
 
       if (mediaMode === 'video' && reelVideoFile) {
         isVideo = true;
-        const fileExt = reelVideoFile.name.split('.').pop() || 'mp4';
+        const allowedVideoExts = ['mp4', 'webm', 'mov', 'avi', 'mkv'];
+        const fileExt = (reelVideoFile.name.split('.').pop() || 'mp4').toLowerCase();
+        if (!allowedVideoExts.includes(fileExt)) {
+          toast.error('Format vidéo non supporté. Utilisez MP4, WebM ou MOV.');
+          setIsPublishing(false);
+          return;
+        }
         const fileName = `reel_vid_${user.id}_${Date.now()}.${fileExt}`;
         const filePath = `${user.id}/${fileName}`;
         const { error: uploadErr } = await supabase.storage.from('products').upload(filePath, reelVideoFile, { upsert: true });
@@ -571,6 +577,11 @@ const ReelsPage = () => {
       if (error) throw error;
 
       toast.success("🎬 Reel Express publié avec succès !", { id: 'reel-express' });
+      if (previewAudioRef.current) {
+        previewAudioRef.current.pause();
+        previewAudioRef.current = null;
+      }
+      setPreviewSoundId(null);
       setShowPublishModal(false);
       setReelTitle('');
       setReelPrice('');
@@ -630,6 +641,11 @@ const ReelsPage = () => {
 
       toast.success("Demande transmise à l'administrateur ! Votre Reel 7 jours sera publié sous peu.", { id: 'wave', duration: 6000 });
       setShowWaveModal(false);
+      if (previewAudioRef.current) {
+        previewAudioRef.current.pause();
+        previewAudioRef.current = null;
+      }
+      setPreviewSoundId(null);
       setShowPublishModal(false);
     } catch (err) {
       toast.error("Erreur lors de la transmission.", { id: 'wave' });
@@ -746,7 +762,8 @@ const ReelsPage = () => {
   if (loading) {
     return (
       <div style={{
-        height: '100vh',
+        minHeight: '100vh',
+        height: '100dvh',
         width: '100vw',
         background: '#09090B',
         display: 'flex',
@@ -766,6 +783,17 @@ const ReelsPage = () => {
         <p style={{ marginTop: '16px', fontWeight: 600, color: '#A1A1AA' }}>
           Chargement des Reels Colobane... 🎥
         </p>
+      </div>
+    );
+  }
+
+  if (!loading && products.length === 0) {
+    return (
+      <div style={{ minHeight: '100vh', height: '100dvh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#000', color: '#fff', padding: '2rem', textAlign: 'center' }}>
+        <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🎬</div>
+        <h2 style={{ fontSize: '1.4rem', fontWeight: '800', marginBottom: '0.5rem' }}>Aucun Reel pour le moment</h2>
+        <p style={{ color: '#aaa', fontSize: '0.9rem', marginBottom: '2rem' }}>Soyez le premier à publier un Reel !</p>
+        <button onClick={() => setShowPublishModal(true)} style={{ padding: '12px 28px', background: 'var(--primary, #8a1c1c)', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '1rem', cursor: 'pointer' }}>📹 Créer un Reel</button>
       </div>
     );
   }
@@ -886,7 +914,8 @@ const ReelsPage = () => {
         ref={containerRef}
         onScroll={handleScroll}
         style={{
-          height: '100vh',
+          minHeight: '100vh',
+          height: '100dvh',
           width: '100vw',
           overflowY: 'scroll',
           scrollSnapType: 'y mandatory',
@@ -908,7 +937,8 @@ const ReelsPage = () => {
             <div
               key={product.id}
               style={{
-                height: '100vh',
+                minHeight: '100vh',
+                height: '100dvh',
                 width: '100vw',
                 scrollSnapAlign: 'start',
                 scrollSnapStop: 'always',
@@ -932,7 +962,7 @@ const ReelsPage = () => {
                       poster={mainImg}
                       autoPlay
                       loop
-                      muted={isMuted}
+                      muted={isMuted || !!product.metadata?.sound_url}
                       playsInline
                       preload="auto"
                       onError={() => handleVideoError(product.id)}
@@ -942,7 +972,7 @@ const ReelsPage = () => {
                         objectFit: 'cover'
                       }}
                     />
-                  ) : idx === activeIndex + 1 ? (
+                  ) : (idx === activeIndex + 1 || idx === activeIndex - 1) ? (
                     <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${mainImg})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(30px) brightness(0.35)', transform: 'scale(1.2)' }} />
                       <img
@@ -1519,7 +1549,14 @@ const ReelsPage = () => {
                 </div>
               </div>
               <button
-                onClick={() => setShowPublishModal(false)}
+                onClick={() => {
+                  if (previewAudioRef.current) {
+                    previewAudioRef.current.pause();
+                    previewAudioRef.current = null;
+                  }
+                  setPreviewSoundId(null);
+                  setShowPublishModal(false);
+                }}
                 style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#FFF', width: '36px', height: '36px', borderRadius: '50%', cursor: 'pointer', fontSize: '16px' }}
               >
                 ✕
@@ -1827,7 +1864,11 @@ const ReelsPage = () => {
                       return (
                         <div
                           key={sound.id}
-                          onClick={() => setSelectedSound(sound)}
+                          onClick={() => {
+                            setSelectedSound(sound);
+                            setCustomAudioFile(null);
+                            setCustomAudioName('');
+                          }}
                           style={{
                             display: 'flex',
                             alignItems: 'center',
