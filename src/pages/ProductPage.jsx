@@ -220,8 +220,9 @@ const ProductPage = () => {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
-        <h2>Chargement...</h2>
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
+        <div style={{ width: '48px', height: '48px', border: '4px solid #F1F5F9', borderTop: '4px solid var(--primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+        <p style={{ color: 'var(--text-muted)', fontWeight: '600' }}>Chargement du produit...</p>
       </div>
     );
   }
@@ -272,10 +273,17 @@ const ProductPage = () => {
         price={product.price}
         type="product"
       />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaProduct) }} />
 
       {/* Top Bar Floating */}
       <div style={{ position: 'absolute', top: '16px', left: '16px', right: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 50 }}>
-        <button onClick={() => navigate(-1)} className="touch-target active-scale" style={{ background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(4px)', border: 'none', borderRadius: '50%', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <button onClick={() => {
+          if (window.history.state && window.history.state.idx > 0) {
+            navigate(-1);
+          } else {
+            navigate('/');
+          }
+        }} className="touch-target active-scale" style={{ background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(4px)', border: 'none', borderRadius: '50%', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
         </button>
         <div style={{ display: 'flex', gap: '12px' }}>
@@ -569,6 +577,7 @@ const ProductPage = () => {
             href={`https://wa.me/${(product.contact || product.profiles?.whatsapp_number || '').replace(/\+/g, '')}?text=${encodeURIComponent(`Bonjour, je suis intéressé par votre article "${product.title}" sur Colobane Market.`)}`}
             target="_blank" rel="noopener noreferrer"
             onClick={() => {
+              supabase.rpc('track_lead', { p_product_id: product.id, p_type: 'whatsapp' }).catch(() => {});
               try {
                 const sellerId = product.seller_id || product.profiles?.id;
                 const key = `colobane_stats_${sellerId}`;
@@ -617,6 +626,7 @@ const ProductPage = () => {
                 e.preventDefault();
                 toast.error("Aucun numéro de téléphone disponible.");
               } else {
+                supabase.rpc('track_lead', { p_product_id: product.id, p_type: 'phone' }).catch(() => {});
                 try {
                   const sellerId = product.seller_id || product.profiles?.id;
                   const key = `colobane_stats_${sellerId}`;
