@@ -94,6 +94,7 @@ const ProfilePage = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [certPending, setCertPending] = useState(false);
   const [profileNotifications, setProfileNotifications] = useState([]);
+  const [isSaving, setIsSaving] = useState(false);
 
   const [formData, setFormData] = useState({
     full_name: '',
@@ -112,11 +113,21 @@ const ProfilePage = () => {
 
     const fetchData = async () => {
       try {
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
+        const [
+          { data: profileData, error: profileError },
+          { data: productsData, error: productsError },
+          { data: certReq },
+          { data: payReqs },
+          { data: certReqs },
+          { data: buyerReqs }
+        ] = await Promise.all([
+          supabase.from('profiles').select('*').eq('id', user.id).single(),
+          supabase.from('products').select('*').eq('seller_id', user.id).order('created_at', { ascending: false }),
+          supabase.from('certification_requests').select('id, status').eq('user_id', user.id).eq('status', 'pending').maybeSingle(),
+          supabase.from('payment_requests').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+          supabase.from('certification_requests').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+          supabase.from('buyer_requests').select('*').order('created_at', { ascending: false }).limit(10)
+        ]);
 
         if (profileError && profileError.code !== 'PGRST116') throw profileError;
         if (profileData) {
@@ -130,12 +141,6 @@ const ProfilePage = () => {
             email: isRealEmail(profileData.email) ? profileData.email : ''
           });
         }
-
-        const { data: productsData, error: productsError } = await supabase
-          .from('products')
-          .select('*')
-          .eq('seller_id', user.id)
-          .order('created_at', { ascending: false });
 
         if (productsError) throw productsError;
         
@@ -161,33 +166,7 @@ const ProfilePage = () => {
         
         setMyProducts(productsWithFavs);
 
-        const { data: certReq } = await supabase
-          .from('certification_requests')
-          .select('id, status')
-          .eq('user_id', user.id)
-          .eq('status', 'pending')
-          .maybeSingle();
-
         if (certReq) setCertPending(true);
-
-        // Fetch real notifications for seller
-        const { data: payReqs } = await supabase
-          .from('payment_requests')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false });
-
-        const { data: certReqs } = await supabase
-          .from('certification_requests')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false });
-
-        const { data: buyerReqs } = await supabase
-          .from('buyer_requests')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(10);
 
         const combinedNotifs = [];
 
@@ -315,6 +294,7 @@ const ProfilePage = () => {
 
   const handleUpdateProfile = async () => {
     try {
+      setIsSaving(true);
       toast.loading("Mise à jour du profil...", { id: 'updateProfile' });
       const payload = { 
         id: user.id,
@@ -342,6 +322,8 @@ const ProfilePage = () => {
     } catch (err) {
       toast.error("Erreur lors de la mise à jour.", { id: 'updateProfile' });
       console.error(err);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -622,7 +604,7 @@ const ProfilePage = () => {
                
                <div style={{ display: 'flex', gap: '1.5rem', marginTop: '2.5rem', justifyContent: 'flex-end' }}>
                  <button onClick={() => setEditingProfile(false)} className="btn-secondary active-scale hover-lift" style={{ padding: '1rem 2rem', borderRadius: '16px', border: '2px solid #E2E8F0', background: 'white', fontWeight: '700' }}>Annuler</button>
-                 <button onClick={handleUpdateProfile} className="btn-primary active-scale hover-lift" style={{ padding: '1rem 2.5rem', borderRadius: '16px', fontWeight: '800' }}>Enregistrer</button>
+                 <button onClick={handleUpdateProfile} disabled={isSaving} className="btn-primary active-scale hover-lift" style={{ padding: '1rem 2.5rem', borderRadius: '16px', fontWeight: '800' }}>{isSaving ? "Enregistrement..." : "Enregistrer"}</button>
                </div>
             </div>
           ) : (
