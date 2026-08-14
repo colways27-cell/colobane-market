@@ -245,10 +245,13 @@ const PublishPage = () => {
                   if (savedDraft.selectedCategory) setSelectedCategory(savedDraft.selectedCategory);
                   toast.dismiss(t.id);
                   const imgCount = savedDraft.savedImageCount || 0;
-                  toast.success(imgCount > 0
+                  let msg = imgCount > 0
                     ? `Brouillon restauré ! 📸 ${imgCount} photo(s) à re-sélectionner.`
-                    : "Brouillon restauré avec succès ! ✨"
-                  );
+                    : "Brouillon restauré avec succès ! ✨";
+                  if (savedDraft.hadVideo) {
+                    msg += " 🎥 Vidéo à re-sélectionner.";
+                  }
+                  toast.success(msg);
                 }}
                 style={{ padding: '6px 12px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '800', fontSize: '0.78rem', cursor: 'pointer' }}
               >
@@ -277,11 +280,12 @@ const PublishPage = () => {
         localStorage.setItem('colobane_publish_draft_v1', JSON.stringify({
           formData,
           selectedCategory,
-          savedImageCount: previews.length // Sauvegarder le compte, pas les blob URLs
+          savedImageCount: previews.length, // Sauvegarder le compte, pas les blob URLs
+          hadVideo: !!videoFile || !!formData.video_url
         }));
       } catch (_e) {}
     }
-  }, [formData, selectedCategory, previews]);
+  }, [formData, selectedCategory, previews, videoFile]);
 
   const handleSelectCategory = (catId) => {
     setSelectedCategory(catId);

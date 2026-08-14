@@ -34,14 +34,16 @@ const AdminPage = () => {
       let payRes = await supabase
         .from('payment_requests')
         .select('*, profiles(full_name, phone_number)')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(200);
 
       if (payRes.error) {
         console.warn('Join query on payment_requests failed, trying fallback select:', payRes.error);
         payRes = await supabase
           .from('payment_requests')
           .select('*')
-          .order('created_at', { ascending: false });
+          .order('created_at', { ascending: false })
+          .limit(200);
       }
 
       const [usersRes, boutRes, boostRes, certRes, reqRes, prodRes, reportsRes] = await Promise.all([
@@ -49,8 +51,8 @@ const AdminPage = () => {
         supabase.from('profiles').select('*').eq('account_type', 'boutique').order('created_at', { ascending: false }),
         supabase.from('products').select('id, title, seller_id, is_boosted, boost_end_date, images, profiles(full_name, boutique_name, phone_number)').eq('is_boosted', true).order('boost_end_date', { ascending: true }),
         supabase.from('certification_requests').select('*, profiles(full_name, whatsapp_number, avatar_url)').order('created_at', { ascending: false }),
-        supabase.from('buyer_requests').select('*').order('created_at', { ascending: false }),
-        supabase.from('products').select('*, profiles(full_name, boutique_name, pseudo, phone_number)').order('created_at', { ascending: false }).limit(1000),
+        supabase.from('buyer_requests').select('*').order('created_at', { ascending: false }).limit(100),
+        supabase.from('products').select('*, profiles(full_name, boutique_name, pseudo, phone_number)').order('created_at', { ascending: false }).range(0, 99),
         supabase.from('reports').select('*, products(id, title, images, is_hidden), seller:seller_id(id, full_name, boutique_name, is_suspended), reporter:reporter_id(full_name)').order('created_at', { ascending: false }),
       ]);
 
