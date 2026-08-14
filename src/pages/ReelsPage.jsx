@@ -1270,25 +1270,26 @@ const ReelsPage = () => {
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    gap: '4px',
+                    gap: '6px',
                     cursor: 'pointer'
                   }}
                 >
                   <div style={{
-                    width: '48px',
-                    height: '48px',
+                    width: '46px',
+                    height: '46px',
                     borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #E11D48 0%, #BE123C 100%)',
+                    background: 'rgba(225, 29, 72, 0.8)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: '22px',
-                    boxShadow: '0 4px 16px rgba(225, 29, 72, 0.5)',
-                    border: '2px solid rgba(255, 255, 255, 0.8)'
+                    fontSize: '20px',
+                    backdropFilter: 'blur(12px)',
+                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
                   }}>
                     ➕
                   </div>
-                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#FFF', textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}>Publier</span>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#FFF', textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>Publier</span>
                 </button>
 
                 {/* Like Button */}
@@ -1301,7 +1302,7 @@ const ReelsPage = () => {
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    gap: '4px',
+                    gap: '6px',
                     cursor: 'pointer'
                   }}
                 >
@@ -1310,16 +1311,18 @@ const ReelsPage = () => {
                     height: '46px',
                     borderRadius: '50%',
                     background: isLiked ? 'rgba(225, 29, 72, 0.9)' : 'rgba(255,255,255,0.15)',
-                    backdropFilter: 'blur(8px)',
+                    backdropFilter: 'blur(12px)',
+                    border: '1px solid rgba(255,255,255,0.3)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: '22px',
-                    transition: 'transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)'
+                    fontSize: '20px',
+                    transition: 'all 0.2s ease',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
                   }}>
                     {isLiked ? '❤️' : '🤍'}
                   </div>
-                  <span style={{ fontSize: '12px', fontWeight: 600 }}>{likesCount}</span>
+                  <span style={{ fontSize: '12px', fontWeight: 700, textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>{likesCount}</span>
                 </button>
 
                 {/* WhatsApp Button */}
@@ -1332,7 +1335,7 @@ const ReelsPage = () => {
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    gap: '4px',
+                    gap: '6px',
                     cursor: 'pointer'
                   }}
                 >
@@ -1340,16 +1343,18 @@ const ReelsPage = () => {
                     width: '46px',
                     height: '46px',
                     borderRadius: '50%',
-                    background: '#25D366',
+                    background: 'linear-gradient(135deg, rgba(37, 211, 102, 0.9) 0%, rgba(18, 140, 126, 0.9) 100%)',
+                    backdropFilter: 'blur(12px)',
+                    border: '1px solid rgba(255,255,255,0.3)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: '22px',
-                    boxShadow: '0 4px 16px rgba(37, 211, 102, 0.4)'
+                    fontSize: '20px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
                   }}>
                     💬
                   </div>
-                  <span style={{ fontSize: '12px', fontWeight: 600 }}>WhatsApp</span>
+                  <span style={{ fontSize: '12px', fontWeight: 700, textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>WhatsApp</span>
                 </button>
 
                 {/* Share Button */}
@@ -1362,7 +1367,7 @@ const ReelsPage = () => {
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    gap: '4px',
+                    gap: '6px',
                     cursor: 'pointer'
                   }}
                 >
@@ -1371,15 +1376,17 @@ const ReelsPage = () => {
                     height: '46px',
                     borderRadius: '50%',
                     background: 'rgba(255,255,255,0.15)',
-                    backdropFilter: 'blur(8px)',
+                    backdropFilter: 'blur(12px)',
+                    border: '1px solid rgba(255,255,255,0.3)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: '20px'
+                    fontSize: '18px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
                   }}>
                     🔗
                   </div>
-                  <span style={{ fontSize: '12px', fontWeight: 600 }}>Partager</span>
+                  <span style={{ fontSize: '12px', fontWeight: 700, textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>Partager</span>
                 </button>
 
                 {/* Owner / Admin Delete Reel Button */}
@@ -1396,7 +1403,7 @@ const ReelsPage = () => {
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
-                      gap: '4px',
+                      gap: '6px',
                       cursor: 'pointer'
                     }}
                   >
@@ -1404,17 +1411,18 @@ const ReelsPage = () => {
                       width: '46px',
                       height: '46px',
                       borderRadius: '50%',
-                      background: 'rgba(225, 29, 72, 0.9)',
-                      backdropFilter: 'blur(8px)',
+                      background: 'rgba(0,0,0,0.5)',
+                      backdropFilter: 'blur(12px)',
+                      border: '1px solid rgba(225, 29, 72, 0.5)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: '20px',
-                      boxShadow: '0 4px 16px rgba(225, 29, 72, 0.5)'
+                      fontSize: '18px',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
                     }}>
                       🗑️
                     </div>
-                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#FFD1D1', textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}>Supprimer</span>
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#FFD1D1', textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>Supprimer</span>
                   </button>
                 )}
 
