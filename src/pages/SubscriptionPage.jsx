@@ -45,6 +45,9 @@ const SubscriptionPage = () => {
     setIsProcessing(true);
     toast.loading('Envoi de la demande...', { id: 'payment' });
 
+    // Ouvrir un onglet vide immédiatement de manière synchrone pour contourner le bloqueur de popups
+    const whatsappWindow = window.open('', '_blank');
+
     try {
       const { error } = await supabase.from('payment_requests').insert([{
         user_id: user.id,
@@ -58,12 +61,16 @@ const SubscriptionPage = () => {
       
       const adminNumber = "221773713175";
       const text = encodeURIComponent(`Nouvelle demande de paiement ! L'utilisateur ${profile?.full_name || user.id} a payé ${selectedPlan.price}F pour ${selectedPlan.type} avec le numéro ${paymentPhone}. Vérifiez Wave et activez le compte.`);
-      window.open(`https://wa.me/${adminNumber}?text=${text}`, '_blank');
+      
+      if (whatsappWindow) {
+        whatsappWindow.location.href = `https://wa.me/${adminNumber}?text=${text}`;
+      }
       
       toast.success('Demande envoyée ! Votre compte sera activé après vérification.', { id: 'payment', duration: 5000 });
       setShowPaymentModal(false);
       setPaymentPhone('');
     } catch (err) {
+      if (whatsappWindow) whatsappWindow.close();
       console.error(err);
       toast.error('Erreur lors de l\'envoi de la demande.', { id: 'payment' });
     } finally {
@@ -174,7 +181,7 @@ const SubscriptionPage = () => {
             <div style={{ fontSize: '0.8rem', color: '#D97706', fontWeight: '800', textTransform: 'uppercase' }}>Boost Flash</div>
             <div style={{ fontSize: '1.6rem', fontWeight: '900', color: '#B45309', margin: '4px 0' }}>500 FCFA</div>
             <div style={{ fontSize: '0.8rem', color: '#64748B', marginBottom: '12px' }}>⚡ 2 jours sponsorisés</div>
-            <button onClick={() => navigate('/profile')} className="active-scale" style={{ width: '100%', padding: '8px', borderRadius: '10px', background: '#F59E0B', color: 'white', border: 'none', fontWeight: '800', fontSize: '0.85rem', cursor: 'pointer' }}>
+            <button onClick={() => initiatePayment('boost_flash', 500)} className="active-scale" style={{ width: '100%', padding: '8px', borderRadius: '10px', background: '#F59E0B', color: 'white', border: 'none', fontWeight: '800', fontSize: '0.85rem', cursor: 'pointer' }}>
               Booster (500F)
             </button>
           </div>
@@ -184,7 +191,7 @@ const SubscriptionPage = () => {
             <div style={{ fontSize: '0.8rem', color: '#D97706', fontWeight: '800', textTransform: 'uppercase' }}>🎉 Pass Semaine</div>
             <div style={{ fontSize: '1.6rem', fontWeight: '900', color: '#B45309', margin: '4px 0' }}>1 000 FCFA</div>
             <div style={{ fontSize: '0.8rem', color: '#64748B', marginBottom: '12px' }}>⚡ 7 jours sponsorisés</div>
-            <button onClick={() => navigate('/profile')} className="active-scale" style={{ width: '100%', padding: '8px', borderRadius: '10px', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: 'white', border: 'none', fontWeight: '800', fontSize: '0.85rem', cursor: 'pointer' }}>
+            <button onClick={() => initiatePayment('pass_semaine', 1000)} className="active-scale" style={{ width: '100%', padding: '8px', borderRadius: '10px', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: 'white', border: 'none', fontWeight: '800', fontSize: '0.85rem', cursor: 'pointer' }}>
               Booster (1 000F)
             </button>
           </div>
@@ -204,7 +211,7 @@ const SubscriptionPage = () => {
             <div style={{ fontSize: '0.8rem', color: '#D97706', fontWeight: '800', textTransform: 'uppercase' }}>Boost Mensuel</div>
             <div style={{ fontSize: '1.6rem', fontWeight: '900', color: '#B45309', margin: '4px 0' }}>5 000 FCFA</div>
             <div style={{ fontSize: '0.8rem', color: '#64748B', marginBottom: '12px' }}>⚡ 30 jours sponsorisés</div>
-            <button onClick={() => navigate('/profile')} className="active-scale" style={{ width: '100%', padding: '8px', borderRadius: '10px', background: '#F59E0B', color: 'white', border: 'none', fontWeight: '800', fontSize: '0.85rem', cursor: 'pointer' }}>
+            <button onClick={() => initiatePayment('boost_mensuel', 5000)} className="active-scale" style={{ width: '100%', padding: '8px', borderRadius: '10px', background: '#F59E0B', color: 'white', border: 'none', fontWeight: '800', fontSize: '0.85rem', cursor: 'pointer' }}>
               Booster (5 000F)
             </button>
           </div>
