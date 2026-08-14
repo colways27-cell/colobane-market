@@ -305,11 +305,10 @@ const PublishPage = () => {
 
     const selectedCatObj = categories.find((c) => c.id === catId);
     if (selectedCatObj) {
-      if (!selectedCatObj.subcategories || selectedCatObj.subcategories.length === 0) {
-        setTimeout(() => setStep(3), 300); // Auto-advance if no subcategories
-      }
       if (getSubcategoryField(selectedCatObj)) {
         setActiveSubcatModal(selectedCatObj);
+      } else {
+        setStep(3);
       }
     }
   };
@@ -649,11 +648,11 @@ const PublishPage = () => {
     setIsProcessingBoost(true);
     toast.loading('Envoi de la demande...', { id: 'boost-publish' });
 
-    try {
-      const adminNumber = "221773713175";
-      const text = encodeURIComponent(`Nouvelle demande de Boost ! L'utilisateur ${profile?.full_name || user.id} a payé ${selectedBoost.price}F pour booster l'annonce "${publishedProduct.title}" avec le numéro ${paymentPhone}. Vérifiez Wave et activez le boost.`);
-      window.open(`https://wa.me/${adminNumber}?text=${text}`, '_blank');
+    const adminNumber = "221773713175";
+    const text = encodeURIComponent(`Nouvelle demande de Boost ! L'utilisateur ${profile?.full_name || user.id} a payé ${selectedBoost.price}F pour booster l'annonce "${publishedProduct.title}" avec le numéro ${paymentPhone}. Vérifiez Wave et activez le boost.`);
+    window.open(`https://wa.me/${adminNumber}?text=${text}`, '_blank');
 
+    try {
       const { error } = await supabase.from('payment_requests').insert([{
         user_id: user.id,
         plan_type: `boost_product_${selectedBoost.days}d_${publishedProduct.id}`,
