@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { Link } from 'react-router-dom';
-import { BadgeCheck, MapPin, Star, Search, Store, ShoppingBag, ArrowRight, Phone, Filter } from 'lucide-react';
+import { BadgeCheck, MapPin, Star, Search, Store, ShoppingBag, ArrowRight, Phone, Filter, MessageCircle } from 'lucide-react';
 import { senegalRegions } from '../data/locations';
 import { isBoutiqueExpired } from '../utils/boutiqueHelpers';
+import SocialSEO from '../components/SocialSEO';
 
 const BoutiquesPage = () => {
   const [boutiques, setBoutiques] = useState([]);
@@ -26,10 +27,22 @@ const BoutiquesPage = () => {
           const boutiqueIds = profiles.map(p => p.id);
           
           // Fetch reviews and products count in parallel
-          const [{ data: reviewsData }, { data: productsData }] = await Promise.all([
+          const [{ data: reviewsData }, ...productCounts] = await Promise.all([
             supabase.from('boutique_reviews').select('boutique_id, rating').in('boutique_id', boutiqueIds),
-            supabase.from('products').select('id, seller_id').in('seller_id', boutiqueIds).neq('category', 'reels_express')
+            ...boutiqueIds.map(async (id) => {
+              const { count } = await supabase
+                .from('products')
+                .select('*', { count: 'exact', head: true })
+                .eq('seller_id', id)
+                .neq('category', 'reels_express');
+              return { id, count: count || 0 };
+            })
           ]);
+          
+          const productCountMap = productCounts.reduce((acc, curr) => {
+            acc[curr.id] = curr.count;
+            return acc;
+          }, {});
 
           profiles.forEach(p => {
             // Reviews & rating
@@ -44,11 +57,7 @@ const BoutiquesPage = () => {
               }
             }
             // Product count
-            if (productsData) {
-              p.productCount = productsData.filter(prod => prod.seller_id === p.id).length;
-            } else {
-              p.productCount = 0;
-            }
+            p.productCount = productCountMap[p.id] || 0;
           });
         }
         
@@ -81,6 +90,7 @@ const BoutiquesPage = () => {
 
   return (
     <div className="section-container" style={{ minHeight: '80vh', paddingBottom: '4rem' }}>
+      <SocialSEO title="Toutes les boutiques - Colobane Market" description="Découvrez toutes les boutiques..." />
       
       {/* Premium Hero Banner */}
       <div className="animate-fade-in-up" style={{ 
@@ -380,7 +390,7 @@ const BoutiquesPage = () => {
                           boxShadow: '0 4px 12px rgba(37, 211, 102, 0.25)'
                         }}
                       >
-                        <Phone size={20} />
+                        <MessageCircle size={18} />
                       </a>
                     )}
                   </div>

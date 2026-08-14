@@ -20,6 +20,7 @@ const BoutiqueProfilePage = () => {
   const [profile, setProfile] = useState(null);
   const [error, setError] = useState(null);
   const [products, setProducts] = useState([]);
+  const [productLimit, setProductLimit] = useState(20);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('catalogue');
@@ -35,7 +36,7 @@ const BoutiqueProfilePage = () => {
       try {
         const [profileRes, productsRes, reviewsRes] = await Promise.all([
           supabase.from('profiles').select('*').eq('id', boutiqueId).single(),
-          supabase.from('products').select('*').eq('seller_id', boutiqueId).neq('category', 'reels_express').order('created_at', { ascending: false }),
+          supabase.from('products').select('*').eq('seller_id', boutiqueId).neq('category', 'reels_express').order('created_at', { ascending: false }).limit(productLimit),
           supabase.from('boutique_reviews')
             .select('*, reviewer:reviewer_id (id, full_name, avatar_url)')
             .eq('boutique_id', boutiqueId)
@@ -61,7 +62,7 @@ const BoutiqueProfilePage = () => {
     };
 
     fetchBoutiqueData();
-  }, [boutiqueId]);
+  }, [boutiqueId, productLimit]);
 
   const submitReview = async (e) => {
     e.preventDefault();
@@ -108,8 +109,9 @@ const BoutiqueProfilePage = () => {
 
   if (loading) {
     return (
-      <div className="section-container" style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <h2>Chargement de la boutique...</h2>
+      <div className="section-container" style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
+        <div style={{ width: '48px', height: '48px', border: '4px solid #F1F5F9', borderTop: '4px solid var(--primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+        <p style={{ color: 'var(--text-muted)', fontWeight: '600' }}>Chargement de la boutique...</p>
       </div>
     );
   }
@@ -175,6 +177,14 @@ const BoutiqueProfilePage = () => {
     "url": canonicalUrl
   };
 
+  if (reviews.length > 0) {
+    schemaStore.aggregateRating = {
+      "@type": "AggregateRating",
+      "ratingValue": avgRating,
+      "reviewCount": reviews.length
+    };
+  }
+
   return (
     <div className="boutique-profile-page animate-fade-in-up" style={{ paddingBottom: '140px' }}>
       <SocialSEO
@@ -184,6 +194,7 @@ const BoutiqueProfilePage = () => {
         url={canonicalUrl}
         type="profile"
       />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaStore) }} />
 
       {/* Immersive Banner */}
       <div 
@@ -439,6 +450,18 @@ const BoutiqueProfilePage = () => {
                     </Link>
                   );
                 })}
+              </div>
+            )}
+
+            {products.length === productLimit && (
+              <div style={{ textAlign: 'center', marginTop: '2.5rem' }}>
+                <button 
+                  onClick={() => setProductLimit(prev => prev + 20)}
+                  className="btn-secondary active-scale"
+                  style={{ padding: '0.8rem 2rem', borderRadius: '14px', fontWeight: '800' }}
+                >
+                  Charger plus
+                </button>
               </div>
             )}
           </div>
