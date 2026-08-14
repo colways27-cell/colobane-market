@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { senegalRegions } from '../data/locations';
 import { Store, Sparkles } from 'lucide-react';
+import imageCompression from 'browser-image-compression';
 
 const InputWrapper = ({ label, required, children }) => (
   <div style={{ marginBottom: '1.2rem', width: '100%', minWidth: 0 }}>
@@ -102,6 +103,8 @@ const CreateBoutiquePage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return; // Garde synchrone anti double-clic
+
     if (!formData.boutique_name) {
       toast.error("Le nom de la boutique est obligatoire.");
       return;
@@ -116,19 +119,44 @@ const CreateBoutiquePage = () => {
       let avatarUrl = undefined;
       
       if (logoFile) {
-        const fileExt = logoFile.name.split('.').pop();
-        const fileName = `logo_${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+        // Validation d'extension
+        const allowedImageExts = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp'];
+        const originalExt = (logoFile.name.split('.').pop() || 'jpg').toLowerCase();
+        if (!allowedImageExts.includes(originalExt)) {
+          toast.error("Format d'image non supporté.");
+          setLoading(false);
+          return;
+        }
+
+        // Compression du logo
+        let fileToUpload = logoFile;
+        try {
+          const compressionOptions = {
+            maxSizeMB: 0.4,
+            maxWidthOrHeight: 500,
+            useWebWorker: true,
+            fileType: 'image/webp'
+          };
+          fileToUpload = await imageCompression(logoFile, compressionOptions);
+        } catch (cErr) {
+          console.warn('Image compression failed, using original logo file:', cErr);
+        }
+
+        const fileExt = 'webp';
+        const fileName = `logo_${crypto.randomUUID()}.${fileExt}`;
         const filePath = `${user.id}/${fileName}`;
         
         // Utilisation du bucket 'products' déjà configuré
-        const { error: uploadError } = await supabase.storage.from('products').upload(filePath, logoFile);
+        const { error: uploadError } = await supabase.storage.from('products').upload(filePath, fileToUpload);
         
         if (!uploadError) {
           const { data } = supabase.storage.from('products').getPublicUrl(filePath);
           avatarUrl = data.publicUrl;
         } else {
           console.error("Erreur upload logo:", uploadError);
-          toast.error("Le logo n'a pas pu être téléchargé.");
+          toast.error("Le logo n'a pas pu être téléchargé. Veuillez réessayer.");
+          setLoading(false);
+          return; // Aborter si l'upload échoue
         }
       }
 
