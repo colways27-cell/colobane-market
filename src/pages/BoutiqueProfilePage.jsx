@@ -33,44 +33,25 @@ const BoutiqueProfilePage = () => {
   useEffect(() => {
     const fetchBoutiqueData = async () => {
       try {
-        // Fetch profile
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', boutiqueId)
-          .single();
+        const [profileRes, productsRes, reviewsRes] = await Promise.all([
+          supabase.from('profiles').select('*').eq('id', boutiqueId).single(),
+          supabase.from('products').select('*').eq('seller_id', boutiqueId).order('created_at', { ascending: false }),
+          supabase.from('boutique_reviews')
+            .select('*, reviewer:reviewer_id (id, full_name, avatar_url)')
+            .eq('boutique_id', boutiqueId)
+            .order('created_at', { ascending: false })
+            .limit(30)
+        ]);
 
-        if (profileError) throw profileError;
-        setProfile(profileData);
+        if (profileRes.error) throw profileRes.error;
+        setProfile(profileRes.data);
 
-        // Fetch products
-        const { data: productsData, error: productsError } = await supabase
-          .from('products')
-          .select('*')
-          .eq('seller_id', boutiqueId)
-          .order('created_at', { ascending: false });
+        if (productsRes.error) throw productsRes.error;
+        setProducts(productsRes.data || []);
 
-        if (productsError) throw productsError;
-        setProducts(productsData || []);
-
-        // Fetch reviews safely
-        const { data: reviewsData, error: reviewsError } = await supabase
-          .from('boutique_reviews')
-          .select('*')
-          .eq('boutique_id', boutiqueId)
-          .order('created_at', { ascending: false });
-
-        if (!reviewsError && reviewsData && reviewsData.length > 0) {
-          const reviewerIds = [...new Set(reviewsData.map(r => r.reviewer_id))];
-          const { data: profilesData } = await supabase.from('profiles').select('id, full_name, avatar_url').in('id', reviewerIds);
-          const profilesMap = {};
-          if (profilesData) {
-             profilesData.forEach(p => profilesMap[p.id] = p);
-          }
-          const richReviews = reviewsData.map(r => ({...r, reviewer: profilesMap[r.reviewer_id] || {}}));
-          setReviews(richReviews);
+        if (!reviewsRes.error && reviewsRes.data) {
+          setReviews(reviewsRes.data);
         }
-
       } catch (err) {
         console.error('Error fetching boutique:', err);
         setError(err.message || 'network');
@@ -90,12 +71,16 @@ const BoutiqueProfilePage = () => {
     
     setSubmittingReview(true);
     try {
-      const { error } = await supabase.from('boutique_reviews').insert([{
-        boutique_id: boutiqueId,
-        reviewer_id: user.id,
-        rating: newReview.rating,
-        comment: newReview.comment
-      }]);
+      const { data: richReview, error } = await supabase
+        .from('boutique_reviews')
+        .insert([{
+          boutique_id: boutiqueId,
+          reviewer_id: user.id,
+          rating: newReview.rating,
+          comment: newReview.comment
+        }])
+        .select('*, reviewer:reviewer_id (id, full_name, avatar_url)')
+        .single();
       
       if (error) {
         if (error.code === '23505') { toast.error("Vous avez déjà laissé un avis."); }
@@ -103,16 +88,7 @@ const BoutiqueProfilePage = () => {
       } else {
         toast.success("Avis publié avec succès !");
         // Update local state directly for immediate feedback
-        const { data: myProfile } = await supabase.from('profiles').select('id, full_name, avatar_url').eq('id', user.id).single();
-        setReviews([{
-          id: Math.random().toString(),
-          boutique_id: boutiqueId,
-          reviewer_id: user.id,
-          rating: newReview.rating,
-          comment: newReview.comment,
-          created_at: new Date().toISOString(),
-          reviewer: myProfile || {}
-        }, ...reviews]);
+        setReviews([richReview, ...reviews]);
         setNewReview({ rating: 5, comment: '' });
       }
     } catch(err) {
@@ -124,10 +100,11 @@ const BoutiqueProfilePage = () => {
 
   const avgRating = reviews.length > 0 ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1) : 0;
   
-  const filteredProducts = useMemo(
-    () => products.filter(p => p.title.toLowerCase().includes(searchQuery.toLowerCase())),
-    [products, searchQuery]
-  );
+  const filteredProducts = useMemo(() => {
+    const normalize = (str) => (str || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    const targetQuery = normalize(searchQuery);
+    return products.filter(p => normalize(p.title).includes(targetQuery));
+  }, [products, searchQuery]);
 
   if (loading) {
     return (
