@@ -538,8 +538,8 @@ const Home = () => {
         .limit(20);
 
       const [mainRes, boostedRes] = await Promise.all([
-        mainPromise.catch(e => ({ error: e, data: null })),
-        boostedPromise.catch(e => ({ error: e, data: null }))
+        mainPromise,
+        boostedPromise
       ]);
 
       let mainData = mainRes?.data || [];
