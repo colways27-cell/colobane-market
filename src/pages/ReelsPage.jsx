@@ -910,17 +910,22 @@ const ReelsPage = () => {
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '8px',
-          background: 'rgba(225, 29, 72, 0.35)',
-          border: '1px solid rgba(225, 29, 72, 0.6)',
-          padding: '6px 16px',
-          borderRadius: '20px',
+          gap: '6px',
+          background: 'rgba(255, 255, 255, 0.15)',
+          border: '1px solid rgba(255, 255, 255, 0.4)',
+          padding: '6px 14px',
+          borderRadius: '30px',
           color: '#FFFFFF',
-          fontWeight: 700,
-          fontSize: '14px',
-          backdropFilter: 'blur(8px)'
+          fontWeight: 800,
+          fontSize: '13px',
+          letterSpacing: '0.5px',
+          backdropFilter: 'blur(12px)',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
         }}>
-          <span>🎥</span> Reels Dakar
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+          Reels Dakar
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
