@@ -13,6 +13,7 @@ import { getUserCoordinates, sortProductsByProximity, SENEGAL_LOCATION_COORDS } 
 import AroundMeModal from '../components/AroundMeModal';
 import { getFollowedBoutiques } from '../utils/followHelpers';
 import FollowButton from '../components/FollowButton';
+import SocialSEO from '../components/SocialSEO';
 
 // Smart Grouping logic for products
 const groupProducts = (prods) => {
@@ -603,6 +604,7 @@ const Home = () => {
 
   return (
     <div className="home-page" style={{ paddingTop: '0.5rem', paddingBottom: '6rem' }}>
+      <SocialSEO title="Colobane Market - Vendez et achetez en toute simplicité" description="La meilleure plateforme pour vendre et acheter des produits..." />
       {/* Search Bar avec Autocomplete intelligent */}
       <section style={{ padding: '0 16px', marginTop: '1rem', marginBottom: '1rem', maxWidth: '1200px', margin: '1rem auto', position: 'relative', zIndex: 100 }}>
         <div style={{ position: 'relative', width: '100%' }}>
@@ -635,14 +637,15 @@ const Home = () => {
               {suggestions.map((s, i) => {
                 const img = s.images && s.images.length > 0 ? s.images[0] : '/hero.png';
                 return (
-                  <div
+                  <Link
+                    to={`/product/${s.id}`}
                     key={s.id}
-                    onClick={() => { setSuggestionsOpen(false); navigate(`/product/${s.id}`); }}
-                    style={{ padding: '0.8rem 1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', background: i === suggestionIndex ? '#FEF2F2' : 'white', borderBottom: i < suggestions.length - 1 ? '1px solid #F1F5F9' : 'none', transition: 'background 0.15s' }}
+                    onClick={() => setSuggestionsOpen(false)}
+                    style={{ textDecoration: 'none', color: 'inherit', padding: '0.8rem 1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', background: i === suggestionIndex ? '#FEF2F2' : 'white', borderBottom: i < suggestions.length - 1 ? '1px solid #F1F5F9' : 'none', transition: 'background 0.15s' }}
                     onMouseEnter={e => e.currentTarget.style.background = '#FEF2F2'}
                     onMouseLeave={e => e.currentTarget.style.background = i === suggestionIndex ? '#FEF2F2' : 'white'}
                   >
-                    <img src={img} alt="" style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover' }} />
+                    <img src={img} alt={s.title} style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover' }} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontWeight: '700', fontSize: '0.9rem', color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {s.title}
@@ -651,7 +654,7 @@ const Home = () => {
                         {(s.price || 0).toLocaleString('fr-FR')} FCFA <span style={{ color: '#94A3B8', fontWeight: '400' }}>• {s.location || 'Dakar'}</span>
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 );
               })}
               <div
@@ -984,13 +987,13 @@ const Home = () => {
           <div ref={subcategoriesRef} style={{ animation: 'slideDown 0.3s ease-out', margin: '0 16px 1.5rem 16px', padding: '16px', background: '#F8FAFC', borderRadius: '16px', border: '1px solid #E2E8F0' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
               <span style={{ fontWeight: '700', fontSize: '0.95rem', color: 'var(--text-main)' }}>Sous-catégories</span>
-              <button onClick={() => navigate(`/category/${activeCategorySlide}`)} style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: '600', fontSize: '0.85rem', cursor: 'pointer' }}>Tout voir</button>
+              <Link to={`/category/${activeCategorySlide}`} style={{ textDecoration: 'none', background: 'none', border: 'none', color: 'var(--primary)', fontWeight: '600', fontSize: '0.85rem', cursor: 'pointer' }}>Tout voir</Link>
             </div>
             <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
               {subcategories.length > 0 ? subcategories.map(opt => (
-                <button key={opt} onClick={() => navigate(`/explore?category=${activeCategorySlide}&subcategory=${encodeURIComponent(opt)}`)} className="active-scale touch-target" style={{ flexShrink: 0, padding: '8px 16px', background: 'white', border: '1px solid #E2E8F0', borderRadius: '20px', fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-main)', cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+                <Link key={opt} to={`/explore?category=${activeCategorySlide}&subcategory=${encodeURIComponent(opt)}`} className="active-scale touch-target" style={{ textDecoration: 'none', display: 'inline-block', flexShrink: 0, padding: '8px 16px', background: 'white', border: '1px solid #E2E8F0', borderRadius: '20px', fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-main)', cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
                   {opt}
-                </button>
+                </Link>
               )) : (
                 <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Aucune sous-catégorie</span>
               )}
@@ -1243,11 +1246,13 @@ const Home = () => {
               {boostedProducts.map(product => {
                 const imageUrl = product.images && product.images.length > 0 ? product.images[0] : '/hero.png';
                 return (
-                  <div
+                  <Link
+                    to={`/product/${product.id}`}
                     key={`boosted-${product.id}`}
-                    onClick={() => navigate(`/product/${product.id}`)}
                     className="sponsored-card active-scale touch-target"
                     style={{
+                      textDecoration: 'none',
+                      color: 'inherit',
                       flex: '0 0 160px',
                       scrollSnapAlign: 'start',
                       cursor: 'pointer',
@@ -1322,6 +1327,7 @@ const Home = () => {
                     {/* Bouton Contacter Direct */}
                     <div 
                       onClick={(e) => {
+                        e.preventDefault();
                         e.stopPropagation();
                         let whatsappNum = product.profiles?.whatsapp_number || product.profiles?.phone_number || '';
                         if (whatsappNum) {
@@ -1339,7 +1345,7 @@ const Home = () => {
                     >
                       <Store size={13} /> 💬 WhatsApp
                     </div>
-                  </div>
+                  </Link>
                 );
               })}
             </div>
@@ -1443,18 +1449,17 @@ const Home = () => {
             const condition = product.condition || (product.metadata && product.metadata.condition) || 'Occasion';
             const isMultiGroup = groupedView && product._count > 1;
 
+            const CardWrapper = isMultiGroup ? 'div' : Link;
+            const cardProps = isMultiGroup 
+              ? { onClick: () => setSelectedGroupModal(product) } 
+              : { to: `/product/${product.id}` };
+
             return (
-              <div 
+              <CardWrapper 
                 key={product.id} 
-                onClick={() => {
-                  if (isMultiGroup) {
-                    setSelectedGroupModal(product);
-                  } else {
-                    navigate(`/product/${product.id}`);
-                  }
-                }} 
+                {...cardProps}
                 className="product-card active-scale" 
-                style={{ cursor: 'pointer', border: '1px solid transparent', background: 'var(--card-bg)', borderRadius: 'var(--radius-md)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
+                style={{ textDecoration: 'none', color: 'inherit', cursor: 'pointer', border: '1px solid transparent', background: 'var(--card-bg)', borderRadius: 'var(--radius-md)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
               >
                 {/* Image 1:1 Optimisée */}
                 <div style={{ position: 'relative', width: '100%', paddingTop: '100%', background: '#F1F5F9', overflow: 'hidden' }}>
@@ -1526,6 +1531,7 @@ const Home = () => {
                 {/* Bouton WhatsApp */}
                 <div 
                   onClick={(e) => {
+                    e.preventDefault();
                     e.stopPropagation();
                     let whatsappNum = product.profiles?.whatsapp_number || product.profiles?.phone_number || '';
                     if (whatsappNum) {
@@ -1543,8 +1549,8 @@ const Home = () => {
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.888-.788-1.489-1.761-1.663-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.052 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg> WHATSAPP
                 </div>
-                </div>
-              );
+              </CardWrapper>
+            );
             })}
           </div>
         )}
