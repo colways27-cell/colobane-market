@@ -31,14 +31,11 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
   const navigate = useNavigate();
   const [checkingAdmin, setCheckingAdmin] = useState(requireAdmin);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [userProfile, setUserProfile] = useState(null);
 
-  // Quick Inline Auth state for Admin Login Form
-  const [email, setEmail] = useState('');
+  // Admin Login Form state
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [loggingIn, setLoggingIn] = useState(false);
-
-  const ADMIN_EMAILS = ['colways27@gmail.com', 'admin@colobanemarket.com'];
 
   useEffect(() => {
     let isMounted = true;
@@ -48,33 +45,20 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
         return;
       }
       try {
-        const isEmailAdmin = user.email && ADMIN_EMAILS.includes(user.email.toLowerCase().trim());
+        // Vérification admin UNIQUEMENT via le champ is_admin en base de données
         const { data: profile } = await supabase
           .from('profiles')
-          .select('is_admin, full_name, pseudo, phone_number')
+          .select('is_admin')
           .eq('id', user.id)
           .maybeSingle();
 
-        const isSaerGayeAdmin = (
-          user.id === '40a63605-fbce-472a-8fe9-65552eca8cd1' ||
-          user.id === 'c5860b91-ef85-4968-802e-a9b60b750c27' ||
-          (profile?.full_name || '').toLowerCase().includes('saer gaye') ||
-          (profile?.pseudo || '').toLowerCase() === 'sgshop' ||
-          (user.email || '').toLowerCase().includes('221777671120') ||
-          (user.email || '').toLowerCase().includes('colways27') ||
-          (user.email || '').toLowerCase().includes('bsgbusines')
-        );
-
         if (isMounted) {
-          setUserProfile(profile);
-          setIsAdmin(!!profile?.is_admin || isEmailAdmin || isSaerGayeAdmin);
+          setIsAdmin(!!profile?.is_admin);
         }
       } catch (err) {
         console.error("Admin verification error:", err);
         if (isMounted) {
-          const isEmailAdmin = user.email && ADMIN_EMAILS.includes(user.email.toLowerCase().trim());
-          const isSaerGayeAdmin = user.id === '40a63605-fbce-472a-8fe9-65552eca8cd1' || user.id === 'c5860b91-ef85-4968-802e-a9b60b750c27';
-          setIsAdmin(isEmailAdmin || isSaerGayeAdmin);
+          setIsAdmin(false);
         }
       } finally {
         if (isMounted) setCheckingAdmin(false);
@@ -90,39 +74,37 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
 
   const handleAdminLogin = async (e) => {
     e.preventDefault();
-    if (!email || !password) {
-      toast.error('Veuillez remplir les identifiants admin');
+    if (!phone || !password) {
+      toast.error('Veuillez entrer votre numéro et mot de passe');
       return;
     }
     setLoggingIn(true);
     toast.loading('Vérification des identifiants...', { id: 'admin-login' });
     try {
-      const cleanEmail = email.trim().toLowerCase();
-      const isEmailAdmin = ADMIN_EMAILS.includes(cleanEmail);
+      // Formater le numéro de téléphone
+      const digits = phone.replace(/\s+/g, '').replace(/^0+/, '');
+      const formattedPhone = phone.startsWith('+') ? phone : `+221${digits}`;
+      const fakeEmail = `${formattedPhone.replace('+', '')}@colobanemarket.local`;
 
+      // Tenter la connexion avec le numéro de téléphone
       let loginRes = await supabase.auth.signInWithPassword({
-        email: cleanEmail,
+        email: fakeEmail,
         password: password.trim()
       });
 
-      // Fallback for whitelisted admin emails if credentials failed
-      if (loginRes.error && isEmailAdmin) {
-        // Try master password fallback
-        const masterRes = await supabase.auth.signInWithPassword({
-          email: cleanEmail,
-          password: 'Bayeniass1975'
-        });
-        if (masterRes.data?.user) {
-          loginRes = masterRes;
-        } else {
-          // Try auto signup with the typed password
-          const signUpRes = await supabase.auth.signUp({
-            email: cleanEmail,
+      // Fallback : chercher l'email réel dans les profils
+      if (loginRes.error) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('email')
+          .or(`whatsapp_number.eq.${formattedPhone},phone_number.eq.${formattedPhone}`)
+          .limit(1);
+
+        if (profiles && profiles.length > 0 && profiles[0].email && !profiles[0].email.endsWith('@colobanemarket.local')) {
+          loginRes = await supabase.auth.signInWithPassword({
+            email: profiles[0].email,
             password: password.trim()
           });
-          if (signUpRes.data?.user) {
-            loginRes = signUpRes;
-          }
         }
       }
 
@@ -133,19 +115,30 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
       const loggedUser = loginRes.data?.user;
 
       if (loggedUser) {
-        try {
-          await supabase.from('profiles').upsert({ id: loggedUser.id, is_admin: true }, { onConflict: 'id' });
-        } catch (_e) {
-          // Ignore upsert error
+        // Vérifier les droits admin en base de données
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('is_admin')
+          .eq('id', loggedUser.id)
+          .maybeSingle();
+
+        if (profile?.is_admin) {
+          toast.success('Bienvenue dans le Back-Office Admin ! 🎉', { id: 'admin-login' });
+          setIsAdmin(true);
+        } else {
+          // Déconnecter immédiatement si pas admin
+          await supabase.auth.signOut();
+          toast.error("Ce compte n'a pas les droits administrateur.", { id: 'admin-login' });
         }
-        toast.success('Bienvenue dans le Back-Office Admin ! 🎉', { id: 'admin-login' });
-        setIsAdmin(true);
       } else {
-        toast.error("Ce compte n'est pas administrateur.", { id: 'admin-login' });
+        toast.error('Identifiants incorrects.', { id: 'admin-login' });
       }
     } catch (err) {
       console.error(err);
-      toast.error(err.message || 'Identifiants incorrects', { id: 'admin-login' });
+      const msg = err.message?.includes('Invalid login credentials')
+        ? 'Numéro ou mot de passe incorrect.'
+        : (err.message || 'Identifiants incorrects');
+      toast.error(msg, { id: 'admin-login' });
     } finally {
       setLoggingIn(false);
     }
@@ -166,13 +159,13 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
-  // Admin route protection & dedicated access screens
+  // Admin route protection
   if (requireAdmin) {
     if (checkingAdmin) {
       return <PageLoader />;
     }
 
-    // Screen 1: Unauthenticated Admin Access Prompt
+    // Unauthenticated Admin Access — Login Form
     if (!user) {
       return (
         <div style={{
@@ -211,21 +204,24 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
               Colobane Admin
             </h2>
             <p style={{ margin: '0 0 24px 0', fontSize: '0.9rem', color: '#64748B', lineHeight: '1.5' }}>
-              Veuillez vous connecter avec vos identifiants Administrateur pour ouvrir le Back-Office.
+              Connectez-vous avec votre numéro de téléphone et mot de passe administrateur.
             </p>
 
             <form onSubmit={handleAdminLogin} autoComplete="on" style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'left' }}>
               <div>
-                <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#475569', marginBottom: '4px', display: 'block' }}>Email Admin</label>
-                <input
-                  type="email"
-                  name="email"
-                  autoComplete="username"
-                  placeholder="admin@colobanemarket.com"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  style={{ width: '100%', padding: '12px 14px', borderRadius: '12px', border: '1px solid #CBD5E1', fontSize: '0.9rem', outline: 'none' }}
-                />
+                <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#475569', marginBottom: '4px', display: 'block' }}>Numéro de téléphone</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ padding: '12px 10px', background: '#F1F5F9', borderRadius: '12px', fontSize: '0.9rem', fontWeight: 700, color: '#475569', whiteSpace: 'nowrap' }}>🇸🇳 +221</span>
+                  <input
+                    type="tel"
+                    name="phone"
+                    autoComplete="tel"
+                    placeholder="77 123 45 67"
+                    value={phone}
+                    onChange={e => setPhone(e.target.value)}
+                    style={{ flex: 1, padding: '12px 14px', borderRadius: '12px', border: '1px solid #CBD5E1', fontSize: '0.9rem', outline: 'none' }}
+                  />
+                </div>
               </div>
 
               <div>
@@ -257,43 +253,7 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
                   cursor: loggingIn ? 'wait' : 'pointer'
                 }}
               >
-                {loggingIn ? 'Connexion en cours...' : 'Se connecter au Back-Office 🚀'}
-              </button>
-
-              <button
-                type="button"
-                onClick={async () => {
-                  setEmail('admin@colobanemarket.com');
-                  setPassword('Bayeniass1975');
-                  setLoggingIn(true);
-                  toast.loading('Connexion automatique...', { id: 'auto-admin' });
-                  try {
-                    const { data, error } = await supabase.auth.signInWithPassword({
-                      email: 'admin@colobanemarket.com',
-                      password: 'Bayeniass1975'
-                    });
-                    if (error) throw error;
-                    toast.success('Bienvenue dans le Back-Office Admin ! 🎉', { id: 'auto-admin' });
-                    setIsAdmin(true);
-                  } catch (err) {
-                    toast.error('Erreur de connexion automatique', { id: 'auto-admin' });
-                  } finally {
-                    setLoggingIn(false);
-                  }
-                }}
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  background: '#10B981',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '12px',
-                  fontWeight: 800,
-                  fontSize: '0.85rem',
-                  cursor: 'pointer'
-                }}
-              >
-                ⚡ Connexion Automatique 1-Clic
+                {loggingIn ? 'Connexion en cours...' : 'Se connecter au Back-Office 🔐'}
               </button>
             </form>
 
@@ -310,7 +270,7 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
       );
     }
 
-    // Screen 2: User is Logged In BUT Not Admin
+    // User is Logged In BUT Not Admin
     if (!isAdmin) {
       return (
         <div style={{
@@ -349,77 +309,10 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
               Accès Administrateur Restreint
             </h2>
             <p style={{ margin: '0 0 16px 0', fontSize: '0.88rem', color: '#64748B', lineHeight: '1.5' }}>
-              Le compte actuel (<strong>{userProfile?.full_name || user.email}</strong>) ne possède pas les droits d'accès au Back-Office Admin.
+              Ce compte ne possède pas les droits d'accès au Back-Office Admin.
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <button
-                onClick={async () => {
-                  setLoggingIn(true);
-                  toast.loading('Connexion automatique Admin...', { id: 'auto-admin-screen2' });
-                  try {
-                    const { data, error } = await supabase.auth.signInWithPassword({
-                      email: 'admin@colobanemarket.com',
-                      password: 'Bayeniass1975'
-                    });
-                    if (error) throw error;
-                    toast.success('Bienvenue dans le Back-Office Admin ! 🎉', { id: 'auto-admin-screen2' });
-                    setIsAdmin(true);
-                  } catch (err) {
-                    toast.error('Erreur de connexion automatique. Veuillez vous reconnecter.', { id: 'auto-admin-screen2' });
-                  } finally {
-                    setLoggingIn(false);
-                  }
-                }}
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  background: '#10B981',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '12px',
-                  fontWeight: 800,
-                  fontSize: '0.9rem',
-                  cursor: 'pointer'
-                }}
-              >
-                ⚡ Déverrouiller le Back-Office (1-Clic Admin)
-              </button>
-
-              <button
-                onClick={() => {
-                  setCheckingAdmin(true);
-                  supabase
-                    .from('profiles')
-                    .select('is_admin, full_name, phone_number')
-                    .eq('id', user.id)
-                    .single()
-                    .then(({ data: profile }) => {
-                      if (profile?.is_admin) {
-                        setIsAdmin(true);
-                        toast.success('Droits d\'accès administrateur confirmés ! 🎉');
-                      } else {
-                        toast.error('Ce compte n\'est pas encore administrateur.');
-                      }
-                    })
-                    .catch(() => toast.error('Erreur de vérification'))
-                    .finally(() => setCheckingAdmin(false));
-                }}
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  background: '#3B82F6',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '12px',
-                  fontWeight: 800,
-                  fontSize: '0.9rem',
-                  cursor: 'pointer'
-                }}
-              >
-                🔄 Revérifier mes droits Admin
-              </button>
-
               <button
                 onClick={handleSwitchAccount}
                 style={{

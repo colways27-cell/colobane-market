@@ -910,22 +910,28 @@ const ExplorePage = () => {
                       <img src={imageUrl} alt={product.title} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
                       {/* Badge nombre de vendeurs (mode groupé) */}
                       {isMultiGroup && (
-                        <span style={{ position: 'absolute', top: '8px', left: '8px', background: 'var(--primary)', color: 'white', padding: '4px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: '800', zIndex: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
-                          👥 {product._count} offres similaires
+                        <span style={{ position: 'absolute', top: '8px', left: '8px', background: 'var(--primary)', color: 'white', padding: '3px 8px', borderRadius: '8px', fontSize: '9.5px', fontWeight: '800', zIndex: 12, boxShadow: '0 2px 6px rgba(0,0,0,0.15)' }}>
+                          👥 {product._count} offres
                         </span>
                       )}
                       {product.is_boosted && (
-                        <span style={{ position: 'absolute', top: isMultiGroup ? '36px' : '8px', left: '8px', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: 'white', padding: '4px 8px', borderRadius: '10px', fontSize: '9px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.3px', boxShadow: '0 2px 6px rgba(217,119,6,0.4)', zIndex: 11 }}>
+                        <span style={{ position: 'absolute', top: isMultiGroup ? '32px' : '8px', left: '8px', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: 'white', padding: '3px 7px', borderRadius: '8px', fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.3px', boxShadow: '0 2px 6px rgba(217,119,6,0.4)', zIndex: 11 }}>
                           ⚡ Sponsorisé
                         </span>
                       )}
-                      {product.is_urgent && (
-                        <span style={{ position: 'absolute', top: product.is_boosted ? (isMultiGroup ? '60px' : '36px') : (isMultiGroup ? '36px' : '8px'), left: '8px', background: '#e74c3c', color: 'white', padding: '4px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', zIndex: 10 }}>URGENT</span>
-                      )}
+                      
+                      {/* Favorite button top-right */}
                       <FavoriteButton 
                         productId={product.id} 
-                        style={{ position: 'absolute', top: '8px', right: '8px', width: '32px', height: '32px', zIndex: 10 }} 
+                        style={{ position: 'absolute', top: '8px', right: '8px', width: '32px', height: '32px', zIndex: 15 }} 
                       />
+
+                      {/* Condition Badge Pill bottom-left */}
+                      {(product.condition || product.metadata?.condition) && (
+                        <span style={{ position: 'absolute', bottom: '8px', left: '8px', background: 'rgba(255,255,255,0.92)', color: '#0F172A', fontSize: '9.5px', fontWeight: '800', padding: '3px 8px', borderRadius: '10px', backdropFilter: 'blur(6px)', boxShadow: '0 2px 6px rgba(0,0,0,0.12)', zIndex: 10, maxWidth: '75%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {product.condition || product.metadata?.condition}
+                        </span>
+                      )}
                     </div>
                     <div style={{ padding: '8px 6px', display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
                       <h3 style={{ fontSize: '13px', fontWeight: '500', lineHeight: '1.4', margin: '0', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', color: 'var(--text-main)', wordBreak: 'break-word' }}>

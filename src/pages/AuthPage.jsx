@@ -37,23 +37,9 @@ const AuthPage = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(true);
   const [acceptTerms, setAcceptTerms] = useState(false);
 
-  // Pre-fill remembered credentials if saved previously
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem('colobane_remembered_user');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.phone) setPhone(parsed.phone);
-        if (parsed.password) setPassword(parsed.password);
-        setIsRegister(false);
-      }
-    } catch (_e) {
-      // Ignore localStorage errors
-    }
-  }, []);
+
 
   // Detect Supabase recovery event (when user clicks reset link from email)
   useEffect(() => {
@@ -232,13 +218,7 @@ const AuthPage = () => {
           throw loginResult.error;
         }
 
-        try {
-          if (rememberMe) {
-            localStorage.setItem('colobane_remembered_user', JSON.stringify({ phone, password }));
-          } else {
-            localStorage.removeItem('colobane_remembered_user');
-          }
-        } catch (_e) {}
+
 
         navigate('/');
       }
@@ -473,16 +453,7 @@ const AuthPage = () => {
               </InputWrapper>
 
               {!isRegister && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '-0.3rem', marginBottom: '1.2rem' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--text-muted)', cursor: 'pointer' }}>
-                    <input
-                      type="checkbox"
-                      checked={rememberMe}
-                      onChange={e => setRememberMe(e.target.checked)}
-                      style={{ width: '16px', height: '16px', accentColor: 'var(--primary)', cursor: 'pointer' }}
-                    />
-                    <span>Se souvenir de moi</span>
-                  </label>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginTop: '-0.3rem', marginBottom: '1.2rem' }}>
                   <button
                     type="button"
                     onClick={() => { setIsResetMode(true); setErrorMsg(''); setSuccessMsg(''); }}

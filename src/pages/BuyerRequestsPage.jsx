@@ -62,43 +62,17 @@ const BuyerRequestsPage = () => {
     }
 
     const localData = getLocalRequests();
-    const demoRequests = [
-      {
-        id: 'demo-1',
-        title: 'iPhone 13 128 Go — Bon état',
-        budget: 260000,
-        location: 'Dakar, Plateau',
-        contact: '221771234567',
-        details: 'Je cherche un iPhone 13 en bon état avec batterie > 85%. Paiement cash immédiat.',
-        created_at: new Date().toISOString()
-      },
-      {
-        id: 'demo-2',
-        title: 'Robe Wax moderne mariage',
-        budget: 25000,
-        location: 'Thiès',
-        contact: '221789876543',
-        details: 'Cherche couturier ou boutique proposant de belles robes wax pour cérémonie ce weekend.',
-        created_at: new Date(Date.now() - 3600000 * 5).toISOString()
-      },
-      {
-        id: 'demo-3',
-        title: 'Toyota Corolla 2015-2018 automatique',
-        budget: 4500000,
-        location: 'Dakar, VDN',
-        contact: '221761112233',
-        details: 'Acheteur sérieux cherche véhicule propre dédouané avec clim d\'origine.',
-        created_at: new Date(Date.now() - 3600000 * 24).toISOString()
-      }
-    ];
-
     const mergedMap = new Map();
-    // Priorité aux demandes locales et distantes
-    localData.forEach(item => mergedMap.set(String(item.id || item.title), item));
-    remoteData.forEach(item => mergedMap.set(String(item.id || item.title), item));
+    // Priorité aux données distantes (source de vérité)
+    remoteData.forEach(item => mergedMap.set(String(item.id), item));
+    // Ajouter les locales seulement si elles n'ont pas encore été synchées
+    localData.forEach(item => {
+      const key = item.remote_id ? String(item.remote_id) : `local_${item.id || item.title}`;
+      if (!mergedMap.has(key) && !mergedMap.has(String(item.id))) mergedMap.set(key, item);
+    });
 
     if (mergedMap.size === 0) {
-      setRequests(demoRequests);
+      setRequests([]);
     } else {
       const allReqs = Array.from(mergedMap.values()).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
       setRequests(allReqs);
@@ -276,9 +250,10 @@ const BuyerRequestsPage = () => {
       {loading ? (
         <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>Chargement des demandes...</div>
       ) : filteredRequests.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '50px', background: 'white', borderRadius: '24px', border: '1px solid #E2E8F0' }}>
-          <h3>Aucune demande trouvée</h3>
-          <p style={{ color: 'var(--text-muted)' }}>Soyez le premier à publier votre besoin !</p>
+        <div style={{ textAlign: 'center', padding: '4rem 2rem' }}>
+          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📭</div>
+          <h3 style={{ fontWeight: '800', color: 'var(--text-main)', marginBottom: '0.5rem' }}>Aucune demande pour le moment</h3>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Soyez le premier à publier ce que vous recherchez !</p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

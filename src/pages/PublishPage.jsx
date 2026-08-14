@@ -243,9 +243,12 @@ const PublishPage = () => {
                 onClick={() => {
                   if (savedDraft.formData) setFormData(savedDraft.formData);
                   if (savedDraft.selectedCategory) setSelectedCategory(savedDraft.selectedCategory);
-                  if (savedDraft.previews) setPreviews(savedDraft.previews);
                   toast.dismiss(t.id);
-                  toast.success("Brouillon restauré avec succès ! ✨");
+                  const imgCount = savedDraft.savedImageCount || 0;
+                  toast.success(imgCount > 0
+                    ? `Brouillon restauré ! 📸 ${imgCount} photo(s) à re-sélectionner.`
+                    : "Brouillon restauré avec succès ! ✨"
+                  );
                 }}
                 style={{ padding: '6px 12px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '800', fontSize: '0.78rem', cursor: 'pointer' }}
               >
@@ -271,7 +274,11 @@ const PublishPage = () => {
   useEffect(() => {
     if (formData.title || formData.price || previews.length > 0) {
       try {
-        localStorage.setItem('colobane_publish_draft_v1', JSON.stringify({ formData, selectedCategory, previews }));
+        localStorage.setItem('colobane_publish_draft_v1', JSON.stringify({
+          formData,
+          selectedCategory,
+          savedImageCount: previews.length // Sauvegarder le compte, pas les blob URLs
+        }));
       } catch (_e) {}
     }
   }, [formData, selectedCategory, previews]);
@@ -596,19 +603,16 @@ const PublishPage = () => {
   };
 
   const uploadImages = async () => {
-    const uploadedUrls = [];
-    for (const image of images) {
+    const uploadPromises = images.map(async (image) => {
       const fileExt = image.name.split('.').pop();
       const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
       const filePath = `${user.id}/${fileName}`;
-
       const { error: uploadError } = await supabase.storage.from('products').upload(filePath, image);
       if (uploadError) throw uploadError;
-
       const { data } = supabase.storage.from('products').getPublicUrl(filePath);
-      uploadedUrls.push(data.publicUrl);
-    }
-    return uploadedUrls;
+      return data.publicUrl;
+    });
+    return Promise.all(uploadPromises);
   };
 
   const handleConfirmBoost = async (e) => {

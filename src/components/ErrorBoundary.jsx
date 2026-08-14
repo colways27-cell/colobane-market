@@ -31,8 +31,7 @@ export class ErrorBoundary extends React.Component {
           }
         });
       }
-      localStorage.clear();
-      sessionStorage.clear();
+      // Ne PAS vider localStorage/sessionStorage pour préserver les sessions utilisateur
     } catch (_e) {}
 
     window.location.href = window.location.origin + window.location.pathname + '?reset=' + Date.now();

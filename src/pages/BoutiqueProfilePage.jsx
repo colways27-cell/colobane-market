@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import SocialSEO from '../components/SocialSEO';
 import { shareBoutique } from '../utils/socialShare';
@@ -18,6 +18,7 @@ const BoutiqueProfilePage = () => {
   const { boutiqueId } = useParams();
   const { user } = useAuth();
   const [profile, setProfile] = useState(null);
+  const [error, setError] = useState(null);
   const [products, setProducts] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -72,6 +73,7 @@ const BoutiqueProfilePage = () => {
 
       } catch (err) {
         console.error('Error fetching boutique:', err);
+        setError(err.message || 'network');
       } finally {
         setLoading(false);
       }
@@ -122,7 +124,10 @@ const BoutiqueProfilePage = () => {
 
   const avgRating = reviews.length > 0 ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1) : 0;
   
-  const filteredProducts = products.filter(p => p.title.toLowerCase().includes(searchQuery.toLowerCase()));
+  const filteredProducts = useMemo(
+    () => products.filter(p => p.title.toLowerCase().includes(searchQuery.toLowerCase())),
+    [products, searchQuery]
+  );
 
   if (loading) {
     return (
@@ -135,7 +140,14 @@ const BoutiqueProfilePage = () => {
   if (!profile) {
     return (
       <div className="section-container" style={{ minHeight: '60vh', textAlign: 'center', paddingTop: '4rem' }}>
-        <h2>Boutique introuvable</h2>
+        {error ? (
+          <>
+            <h2>Erreur de réseau</h2>
+            <p>{error}</p>
+          </>
+        ) : (
+          <h2>Boutique introuvable</h2>
+        )}
         <Link to="/boutiques" className="btn-primary" style={{ display: 'inline-block', marginTop: '2rem' }}>Retour aux boutiques</Link>
       </div>
     );
@@ -418,7 +430,7 @@ const BoutiqueProfilePage = () => {
                   const condition = product.condition || 'Occasion';
 
                   return (
-                    <div key={product.id} onClick={() => window.location.href = `/product/${product.id}`} className={`product-card active-scale animate-fade-in-up stagger-${(index % 4) + 1}`} style={{ cursor: 'pointer', border: '1px solid rgba(226, 232, 240, 0.6)', background: 'var(--card-bg)', borderRadius: '20px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                    <Link to={`/product/${product.id}`} key={product.id} className={`product-card active-scale animate-fade-in-up stagger-${(index % 4) + 1}`} style={{ textDecoration: 'none', cursor: 'pointer', border: '1px solid rgba(226, 232, 240, 0.6)', background: 'var(--card-bg)', borderRadius: '20px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                       <div style={{ position: 'relative', width: '100%', paddingTop: '100%', background: '#F8FAFC', overflow: 'hidden' }}>
                         <img src={imageUrl} alt={product.title} className="product-image" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
                         
@@ -447,7 +459,7 @@ const BoutiqueProfilePage = () => {
                       <div style={{ background: 'var(--primary-light)', color: 'var(--primary)', padding: '12px', textAlign: 'center', fontSize: '14px', fontWeight: '800', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', borderTop: '1px solid rgba(190, 18, 60, 0.1)' }}>
                         <Store size={16} strokeWidth={2.5} /> CONTACTER
                       </div>
-                    </div>
+                    </Link>
                   );
                 })}
               </div>

@@ -76,8 +76,6 @@ const AdminPage = () => {
     }
   };
 
-  const ADMIN_EMAILS = ['colways27@gmail.com', 'admin@colobanemarket.com'];
-
   const checkAdminAccess = async () => {
     setLoading(true);
     try {
@@ -87,24 +85,15 @@ const AdminPage = () => {
         setLoading(false);
         return;
       }
-      const isEmailAdmin = user.email && ADMIN_EMAILS.includes(user.email.toLowerCase().trim());
+
+      // Vérification admin UNIQUEMENT via le champ is_admin en base de données
       const { data: profile } = await supabase
         .from('profiles')
-        .select('is_admin, full_name, pseudo')
+        .select('is_admin')
         .eq('id', user.id)
         .maybeSingle();
 
-      const isSaerGayeAdmin = (
-        user.id === '40a63605-fbce-472a-8fe9-65552eca8cd1' ||
-        user.id === 'c5860b91-ef85-4968-802e-a9b60b750c27' ||
-        (profile?.full_name || '').toLowerCase().includes('saer gaye') ||
-        (profile?.pseudo || '').toLowerCase() === 'sgshop' ||
-        (user.email || '').toLowerCase().includes('221777671120') ||
-        (user.email || '').toLowerCase().includes('colways27') ||
-        (user.email || '').toLowerCase().includes('bsgbusines')
-      );
-
-      const hasAdminRights = !!profile?.is_admin || isEmailAdmin || isSaerGayeAdmin;
+      const hasAdminRights = !!profile?.is_admin;
 
       if (!hasAdminRights) {
         setIsAdmin(false);
@@ -112,24 +101,12 @@ const AdminPage = () => {
         return;
       }
 
-      // Auto update DB profile if missing is_admin
-      if (!profile?.is_admin && user.id) {
-        supabase.from('profiles').upsert({ id: user.id, is_admin: true }, { onConflict: 'id' }).then(() => {});
-      }
-
       setIsAdmin(true);
       await fetchAllData();
     } catch (err) {
       console.error(err);
-      const { data: { user } } = await supabase.auth.getUser();
-      const isEmailAdmin = user?.email && ADMIN_EMAILS.includes(user.email.toLowerCase().trim());
-      if (isEmailAdmin) {
-        setIsAdmin(true);
-        await fetchAllData();
-      } else {
-        setIsAdmin(false);
-        setLoading(false);
-      }
+      setIsAdmin(false);
+      setLoading(false);
     }
   };
 
@@ -296,23 +273,32 @@ const AdminPage = () => {
 
       // 2. Nettoyer les sous-tables liées aux produits (favoris, commentaires, likes, signalements)
       if (prodIds.length > 0) {
-        await supabase.from('favorites').delete().in('product_id', prodIds).catch(() => {});
-        await supabase.from('comments').delete().in('product_id', prodIds).catch(() => {});
-        await supabase.from('reels_likes').delete().in('product_id', prodIds).catch(() => {});
-        await supabase.from('reports').delete().in('product_id', prodIds).catch(() => {});
+        const productCleanup = await Promise.allSettled([
+          supabase.from('favorites').delete().in('product_id', prodIds),
+          supabase.from('comments').delete().in('product_id', prodIds),
+          supabase.from('reels_likes').delete().in('product_id', prodIds),
+          supabase.from('reports').delete().in('product_id', prodIds),
+        ]);
+        const prodFailures = productCleanup.filter(r => r.status === 'rejected' || r.value?.error);
+        if (prodFailures.length > 0) console.warn('Nettoyage partiel des sous-tables produits:', prodFailures);
       }
 
       // 3. Supprimer les annonces et reels de l'utilisateur
-      await supabase.from('products').delete().eq('seller_id', userId).catch(() => {});
+      const { error: productsDelError } = await supabase.from('products').delete().eq('seller_id', userId);
+      if (productsDelError) console.warn('Erreur suppression produits:', productsDelError);
 
       // 4. Nettoyer toutes les tables liées à l'utilisateur (paiements, certifs, demandes, favoris, avis)
-      await supabase.from('payment_requests').delete().eq('user_id', userId).catch(() => {});
-      await supabase.from('certification_requests').delete().eq('user_id', userId).catch(() => {});
-      await supabase.from('buyer_requests').delete().eq('user_id', userId).catch(() => {});
-      await supabase.from('favorites').delete().eq('user_id', userId).catch(() => {});
-      await supabase.from('reviews').delete().eq('seller_id', userId).catch(() => {});
-      await supabase.from('reviews').delete().eq('reviewer_id', userId).catch(() => {});
-      await supabase.from('reports').delete().eq('reporter_id', userId).catch(() => {});
+      const userCleanup = await Promise.allSettled([
+        supabase.from('payment_requests').delete().eq('user_id', userId),
+        supabase.from('certification_requests').delete().eq('user_id', userId),
+        supabase.from('buyer_requests').delete().eq('user_id', userId),
+        supabase.from('favorites').delete().eq('user_id', userId),
+        supabase.from('reviews').delete().eq('seller_id', userId),
+        supabase.from('reviews').delete().eq('reviewer_id', userId),
+        supabase.from('reports').delete().eq('reporter_id', userId),
+      ]);
+      const userFailures = userCleanup.filter(r => r.status === 'rejected' || r.value?.error);
+      if (userFailures.length > 0) console.warn('Nettoyage partiel des tables utilisateur:', userFailures);
 
       // 5. Supprimer la ligne de profil principale
       const { error } = await supabase.from('profiles').delete().eq('id', userId);

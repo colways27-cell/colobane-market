@@ -13,32 +13,7 @@ export const AuthProvider = ({ children }) => {
     const initAuth = async () => {
       try {
         const { data } = await supabase.auth.getSession();
-        let currentSessionUser = data?.session?.user ?? null;
-
-        // Auto Silent Re-authentication fallback if session is empty but remembered credentials exist
-        if (!currentSessionUser) {
-          try {
-            const rememberedRaw = localStorage.getItem('colobane_remembered_user');
-            if (rememberedRaw) {
-              const remembered = JSON.parse(rememberedRaw);
-              if (remembered?.phone && remembered?.password) {
-                const digits = (remembered.phone || '').replace(/\s+/g, '').replace(/^0+/, '');
-                const formattedPhone = (remembered.phone || '').startsWith('+') ? remembered.phone : `+221${digits}`;
-                const fakeEmail = `${formattedPhone.replace('+', '')}@colobanemarket.local`;
-
-                const res = await supabase.auth.signInWithPassword({
-                  email: fakeEmail,
-                  password: remembered.password
-                });
-                if (res.data?.user) {
-                  currentSessionUser = res.data.user;
-                }
-              }
-            }
-          } catch (autoLoginErr) {
-            console.warn("Auto-relogin fallback silent warning:", autoLoginErr);
-          }
-        }
+        const currentSessionUser = data?.session?.user ?? null;
 
         if (mounted) {
           setUser(currentSessionUser);
@@ -77,9 +52,6 @@ export const AuthProvider = ({ children }) => {
     user,
     loading,
     signOut: () => {
-      try {
-        localStorage.removeItem('colobane_remembered_user');
-      } catch (_e) {}
       return supabase.auth.signOut();
     },
   };
@@ -94,4 +66,3 @@ export const AuthProvider = ({ children }) => {
 export const useAuth = () => {
   return useContext(AuthContext);
 };
-

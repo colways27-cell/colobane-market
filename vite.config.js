@@ -46,7 +46,7 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
         navigateFallbackDenylist: [/^\/api/],
         importScripts: ['/sw-push.js'],
-        maximumFileSizeToCacheInBytes: 20 * 1024 * 1024,
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         globPatterns: ['**/*.{js,css,png,svg,webp,ico}'],
         runtimeCaching: [
           {
@@ -87,7 +87,7 @@ export default defineConfig({
 
   build: {
     // Augmente légèrement le seuil d'avertissement (nos chunks seront sous 600kB)
-    chunkSizeWarningLimit: 600,
+    chunkSizeWarningLimit: 500,
 
     rollupOptions: {
       output: {
@@ -111,10 +111,8 @@ export default defineConfig({
             return 'vendor-supabase';
           }
 
-          // Lucide icons — séparé car assez lourd
-          if (id.includes('node_modules/lucide-react/')) {
-            return 'vendor-icons';
-          }
+          // Lucide icons — laisser le tree-shaking naturel de Rollup
+          // (ne PAS regrouper manuellement pour éviter de bundler les icônes inutilisées)
 
           // Utilitaires divers (date-fns, react-hot-toast, etc.)
           if (id.includes('node_modules/')) {

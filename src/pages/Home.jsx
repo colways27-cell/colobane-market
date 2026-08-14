@@ -1368,7 +1368,7 @@ const Home = () => {
       )}
 
       {/* Annonces Récentes */}
-      <section ref={recentProductsRef} className="section-container" style={{ margin: '0', padding: '0 16px' }}>
+      <section ref={recentProductsRef} className="section-container" style={{ margin: '0', padding: '0 16px 160px 16px' }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', paddingBottom: '12px', borderBottom: '2px solid #F1F5F9', flexWrap: 'wrap', gap: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -1497,26 +1497,28 @@ const Home = () => {
 
                   {/* Badge nombre de vendeurs (mode groupé) */}
                   {groupedView && product._count > 1 && (
-                    <span style={{ position: 'absolute', top: '8px', left: '8px', background: 'var(--primary)', color: 'white', padding: '3px 8px', borderRadius: '10px', fontSize: '10px', fontWeight: '800', zIndex: 12 }}>
+                    <span style={{ position: 'absolute', top: '8px', left: '8px', background: 'var(--primary)', color: 'white', padding: '3px 8px', borderRadius: '8px', fontSize: '9.5px', fontWeight: '800', zIndex: 12, boxShadow: '0 2px 6px rgba(0,0,0,0.15)' }}>
                       👥 {product._count} vendeurs
                     </span>
                   )}
                   {product.is_boosted && (
-                    <span style={{ position: 'absolute', top: groupedView && product._count > 1 ? '30px' : '8px', left: '8px', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: 'white', padding: '3px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.3px', boxShadow: '0 2px 6px rgba(217,119,6,0.4)', zIndex: 11 }}>
+                    <span style={{ position: 'absolute', top: groupedView && product._count > 1 ? '32px' : '8px', left: '8px', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: 'white', padding: '3px 7px', borderRadius: '8px', fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.3px', boxShadow: '0 2px 6px rgba(217,119,6,0.4)', zIndex: 11 }}>
                       ⚡ Sponsorisé
                     </span>
                   )}
 
-                  {/* Condition Badge Pill */}
-                  <span style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(255,255,255,0.9)', color: 'var(--text-main)', fontSize: '10px', fontWeight: '700', padding: '4px 8px', borderRadius: 'var(--radius-pill)', backdropFilter: 'blur(4px)', zIndex: 10 }}>
-                    {condition}
-                  </span>
-                  
-                  {/* Favorite button */}
+                  {/* Favorite button top-right */}
                   <FavoriteButton 
                     productId={product.id} 
-                    style={{ position: 'absolute', top: '40px', right: '8px', width: '32px', height: '32px', zIndex: 10 }} 
+                    style={{ position: 'absolute', top: '8px', right: '8px', width: '32px', height: '32px', zIndex: 15 }} 
                   />
+
+                  {/* Condition Badge Pill bottom-left */}
+                  {condition && (
+                    <span style={{ position: 'absolute', bottom: '8px', left: '8px', background: 'rgba(255,255,255,0.92)', color: '#0F172A', fontSize: '9.5px', fontWeight: '800', padding: '3px 8px', borderRadius: '10px', backdropFilter: 'blur(6px)', boxShadow: '0 2px 6px rgba(0,0,0,0.12)', zIndex: 10, maxWidth: '75%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {condition}
+                    </span>
+                  )}
                 </div>
 
                 {/* Details */}
