@@ -17,7 +17,8 @@ import {
   Gamepad2, 
   Wrench, 
   Handshake, 
-  Briefcase 
+  Briefcase,
+  PackageOpen
 } from 'lucide-react';
 
 export const categories = [
@@ -268,6 +269,16 @@ export const categories = [
       { name: 'level_required', label: 'Niveau requis', type: 'text', placeholder: 'Ex: Bac, Bac+3, Aucun diplôme...' },
       { name: 'hours', label: 'Horaires', type: 'text', placeholder: 'Ex: Temps plein, Temps partiel...' },
       { name: 'salary', label: 'Salaire proposé', type: 'text', placeholder: 'Ex: À débattre, 150000 FCFA...' }
+    ]
+  },
+  {
+    id: 'autre_divers',
+    name: 'Autre / Divers',
+    icon: <PackageOpen size={28} strokeWidth={1.5} />,
+    color: '#8e8e93',
+    fields: [
+      { name: 'type', label: 'Type d\'article', type: 'text', placeholder: 'Ex: Solaire, Billet, Événement, Objet unique...' },
+      { name: 'condition', label: 'État', type: 'select', options: ['Neuf', 'Très bon état', 'Bon état', 'État correct', 'Non applicable'] }
     ]
   }
 ];

@@ -35,7 +35,8 @@ const categoryKeywords = {
   jeux_loisirs: ['jeux', 'console', 'ps5', 'ps4', 'xbox', 'nintendo', 'ballon', 'sport', 'guitare', 'musique', 'jouet'],
   pro: ['machine', 'professionnel', 'couture', 'coiffure', 'restauration', 'médical', 'industrie', 'bureau'],
   services: ['service', 'réparation', 'dépannage', 'ménage', 'transport', 'déménagement', 'développement', 'design', 'freelance'],
-  emploi: ['emploi', 'travail', 'job', 'stage', 'cdi', 'cdd', 'recrutement', 'offre', 'salaire']
+  emploi: ['emploi', 'travail', 'job', 'stage', 'cdi', 'cdd', 'recrutement', 'offre', 'salaire'],
+  autre_divers: ['autre', 'divers', 'solaire', 'panneau solaire', 'batterie solaire', 'voyage', 'billet', 'ticket', 'événement', 'evenement', 'occasion', 'divers', 'chose']
 };
 
 const cleanPhone = (num) => (num || '').replace(/^\+?221\s*/, '').replace(/\s+/g, '').trim();
@@ -180,6 +181,11 @@ const categoryDescriptionTemplates = {
 📦 État & Fonctionnement : [Ex: Neuf sous carton / Très bon état, testé]
 🛡️ Garantie : [Ex: 6 mois de garantie avec facture]
 📍 Disponible à Dakar avec livraison rapide possible.`,
+
+  autre_divers: `📦 Article : [Ex: Panneau solaire 200W, Ticket de concert, etc.]
+✨ Détails & Spécifications : [Ex: Puissance, date de l'événement, etc.]
+✅ État : [Ex: Neuf sous emballage / Très bon état]
+📍 Disponible immédiatement avec livraison.`,
 
   default: `✨ Description détaillée de l'article :
 ✅ État général : [Ex: Neuf / Très bon état]
