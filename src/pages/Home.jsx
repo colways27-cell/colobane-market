@@ -526,6 +526,7 @@ const Home = () => {
       const mainPromise = supabase
         .from('products')
         .select('*, profiles:seller_id (id, account_type, boutique_name, is_verified, phone_number, whatsapp_number)')
+        .neq('category', 'reels_express')
         .order('is_boosted', { ascending: false, nullsFirst: false })
         .order('created_at', { ascending: false })
         .range(from, to);
@@ -534,6 +535,7 @@ const Home = () => {
         .from('products')
         .select('*, profiles:seller_id (id, account_type, boutique_name, is_verified, phone_number, whatsapp_number)')
         .eq('is_boosted', true)
+        .neq('category', 'reels_express')
         .order('created_at', { ascending: false })
         .limit(20);
 
@@ -551,6 +553,7 @@ const Home = () => {
           const fallbackRes = await supabase
             .from('products')
             .select('*, profiles:seller_id (id, account_type, boutique_name, is_verified, phone_number, whatsapp_number)')
+            .neq('category', 'reels_express')
             .order('is_boosted', { ascending: false, nullsFirst: false })
             .order('created_at', { ascending: false })
             .limit(50);

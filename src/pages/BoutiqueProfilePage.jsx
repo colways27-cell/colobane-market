@@ -35,7 +35,7 @@ const BoutiqueProfilePage = () => {
       try {
         const [profileRes, productsRes, reviewsRes] = await Promise.all([
           supabase.from('profiles').select('*').eq('id', boutiqueId).single(),
-          supabase.from('products').select('*').eq('seller_id', boutiqueId).order('created_at', { ascending: false }),
+          supabase.from('products').select('*').eq('seller_id', boutiqueId).neq('category', 'reels_express').order('created_at', { ascending: false }),
           supabase.from('boutique_reviews')
             .select('*, reviewer:reviewer_id (id, full_name, avatar_url)')
             .eq('boutique_id', boutiqueId)

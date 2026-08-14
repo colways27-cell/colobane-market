@@ -28,7 +28,7 @@ const BoutiquesPage = () => {
           // Fetch reviews and products count in parallel
           const [{ data: reviewsData }, { data: productsData }] = await Promise.all([
             supabase.from('boutique_reviews').select('boutique_id, rating').in('boutique_id', boutiqueIds),
-            supabase.from('products').select('id, seller_id').in('seller_id', boutiqueIds)
+            supabase.from('products').select('id, seller_id').in('seller_id', boutiqueIds).neq('category', 'reels_express')
           ]);
 
           profiles.forEach(p => {

@@ -131,6 +131,7 @@ const ExplorePage = () => {
       const { data } = await supabase
         .from('products')
         .select('title, price, location')
+        .neq('category', 'reels_express')
         .ilike('title', `%${value}%`)
         .limit(6);
       if (data && data.length > 0) {

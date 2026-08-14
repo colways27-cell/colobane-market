@@ -242,6 +242,7 @@ const ReelsPage = () => {
             is_verified
           )
         `)
+        .eq('category', 'reels_express')
         .order('created_at', { ascending: false })
         .limit(30);
 
