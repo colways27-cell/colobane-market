@@ -14,6 +14,291 @@ import AroundMeModal from '../components/AroundMeModal';
 import { getFollowedBoutiques } from '../utils/followHelpers';
 import FollowButton from '../components/FollowButton';
 
+// Smart Grouping logic for products
+const groupProducts = (prods) => {
+  if (!prods || prods.length === 0) return [];
+  const stopWords = new Set([
+    'de', 'du', 'des', 'le', 'la', 'les', 'en', 'pour', 'avec', 'sans', 'a', 'au', 'aux',
+    'un', 'une', 'taille', 'pointure', 'couleur', 'etat', 'neuf', 'bon', 'tres', 'vends',
+    'vend', 'vendre', 'prix', 'dakar', 'sn', 'senegal', 'homme', 'femme'
+  ]);
+
+  const getTokens = (title) => {
+    return (title || '').toLowerCase()
+      .replace(/[^a-z0-9\u00e0-\u00fc]/gi, ' ')
+      .split(/\s+/)
+      .filter(w => w.length > 1 && !stopWords.has(w));
+  };
+
+  const getGroupKey = (p) => {
+    const tokens = getTokens(p.title);
+    if (tokens.length === 0) return (p.title || '').toLowerCase().trim();
+
+    const keyBrands = ['iphone', 'samsung', 'nike', 'adidas', 'toyota', 'mercedes', 'bmw', 'casio', 'zara', 'macbook', 'ps5', 'ps4', 'xbox', 'airpods', 'hp', 'dell', 'lenovo', 'hyundai', 'kia', 'honda', 'peugeot', 'renault', 'robe', 'chemise', 'pantalon', 'chaussure', 'montre', 'sac', 'appartement', 'maison', 'terrain', 'scooter', 'moto'];
+    
+    const brandToken = tokens.find(t => keyBrands.includes(t));
+    if (brandToken) {
+      const otherToken = tokens.find(t => t !== brandToken) || '';
+      return `${brandToken}_${otherToken}`;
+    }
+
+    return tokens.slice(0, 2).sort().join('_');
+  };
+
+  const groups = {};
+  prods.forEach(p => {
+    const key = getGroupKey(p);
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(p);
+  });
+
+  return Object.values(groups).map(group => ({
+    ...group[0],
+    _count: group.length,
+    _minPrice: Math.min(...group.map(p => p.price || 0)),
+    _maxPrice: Math.max(...group.map(p => p.price || 0)),
+    _group: group
+  }));
+};
+
+const HomeHeroBanners = ({ navigate }) => {
+  const [activeBanner, setActiveBanner] = useState(0);
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
+
+  const handleTouchStart = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+    if (isLeftSwipe) {
+      setActiveBanner(prev => (prev < 2 ? prev + 1 : 0));
+    } else if (isRightSwipe) {
+      setActiveBanner(prev => (prev > 0 ? prev - 1 : 2));
+    }
+  };
+
+  useEffect(() => {
+    const bannerTimer = setInterval(() => {
+      setActiveBanner(prev => (prev + 1) % 3);
+    }, 4500);
+    return () => clearInterval(bannerTimer);
+  }, []);
+
+  return (
+    <section style={{ marginBottom: '1.5rem', marginTop: '0.5rem', padding: '0 16px', maxWidth: '1200px', margin: '0.5rem auto 1.5rem auto' }}>
+      <div style={{ position: 'relative', overflow: 'hidden', borderRadius: '12px', height: '160px' }}>
+        <div 
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          style={{
+            display: 'flex',
+            transform: `translateX(-${activeBanner * 100}%)`,
+            transition: 'transform 0.5s cubic-bezier(0.25, 1, 0.5, 1)',
+            height: '100%',
+            width: '100%'
+          }}
+        >
+          
+          {/* Banner 1 — Localisation Premium */}
+          <div style={{
+            flex: '0 0 100%',
+            width: '100%',
+            height: '100%',
+            position: 'relative',
+            background: 'linear-gradient(135deg, #fff5f5 0%, #fff0f0 40%, #ffe4e6 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            padding: '0 20px',
+            gap: '16px',
+            border: '1px solid rgba(190,18,60,0.08)',
+            boxSizing: 'border-box'
+          }}>
+            {/* Cercles décoratifs */}
+            <div style={{ position: 'absolute', width: '180px', height: '180px', borderRadius: '50%', background: 'rgba(190,18,60,0.05)', top: '-60px', left: '-40px' }} />
+            <div style={{ position: 'absolute', width: '100px', height: '100px', borderRadius: '50%', background: 'rgba(190,18,60,0.06)', bottom: '-30px', right: '20px' }} />
+
+            {/* Icône pin 3D */}
+            <div style={{ flexShrink: 0, zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+              <svg width="64" height="72" viewBox="0 0 64 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+                {/* Ombre / ring */}
+                <ellipse cx="32" cy="68" rx="16" ry="4" fill="#be123c" opacity="0.2"/>
+                {/* Corps du pin */}
+                <path d="M32 2C20.95 2 12 10.95 12 22C12 36.5 32 62 32 62C32 62 52 36.5 52 22C52 10.95 43.05 2 32 2Z" fill="url(#pinGrad)"/>
+                {/* Trou blanc */}
+                <circle cx="32" cy="22" r="9" fill="white"/>
+                {/* Reflet */}
+                <ellipse cx="26" cy="16" rx="5" ry="3.5" fill="white" opacity="0.3" transform="rotate(-25 26 16)"/>
+                <defs>
+                  <radialGradient id="pinGrad" cx="35%" cy="30%" r="70%">
+                    <stop offset="0%" stopColor="#f43f5e"/>
+                    <stop offset="100%" stopColor="#9f1239"/>
+                  </radialGradient>
+                </defs>
+              </svg>
+            </div>
+
+            {/* Texte */}
+            <div style={{ flex: 1, zIndex: 1 }}>
+              <p style={{ color: 'var(--primary)', fontSize: '0.7rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '1.2px', margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                🇸🇳 Am na fi yépp
+              </p>
+              <h2 style={{ color: '#0f172a', fontSize: '1.15rem', fontWeight: '800', lineHeight: '1.3', margin: '0 0 8px' }}>
+                Wut ay articles<br/>lu jege sa kër
+              </h2>
+              <p style={{ color: '#64748b', fontSize: '0.78rem', margin: 0, lineHeight: '1.4' }}>
+                Dakar · Thiès · Saint-Louis · Touba…
+              </p>
+            </div>
+          </div>
+
+          {/* Banner 2 */}
+          <div style={{
+            flex: '0 0 100%',
+            width: '100%',
+            height: '160px',
+            overflow: 'hidden',
+            position: 'relative',
+            background: 'var(--primary)',
+            boxSizing: 'border-box'
+          }}>
+            <img src="/hero-bg.jpg" alt="Colobane Market Promotion 2" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 1 }} />
+            <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'linear-gradient(90deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 100%)', zIndex: 2 }}></div>
+            <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 3, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '0 20px', boxSizing: 'border-box' }}>
+              <h1 style={{ color: 'white', fontSize: '1.4rem', fontWeight: '800', lineHeight: '1.3', textShadow: '0 2px 4px rgba(0,0,0,0.5)', margin: 0 }}>
+                Jaay ak Jënd,<br/>mu yomb lool.
+              </h1>
+            </div>
+          </div>
+
+          {/* Banner 3 — Créer boutique */}
+          <div 
+            onClick={() => navigate('/create-boutique')}
+            style={{
+              flex: '0 0 100%',
+              width: '100%',
+              height: '100%',
+              position: 'relative',
+              background: 'linear-gradient(135deg, #faf5ff 0%, #f3e8ff 40%, #e9d5ff 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              padding: '0 20px',
+              gap: '16px',
+              cursor: 'pointer',
+              boxSizing: 'border-box'
+            }}
+          >
+            {/* Cercles décoratifs */}
+            <div style={{ position: 'absolute', width: '180px', height: '180px', borderRadius: '50%', background: 'rgba(217,70,239,0.05)', top: '-60px', left: '-40px' }} />
+            <div style={{ position: 'absolute', width: '100px', height: '100px', borderRadius: '50%', background: 'rgba(217,70,239,0.06)', bottom: '-30px', right: '20px' }} />
+
+            {/* Icône boutique 3D */}
+            <div style={{ flexShrink: 0, zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <ellipse cx="32" cy="58" rx="20" ry="4" fill="#a21caf" opacity="0.15"/>
+                <path d="M10 28 L32 10 L54 28 Z" fill="url(#roofGrad)"/>
+                <path d="M8 28 L56 28 L48 38 L16 38 Z" fill="#d946ef"/>
+                <path d="M16 28 L24 28 L20 38 L16 38 Z" fill="#fdf4ff"/>
+                <path d="M32 28 L40 28 L36 38 L32 38 Z" fill="#fdf4ff"/>
+                <path d="M14 38 H50 V56 H14 Z" fill="url(#storeGrad)"/>
+                <path d="M26 44 H38 V56 H26 Z" fill="white"/>
+                <defs>
+                  <linearGradient id="roofGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#f472b6"/>
+                    <stop offset="100%" stopColor="#be185d"/>
+                  </linearGradient>
+                  <linearGradient id="storeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#fae8ff"/>
+                    <stop offset="100%" stopColor="#e879f9"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+            </div>
+
+            {/* Texte */}
+            <div style={{ flex: 1, zIndex: 1 }}>
+              <p style={{ color: '#a21caf', fontSize: '0.7rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '1.2px', margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                🏪 Tambalil léegi
+              </p>
+              <h2 style={{ color: '#0f172a', fontSize: '1.15rem', fontWeight: '800', lineHeight: '1.3', margin: '0 0 8px' }}>
+                Ubbi sa boutique,<br/>jaay sa bagage!
+              </h2>
+              <p style={{ color: '#64748b', fontSize: '0.78rem', margin: 0, lineHeight: '1.4' }}>
+                Yomb na lool, abonnements you kheweulé.
+              </p>
+            </div>
+          </div>
+
+        </div>
+
+        {/* Indicateurs (dots) */}
+        <div style={{
+          position: 'absolute',
+          bottom: '12px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          display: 'flex',
+          gap: '6px',
+          zIndex: 10
+        }}>
+          <button 
+            onClick={() => setActiveBanner(0)}
+            style={{
+              width: activeBanner === 0 ? '18px' : '6px',
+              height: '6px',
+              borderRadius: '3px',
+              background: activeBanner === 0 ? 'var(--primary)' : 'rgba(255,255,255,0.7)',
+              border: 'none',
+              cursor: 'pointer',
+              padding: 0,
+              transition: 'all 0.3s cubic-bezier(0.25, 1, 0.5, 1)',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+            }}
+          />
+          <button 
+            onClick={() => setActiveBanner(1)}
+            style={{
+              width: activeBanner === 1 ? '18px' : '6px',
+              height: '6px',
+              borderRadius: '3px',
+              background: activeBanner === 1 ? 'var(--primary)' : 'rgba(255,255,255,0.7)',
+              border: 'none',
+              cursor: 'pointer',
+              padding: 0,
+              transition: 'all 0.3s cubic-bezier(0.25, 1, 0.5, 1)',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+            }}
+          />
+          <button 
+            onClick={() => setActiveBanner(2)}
+            style={{
+              width: activeBanner === 2 ? '18px' : '6px',
+              height: '6px',
+              borderRadius: '3px',
+              background: activeBanner === 2 ? 'var(--primary)' : 'rgba(255,255,255,0.7)',
+              border: 'none',
+              cursor: 'pointer',
+              padding: 0,
+              transition: 'all 0.3s cubic-bezier(0.25, 1, 0.5, 1)',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+            }}
+          />
+        </div>
+      </div>
+    </section>
+  );
+};
+
 const Home = () => {
   const [products, setProducts] = useState([]);
   const [boostedProducts, setBoostedProducts] = useState([]);
@@ -47,9 +332,6 @@ const Home = () => {
   const categoriesRef = useRef(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
-  const [activeBanner, setActiveBanner] = useState(0);
-  const [touchStart, setTouchStart] = useState(null);
-  const [touchEnd, setTouchEnd] = useState(null);
   const PAGE_SIZE = 15;
   const navigate = useNavigate();
 
@@ -119,53 +401,6 @@ const Home = () => {
 
   const recentProductsRef = useRef(null);
 
-  // Smart Grouping logic for products
-  const groupProducts = (prods) => {
-    if (!prods || prods.length === 0) return [];
-    const stopWords = new Set([
-      'de', 'du', 'des', 'le', 'la', 'les', 'en', 'pour', 'avec', 'sans', 'a', 'au', 'aux',
-      'un', 'une', 'taille', 'pointure', 'couleur', 'etat', 'neuf', 'bon', 'tres', 'vends',
-      'vend', 'vendre', 'prix', 'dakar', 'sn', 'senegal', 'homme', 'femme'
-    ]);
-
-    const getTokens = (title) => {
-      return (title || '').toLowerCase()
-        .replace(/[^a-z0-9\u00e0-\u00fc]/gi, ' ')
-        .split(/\s+/)
-        .filter(w => w.length > 1 && !stopWords.has(w));
-    };
-
-    const getGroupKey = (p) => {
-      const tokens = getTokens(p.title);
-      if (tokens.length === 0) return (p.title || '').toLowerCase().trim();
-
-      const keyBrands = ['iphone', 'samsung', 'nike', 'adidas', 'toyota', 'mercedes', 'bmw', 'casio', 'zara', 'macbook', 'ps5', 'ps4', 'xbox', 'airpods', 'hp', 'dell', 'lenovo', 'hyundai', 'kia', 'honda', 'peugeot', 'renault', 'robe', 'chemise', 'pantalon', 'chaussure', 'montre', 'sac', 'appartement', 'maison', 'terrain', 'scooter', 'moto'];
-      
-      const brandToken = tokens.find(t => keyBrands.includes(t));
-      if (brandToken) {
-        const otherToken = tokens.find(t => t !== brandToken) || '';
-        return `${brandToken}_${otherToken}`;
-      }
-
-      return tokens.slice(0, 2).sort().join('_');
-    };
-
-    const groups = {};
-    prods.forEach(p => {
-      const key = getGroupKey(p);
-      if (!groups[key]) groups[key] = [];
-      groups[key].push(p);
-    });
-
-    return Object.values(groups).map(group => ({
-      ...group[0],
-      _count: group.length,
-      _minPrice: Math.min(...group.map(p => p.price || 0)),
-      _maxPrice: Math.max(...group.map(p => p.price || 0)),
-      _group: group
-    }));
-  };
-
   const processedProducts = useMemo(() => {
     // Exclure les Reels vidéo (reels_express) de la liste principale des annonces
     let list = products.filter(p => p.category !== 'reels_express');
@@ -196,7 +431,9 @@ const Home = () => {
     return list;
   }, [products, selectedQuartier, selectedRegion, activeUserCoords, selectedRadius]);
 
-  const displayProducts = groupedView ? groupProducts(processedProducts) : processedProducts;
+  const displayProducts = useMemo(() => {
+    return groupedView ? groupProducts(processedProducts) : processedProducts;
+  }, [groupedView, processedProducts]);
 
   const homeCategoryFilteredProducts = useMemo(() => {
     if (!displayProducts || displayProducts.length === 0) return [];
@@ -241,33 +478,6 @@ const Home = () => {
     return filtered.length > 0 ? filtered : displayProducts;
   }, [displayProducts, selectedHomePillCategory]);
 
-  const handleTouchStart = (e) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchMove = (e) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > 50;
-    const isRightSwipe = distance < -50;
-    if (isLeftSwipe) {
-      setActiveBanner(prev => (prev < 2 ? prev + 1 : 0));
-    } else if (isRightSwipe) {
-      setActiveBanner(prev => (prev > 0 ? prev - 1 : 2));
-    }
-  };
-
-  useEffect(() => {
-    const bannerTimer = setInterval(() => {
-      setActiveBanner(prev => (prev + 1) % 3);
-    }, 4500);
-    return () => clearInterval(bannerTimer);
-  }, []);
 
   const handleScroll = () => {
     if (categoriesRef.current) {
@@ -313,29 +523,34 @@ const Home = () => {
       const from = currentPage * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
 
-      // 1. Chargement principal direct et sécurisé
-      let mainData = null;
-      let mainErr = null;
+      const mainPromise = supabase
+        .from('products')
+        .select('*, profiles:seller_id (id, account_type, boutique_name, is_verified, phone_number, whatsapp_number)')
+        .order('is_boosted', { ascending: false, nullsFirst: false })
+        .order('created_at', { ascending: false })
+        .range(from, to);
 
-      try {
-        const res = await supabase
-          .from('products')
-          .select('*')
-          .order('is_boosted', { ascending: false, nullsFirst: false })
-          .order('created_at', { ascending: false })
-          .range(from, to);
-        mainData = res.data;
-        mainErr = res.error;
-      } catch (e) {
-        mainErr = e;
-      }
+      const boostedPromise = supabase
+        .from('products')
+        .select('*, profiles:seller_id (id, account_type, boutique_name, is_verified, phone_number, whatsapp_number)')
+        .eq('is_boosted', true)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      const [mainRes, boostedRes] = await Promise.all([
+        mainPromise.catch(e => ({ error: e, data: null })),
+        boostedPromise.catch(e => ({ error: e, data: null }))
+      ]);
+
+      let mainData = mainRes?.data || [];
+      let boostedData = boostedRes?.data || [];
 
       // Secours ultime : si la pagination range échoue ou renvoie 0 produit sur la page initiale
       if (!isLoadMore && (!mainData || mainData.length === 0)) {
         try {
           const fallbackRes = await supabase
             .from('products')
-            .select('*')
+            .select('*, profiles:seller_id (id, account_type, boutique_name, is_verified, phone_number, whatsapp_number)')
             .order('is_boosted', { ascending: false, nullsFirst: false })
             .order('created_at', { ascending: false })
             .limit(50);
@@ -349,55 +564,16 @@ const Home = () => {
 
       const data = mainData || [];
 
-      // 2. Chargement sécurisé des annonces sponsorisées
-      let boostedData = [];
-      try {
-        const { data: bData } = await supabase
-          .from('products')
-          .select('*')
-          .eq('is_boosted', true)
-          .order('created_at', { ascending: false })
-          .limit(20);
-        boostedData = bData || [];
-      } catch (_bErr) {}
-
       if (!boostedData || boostedData.length === 0) {
         boostedData = data.slice(0, 6);
       }
 
-      // 3. Enrichissement sécurisé des profils vendeurs
-      const allProdsToEnrich = [...data, ...boostedData];
-      const sellerIds = [...new Set(allProdsToEnrich.map(p => p.seller_id).filter(Boolean))];
-      let profilesMap = {};
-
-      if (sellerIds.length > 0) {
-        try {
-          const { data: profilesData } = await supabase
-            .from('profiles')
-            .select('id, account_type, boutique_name, is_verified, phone_number, whatsapp_number')
-            .in('id', sellerIds);
-          if (profilesData) {
-            profilesData.forEach(pr => { profilesMap[pr.id] = pr; });
-          }
-        } catch (_pErr) {}
-      }
-
-      const enrichedMain = data.map(p => ({
-        ...p,
-        profiles: p.profiles || profilesMap[p.seller_id] || null
-      }));
-
-      const enrichedBoosted = boostedData.map(p => ({
-        ...p,
-        profiles: p.profiles || profilesMap[p.seller_id] || null
-      }));
-
-      setBoostedProducts(enrichedBoosted);
+      setBoostedProducts(boostedData);
 
       if (isLoadMore) {
-        setProducts(prev => [...prev, ...enrichedMain]);
+        setProducts(prev => [...prev, ...data]);
       } else {
-        setProducts(enrichedMain);
+        setProducts(data);
       }
 
       if (data.length < PAGE_SIZE) setHasMore(false);
@@ -646,207 +822,8 @@ const Home = () => {
       </section>
 
       {/* Hero Banners Section */}
-      <section style={{ marginBottom: '1.5rem', marginTop: '0.5rem', padding: '0 16px', maxWidth: '1200px', margin: '0.5rem auto 1.5rem auto' }}>
-        <div style={{ position: 'relative', overflow: 'hidden', borderRadius: '12px', height: '160px' }}>
-          <div 
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-            style={{
-              display: 'flex',
-              transform: `translateX(-${activeBanner * 100}%)`,
-              transition: 'transform 0.5s cubic-bezier(0.25, 1, 0.5, 1)',
-              height: '100%',
-              width: '100%'
-            }}
-          >
-            
-            {/* Banner 1 — Localisation Premium */}
-            <div style={{
-              flex: '0 0 100%',
-              width: '100%',
-              height: '100%',
-              position: 'relative',
-              background: 'linear-gradient(135deg, #fff5f5 0%, #fff0f0 40%, #ffe4e6 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              padding: '0 20px',
-              gap: '16px',
-              border: '1px solid rgba(190,18,60,0.08)',
-              boxSizing: 'border-box'
-            }}>
-              {/* Cercles décoratifs */}
-              <div style={{ position: 'absolute', width: '180px', height: '180px', borderRadius: '50%', background: 'rgba(190,18,60,0.05)', top: '-60px', left: '-40px' }} />
-              <div style={{ position: 'absolute', width: '100px', height: '100px', borderRadius: '50%', background: 'rgba(190,18,60,0.06)', bottom: '-30px', right: '20px' }} />
+      <HomeHeroBanners navigate={navigate} />
 
-              {/* Icône pin 3D */}
-              <div style={{ flexShrink: 0, zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                <svg width="64" height="72" viewBox="0 0 64 72" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  {/* Ombre / ring */}
-                  <ellipse cx="32" cy="68" rx="16" ry="4" fill="#be123c" opacity="0.2"/>
-                  {/* Corps du pin */}
-                  <path d="M32 2C20.95 2 12 10.95 12 22C12 36.5 32 62 32 62C32 62 52 36.5 52 22C52 10.95 43.05 2 32 2Z" fill="url(#pinGrad)"/>
-                  {/* Trou blanc */}
-                  <circle cx="32" cy="22" r="9" fill="white"/>
-                  {/* Reflet */}
-                  <ellipse cx="26" cy="16" rx="5" ry="3.5" fill="white" opacity="0.3" transform="rotate(-25 26 16)"/>
-                  <defs>
-                    <radialGradient id="pinGrad" cx="35%" cy="30%" r="70%">
-                      <stop offset="0%" stopColor="#f43f5e"/>
-                      <stop offset="100%" stopColor="#9f1239"/>
-                    </radialGradient>
-                  </defs>
-                </svg>
-              </div>
-
-              {/* Texte */}
-              <div style={{ flex: 1, zIndex: 1 }}>
-                <p style={{ color: 'var(--primary)', fontSize: '0.7rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '1.2px', margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  🇸🇳 Am na fi yépp
-                </p>
-                <h2 style={{ color: '#0f172a', fontSize: '1.15rem', fontWeight: '800', lineHeight: '1.3', margin: '0 0 8px' }}>
-                  Wut ay articles<br/>lu jege sa kër
-                </h2>
-                <p style={{ color: '#64748b', fontSize: '0.78rem', margin: 0, lineHeight: '1.4' }}>
-                  Dakar · Thiès · Saint-Louis · Touba…
-                </p>
-              </div>
-            </div>
-
-            {/* Banner 2 */}
-            <div style={{
-              flex: '0 0 100%',
-              width: '100%',
-              height: '160px',
-              overflow: 'hidden',
-              position: 'relative',
-              background: 'var(--primary)',
-              boxSizing: 'border-box'
-            }}>
-              <img src="/hero-bg.jpg" alt="Colobane Market Promotion 2" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 1 }} />
-              <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'linear-gradient(90deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 100%)', zIndex: 2 }}></div>
-              <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 3, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '0 20px', boxSizing: 'border-box' }}>
-                <h1 style={{ color: 'white', fontSize: '1.4rem', fontWeight: '800', lineHeight: '1.3', textShadow: '0 2px 4px rgba(0,0,0,0.5)', margin: 0 }}>
-                  Jaay ak Jënd,<br/>mu yomb lool.
-                </h1>
-              </div>
-            </div>
-
-            {/* Banner 3 — Créer boutique */}
-            <div 
-              onClick={() => navigate('/create-boutique')}
-              style={{
-                flex: '0 0 100%',
-                width: '100%',
-                height: '100%',
-                position: 'relative',
-                background: 'linear-gradient(135deg, #faf5ff 0%, #f3e8ff 40%, #e9d5ff 100%)',
-                display: 'flex',
-                alignItems: 'center',
-                padding: '0 20px',
-                gap: '16px',
-                cursor: 'pointer',
-                boxSizing: 'border-box'
-              }}
-            >
-              {/* Cercles décoratifs */}
-              <div style={{ position: 'absolute', width: '180px', height: '180px', borderRadius: '50%', background: 'rgba(217,70,239,0.05)', top: '-60px', left: '-40px' }} />
-              <div style={{ position: 'absolute', width: '100px', height: '100px', borderRadius: '50%', background: 'rgba(217,70,239,0.06)', bottom: '-30px', right: '20px' }} />
-
-              {/* Icône boutique 3D */}
-              <div style={{ flexShrink: 0, zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <ellipse cx="32" cy="58" rx="20" ry="4" fill="#a21caf" opacity="0.15"/>
-                  <path d="M10 28 L32 10 L54 28 Z" fill="url(#roofGrad)"/>
-                  <path d="M8 28 L56 28 L48 38 L16 38 Z" fill="#d946ef"/>
-                  <path d="M16 28 L24 28 L20 38 L16 38 Z" fill="#fdf4ff"/>
-                  <path d="M32 28 L40 28 L36 38 L32 38 Z" fill="#fdf4ff"/>
-                  <path d="M14 38 H50 V56 H14 Z" fill="url(#storeGrad)"/>
-                  <path d="M26 44 H38 V56 H26 Z" fill="white"/>
-                  <defs>
-                    <linearGradient id="roofGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#f472b6"/>
-                      <stop offset="100%" stopColor="#be185d"/>
-                    </linearGradient>
-                    <linearGradient id="storeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" stopColor="#fae8ff"/>
-                      <stop offset="100%" stopColor="#e879f9"/>
-                    </linearGradient>
-                  </defs>
-                </svg>
-              </div>
-
-              {/* Texte */}
-              <div style={{ flex: 1, zIndex: 1 }}>
-                <p style={{ color: '#a21caf', fontSize: '0.7rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '1.2px', margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  🏪 Tambalil léegi
-                </p>
-                <h2 style={{ color: '#0f172a', fontSize: '1.15rem', fontWeight: '800', lineHeight: '1.3', margin: '0 0 8px' }}>
-                  Ubbi sa boutique,<br/>jaay sa bagage!
-                </h2>
-                <p style={{ color: '#64748b', fontSize: '0.78rem', margin: 0, lineHeight: '1.4' }}>
-                  Yomb na lool, abonnements you kheweulé.
-                </p>
-              </div>
-            </div>
-
-          </div>
-
-          {/* Indicateurs (dots) */}
-          <div style={{
-            position: 'absolute',
-            bottom: '12px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            display: 'flex',
-            gap: '6px',
-            zIndex: 10
-          }}>
-            <button 
-              onClick={() => setActiveBanner(0)}
-              style={{
-                width: activeBanner === 0 ? '18px' : '6px',
-                height: '6px',
-                borderRadius: '3px',
-                background: activeBanner === 0 ? 'var(--primary)' : 'rgba(255,255,255,0.7)',
-                border: 'none',
-                cursor: 'pointer',
-                padding: 0,
-                transition: 'all 0.3s cubic-bezier(0.25, 1, 0.5, 1)',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-              }}
-            />
-            <button 
-              onClick={() => setActiveBanner(1)}
-              style={{
-                width: activeBanner === 1 ? '18px' : '6px',
-                height: '6px',
-                borderRadius: '3px',
-                background: activeBanner === 1 ? 'var(--primary)' : 'rgba(255,255,255,0.7)',
-                border: 'none',
-                cursor: 'pointer',
-                padding: 0,
-                transition: 'all 0.3s cubic-bezier(0.25, 1, 0.5, 1)',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-              }}
-            />
-            <button 
-              onClick={() => setActiveBanner(2)}
-              style={{
-                width: activeBanner === 2 ? '18px' : '6px',
-                height: '6px',
-                borderRadius: '3px',
-                background: activeBanner === 2 ? 'var(--primary)' : 'rgba(255,255,255,0.7)',
-                border: 'none',
-                cursor: 'pointer',
-                padding: 0,
-                transition: 'all 0.3s cubic-bezier(0.25, 1, 0.5, 1)',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-              }}
-            />
-          </div>
-        </div>
-      </section>
 
       {/* Categories Grid (CoinAfrique Style) */}
       <section style={{ marginBottom: '1.5rem', padding: '0 16px', maxWidth: '1200px', margin: '0 auto 1.5rem auto', position: 'relative' }}>
