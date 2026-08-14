@@ -52,7 +52,8 @@ const BuyerRequestsPage = () => {
       const { data, error } = await supabase
         .from('buyer_requests')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(50);
 
       if (!error && data && data.length > 0) {
         remoteData = data;
@@ -81,11 +82,17 @@ const BuyerRequestsPage = () => {
   };
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchRequests();
-    }, 0);
-    return () => clearTimeout(timer);
+    fetchRequests();
   }, []);
+
+  const handleOpenPublishModal = () => {
+    if (!user) {
+      toast.error('Veuillez vous connecter pour publier une demande.');
+      navigate('/auth', { state: { redirectUrl: window.location.pathname } });
+      return;
+    }
+    setShowModal(true);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -97,7 +104,10 @@ const BuyerRequestsPage = () => {
     setSubmitting(true);
     toast.loading('Publication de votre demande...', { id: 'wutal-pub' });
 
-    const cleanContact = formData.contact.replace(/\D/g, '');
+    let cleanContact = formData.contact.replace(/\D/g, '');
+    if (cleanContact.length === 9 && ['77', '78', '76', '75', '70'].includes(cleanContact.substring(0, 2))) {
+      cleanContact = '221' + cleanContact;
+    }
     const cleanBudget = parseInt(formData.budget) || 0;
 
     const payload = {
@@ -110,11 +120,6 @@ const BuyerRequestsPage = () => {
       created_at: new Date().toISOString()
     };
 
-    let createdItem = {
-      id: 'local_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
-      ...payload
-    };
-
     try {
       // Insertion dans la base de données Supabase globale pour que TOUS les utilisateurs la voient
       const { data, error } = await supabase
@@ -124,26 +129,29 @@ const BuyerRequestsPage = () => {
 
       if (error) {
         console.error('Erreur Supabase insert buyer_requests:', error);
-        toast.error(`Sauvegardé localement. (Note Supabase: ${error.message})`, { id: 'wutal-pub', duration: 5000 });
+        toast.error(`Erreur d'insertion: ${error.message}`, { id: 'wutal-pub', duration: 5000 });
+        setSubmitting(false);
+        return;
       } else if (data && data[0]) {
-        createdItem = data[0];
+        const createdItem = data[0];
         toast.success('🎉 Votre demande a été publiée avec succès ! Tous les utilisateurs la voient.', { id: 'wutal-pub' });
-      } else {
-        toast.success('🎉 Votre demande a été publiée !', { id: 'wutal-pub' });
+        
+        // Sauvegarde permanente dans le navigateur
+        saveLocalRequest(createdItem);
+
+        // Mise à jour instantanée du composant
+        setRequests(prev => [createdItem, ...prev.filter(r => String(r.id) !== String(createdItem.id))]);
+
+        setShowModal(false);
+        setFormData({ title: '', budget: '', location: 'Dakar', contact: '', details: '' });
       }
     } catch (err) {
       console.error('Exception Supabase insert:', err);
-      toast.success('Demande publiée localement !', { id: 'wutal-pub' });
+      toast.error('Erreur réseau. Veuillez réessayer.', { id: 'wutal-pub' });
+      setSubmitting(false);
+      return;
     }
 
-    // Sauvegarde permanente dans le navigateur
-    saveLocalRequest(createdItem);
-
-    // Mise à jour instantanée du composant
-    setRequests(prev => [createdItem, ...prev.filter(r => String(r.id) !== String(createdItem.id))]);
-
-    setShowModal(false);
-    setFormData({ title: '', budget: '', location: 'Dakar', contact: '', details: '' });
     setSubmitting(false);
   };
 
@@ -156,6 +164,14 @@ const BuyerRequestsPage = () => {
     if (filterUrgency === 'flexible') return matchesSearch && r.urgency === 'flexible';
     return matchesSearch;
   });
+
+  const formatContact = (contact) => {
+    let clean = (contact || '').replace(/\D/g, '');
+    if (clean.length === 9 && ['77', '78', '76', '75', '70'].includes(clean.substring(0, 2))) {
+      clean = '221' + clean;
+    }
+    return clean;
+  };
 
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto', padding: '16px', paddingBottom: '100px' }}>
@@ -188,7 +204,7 @@ const BuyerRequestsPage = () => {
           <p style={{ margin: 0, fontSize: '0.95rem', opacity: 0.9 }}>Publiez votre demande gratuitement et les boutiques vous contacteront directement sur WhatsApp.</p>
         </div>
         <button 
-          onClick={() => setShowModal(true)} 
+          onClick={handleOpenPublishModal} 
           className="active-scale" 
           style={{ background: 'white', color: 'var(--primary)', border: 'none', padding: '14px 24px', borderRadius: '16px', fontWeight: '900', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}
         >
@@ -298,7 +314,7 @@ const BuyerRequestsPage = () => {
 
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                   <a 
-                    href={`https://wa.me/${(req.contact || '').replace(/\+/g, '')}?text=${encodeURIComponent(`Bonjour ! 👋 J'ai vu votre demande Wutal Ma "${req.title}" (Budget: ${(req.budget||0).toLocaleString()} FCFA) sur Colobane Market.\nJe dispose de cet article disponible immédiatement. Souhaitez-vous recevoir les photos et le prix ?`)}`}
+                    href={`https://wa.me/${formatContact(req.contact)}?text=${encodeURIComponent(`Bonjour ! 👋 J'ai vu votre demande Wutal Ma "${req.title}" (Budget: ${(req.budget||0).toLocaleString()} FCFA) sur Colobane Market.\nJe dispose de cet article disponible immédiatement. Souhaitez-vous recevoir les photos et le prix ?`)}`}
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="active-scale"
