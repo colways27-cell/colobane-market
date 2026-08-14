@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import imageCompression from 'browser-image-compression';
 import { categories } from '../data/categories';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../components/AuthContext';
@@ -298,7 +299,12 @@ const PublishPage = () => {
 
     const selectedCatObj = categories.find((c) => c.id === catId);
     if (selectedCatObj) {
-      setActiveSubcatModal(selectedCatObj);
+      if (!selectedCatObj.subcategories || selectedCatObj.subcategories.length === 0) {
+        setTimeout(() => setStep(3), 300); // Auto-advance if no subcategories
+      }
+      if (getSubcategoryField(selectedCatObj)) {
+        setActiveSubcatModal(selectedCatObj);
+      }
     }
   };
 
@@ -393,6 +399,7 @@ const PublishPage = () => {
               .update({ subscription_plan: 'none', subscription_end_date: null })
               .eq('id', user.id)
               .then(() => {});
+            toast('Votre abonnement a expiré. Vous êtes passé au plan gratuit.', { icon: '⚠️', duration: 6000 });
           }
 
           const updatedProfile = { ...data, subscription_plan: currentPlan, subscription_end_date: null };
@@ -608,10 +615,17 @@ const PublishPage = () => {
 
   const uploadImages = async () => {
     const uploadPromises = images.map(async (image) => {
-      const fileExt = image.name.split('.').pop();
-      const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+      const compressionOptions = {
+        maxSizeMB: 0.8,
+        maxWidthOrHeight: 1920,
+        useWebWorker: true,
+        fileType: 'image/webp'
+      };
+      const compressedImage = await imageCompression(image, compressionOptions);
+      const fileExt = 'webp';
+      const fileName = `${crypto.randomUUID()}.${fileExt}`;
       const filePath = `${user.id}/${fileName}`;
-      const { error: uploadError } = await supabase.storage.from('products').upload(filePath, image);
+      const { error: uploadError } = await supabase.storage.from('products').upload(filePath, compressedImage);
       if (uploadError) throw uploadError;
       const { data } = supabase.storage.from('products').getPublicUrl(filePath);
       return data.publicUrl;
@@ -630,6 +644,10 @@ const PublishPage = () => {
     toast.loading('Envoi de la demande...', { id: 'boost-publish' });
 
     try {
+      const adminNumber = "221773713175";
+      const text = encodeURIComponent(`Nouvelle demande de Boost ! L'utilisateur ${profile?.full_name || user.id} a payé ${selectedBoost.price}F pour booster l'annonce "${publishedProduct.title}" avec le numéro ${paymentPhone}. Vérifiez Wave et activez le boost.`);
+      window.open(`https://wa.me/${adminNumber}?text=${text}`, '_blank');
+
       const { error } = await supabase.from('payment_requests').insert([{
         user_id: user.id,
         plan_type: `boost_product_${selectedBoost.days}d_${publishedProduct.id}`,
@@ -639,10 +657,6 @@ const PublishPage = () => {
       }]);
 
       if (error) throw error;
-      
-      const adminNumber = "221773713175";
-      const text = encodeURIComponent(`Nouvelle demande de Boost ! L'utilisateur ${profile?.full_name || user.id} a payé ${selectedBoost.price}F pour booster l'annonce "${publishedProduct.title}" avec le numéro ${paymentPhone}. Vérifiez Wave et activez le boost.`);
-      window.open(`https://wa.me/${adminNumber}?text=${text}`, '_blank');
       
       toast.success('Demande envoyée ! Le boost sera activé après vérification.', { id: 'boost-publish', duration: 5000 });
       setBoostRequested(true);
@@ -734,7 +748,7 @@ const PublishPage = () => {
       if (videoFile) {
         toast.loading("Upload de la vidéo en cours...", { id: 'vid-upload' });
         const ext = videoFile.name.split('.').pop() || 'mp4';
-        const fileName = `video_${user.id}_${Date.now()}.${ext}`;
+        const fileName = `video_${user.id}_${crypto.randomUUID()}.${ext}`;
         const filePath = `${user.id}/${fileName}`;
         const { error: vidUploadErr } = await supabase.storage.from('products').upload(filePath, videoFile, { upsert: true });
         if (!vidUploadErr) {
@@ -762,7 +776,7 @@ const PublishPage = () => {
         }
       });
 
-      const finalImages = imageUrls.length > 0 ? imageUrls : (finalVideoUrl ? [finalVideoUrl] : ['/hero.png']);
+      const finalImages = imageUrls.length > 0 ? imageUrls : ['/hero.png'];
 
       const { data: insertedData, error: insertError } = await supabase.from('products').insert([{
         seller_id: user.id,
@@ -1522,11 +1536,17 @@ const PublishPage = () => {
                             setFormData(prev => ({ ...prev, video_url: previewUrl }));
                             toast.success('🎥 Vidéo chargée depuis le téléphone !');
                           } else {
-                            const selectedImages = files.slice(0, 3);
+                            const maxAllowed = getMaxPhotosAllowed(profile?.subscription_plan);
+                            const remaining = maxAllowed - images.length;
+                            if (remaining <= 0) {
+                              toast.error(`Limite maximale de photos atteinte.`);
+                              return;
+                            }
+                            const selectedImages = files.slice(0, remaining);
                             const newPreviews = selectedImages.map(file => URL.createObjectURL(file));
-                            setPreviews(newPreviews);
-                            setImages(selectedImages);
-                            toast.success(`📸 ${selectedImages.length} photo(s) chargée(s) (Max 3) !`);
+                            setPreviews(prev => [...prev, ...newPreviews]);
+                            setImages(prev => [...prev, ...selectedImages]);
+                            toast.success(`📸 ${selectedImages.length} photo(s) ajoutée(s) !`);
                           }
                         }} 
                         style={{ display: 'none' }} 
