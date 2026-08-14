@@ -924,30 +924,7 @@ const ReelsPage = () => {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowPublishModal(true);
-            }}
-            className="active-scale"
-            style={{
-              background: 'linear-gradient(135deg, #E11D48 0%, #BE123C 100%)',
-              border: '1px solid rgba(255,255,255,0.3)',
-              color: '#FFFFFF',
-              padding: '6px 14px',
-              borderRadius: '20px',
-              fontWeight: 800,
-              fontSize: '12px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(225,29,72,0.4)',
-              backdropFilter: 'blur(8px)'
-            }}
-          >
-            <span>➕</span> Publier Reel
-          </button>
+
 
           <button
             onClick={(e) => {
@@ -1534,9 +1511,13 @@ const ReelsPage = () => {
                 <h2 style={{
                   fontSize: '18px',
                   fontWeight: 800,
-                  margin: '0 0 6px 0',
-                  lineHeight: '1.2',
-                  textShadow: '0 2px 8px rgba(0,0,0,0.8)'
+                  margin: '0 0 8px 0',
+                  lineHeight: '1.3',
+                  textShadow: '0 2px 8px rgba(0,0,0,0.8)',
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden'
                 }}>
                   {product.title}
                 </h2>
@@ -1577,72 +1558,67 @@ const ReelsPage = () => {
                 </div>
 
                 {/* Price & Dual CTA Buttons */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', paddingBottom: '24px' }}>
                   <div style={{
-                    fontSize: '18px',
+                    fontSize: '22px',
                     fontWeight: 900,
                     color: '#10B981',
-                    background: 'rgba(16, 185, 129, 0.15)',
-                    border: '1px solid rgba(16, 185, 129, 0.3)',
-                    padding: '6px 12px',
-                    borderRadius: '12px',
-                    backdropFilter: 'blur(8px)',
-                    whiteSpace: 'nowrap'
+                    textShadow: '0 2px 8px rgba(0,0,0,0.8)',
                   }}>
                     {Number(product.price).toLocaleString()} FCFA
                   </div>
 
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleWhatsAppContact(product);
-                    }}
-                    style={{
-                      flex: 1.2,
-                      minWidth: '130px',
-                      background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
-                      border: 'none',
-                      color: '#FFFFFF',
-                      fontWeight: 800,
-                      padding: '10px 12px',
-                      borderRadius: '12px',
-                      fontSize: '13px',
-                      cursor: 'pointer',
-                      boxShadow: '0 4px 14px rgba(37, 211, 102, 0.4)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '4px'
-                    }}
-                  >
-                    <span>💬 Commander</span>
-                  </button>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%' }}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleWhatsAppContact(product);
+                      }}
+                      style={{
+                        flex: 1,
+                        background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
+                        border: 'none',
+                        color: '#FFFFFF',
+                        fontWeight: 800,
+                        padding: '12px',
+                        borderRadius: '12px',
+                        fontSize: '14px',
+                        cursor: 'pointer',
+                        boxShadow: '0 4px 14px rgba(37, 211, 102, 0.4)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px'
+                      }}
+                    >
+                      <span>💬 Commander</span>
+                    </button>
 
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/product/${product.id}`);
-                    }}
-                    style={{
-                      flex: 1,
-                      minWidth: '90px',
-                      background: 'rgba(255,255,255,0.15)',
-                      border: '1px solid rgba(255,255,255,0.3)',
-                      color: '#FFFFFF',
-                      fontWeight: 700,
-                      padding: '10px 12px',
-                      borderRadius: '12px',
-                      fontSize: '13px',
-                      cursor: 'pointer',
-                      backdropFilter: 'blur(8px)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '4px'
-                    }}
-                  >
-                    <span>🛒 Voir</span>
-                  </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/product/${product.id}`);
+                      }}
+                      style={{
+                        flex: 1,
+                        background: 'rgba(255,255,255,0.15)',
+                        border: '1px solid rgba(255,255,255,0.3)',
+                        color: '#FFFFFF',
+                        fontWeight: 700,
+                        padding: '12px',
+                        borderRadius: '12px',
+                        fontSize: '14px',
+                        cursor: 'pointer',
+                        backdropFilter: 'blur(8px)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px'
+                      }}
+                    >
+                      <span>🛒 Voir détails</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
