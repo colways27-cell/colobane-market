@@ -155,18 +155,18 @@ const Navbar = () => {
         <div className="section-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '72px', padding: '0 1rem' }}>
           
           {/* Left: Logo */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexShrink: 0 }}>
             <button 
-              className="active-scale" 
+              className="active-scale hover-lift" 
               onClick={handleMenuClick} 
-              style={{ background: theme === 'dark' ? '#1E293B' : '#F8FAFC', border: theme === 'dark' ? '1px solid #334155' : '1px solid #E2E8F0', borderRadius: '12px', cursor: 'pointer', padding: '7px', color: theme === 'dark' ? '#F8FAFC' : '#334155', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              style={{ background: theme === 'dark' ? '#1E293B' : '#FFFFFF', border: theme === 'dark' ? '1px solid #334155' : '1px solid #E2E8F0', borderRadius: '50%', width: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: theme === 'dark' ? '#F8FAFC' : '#334155', boxShadow: theme === 'dark' ? '0 4px 12px rgba(0,0,0,0.2)' : '0 2px 8px rgba(0,0,0,0.04)', flexShrink: 0, transition: 'all 0.25s ease' }}
               aria-label="Menu"
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
             </button>
 
             <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
-              <img src="/image marque.jpg" alt="Colobane Market" style={{ height: '42px', maxHeight: '44px', width: 'auto', maxWidth: '140px', objectFit: 'contain', borderRadius: '8px' }} />
+              <img src="/image marque.jpg" alt="Colobane Market" style={{ height: '42px', maxHeight: '44px', width: 'auto', maxWidth: '140px', objectFit: 'contain', borderRadius: '10px', mixBlendMode: theme === 'dark' ? 'normal' : 'multiply' }} />
             </Link>
           </div>
 
@@ -190,11 +190,11 @@ const Navbar = () => {
             {/* Theme Toggle Button */}
             <button
               onClick={toggleTheme}
-              className="active-scale"
+              className="active-scale hover-lift"
               title={theme === 'dark' ? 'Passer en mode clair' : 'Passer en mode sombre luxe'}
               style={{
-                background: theme === 'dark' ? 'linear-gradient(135deg, #1E1B4B 0%, #312E81 100%)' : '#FFFFFF',
-                border: theme === 'dark' ? '1px solid #4338CA' : '1px solid #E2E8F0',
+                background: theme === 'dark' ? '#1E293B' : '#FFFFFF',
+                border: theme === 'dark' ? '1px solid #334155' : '1px solid #E2E8F0',
                 borderRadius: '50%',
                 width: '38px',
                 height: '38px',
@@ -203,9 +203,10 @@ const Navbar = () => {
                 justifyContent: 'center',
                 cursor: 'pointer',
                 fontSize: '1.05rem',
-                boxShadow: theme === 'dark' ? '0 4px 12px rgba(67, 56, 202, 0.2)' : '0 2px 8px rgba(0,0,0,0.04)',
+                color: theme === 'dark' ? '#F8FAFC' : '#334155',
+                boxShadow: theme === 'dark' ? '0 4px 12px rgba(0,0,0,0.2)' : '0 2px 8px rgba(0,0,0,0.04)',
                 flexShrink: 0,
-                transition: 'all 0.3s ease'
+                transition: 'all 0.25s ease'
               }}
             >
               {theme === 'dark' ? '☀️' : '🌙'}
@@ -270,22 +271,25 @@ const Navbar = () => {
               <div style={{ position: 'relative' }}>
                 <button
                   onClick={handleToggleNotifications}
-                  className="active-scale"
+                  className="active-scale hover-lift"
                   style={{
-                    background: theme === 'dark' ? '#27272a' : '#F8FAFC',
+                    background: theme === 'dark' ? '#1E293B' : '#FFFFFF',
                     border: theme === 'dark' ? '1px solid #334155' : '1px solid #E2E8F0',
+                    borderRadius: '50%',
                     width: '38px',
                     height: '38px',
-                    borderRadius: '50%',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     cursor: 'pointer',
-                    position: 'relative'
+                    color: theme === 'dark' ? '#F8FAFC' : '#334155',
+                    boxShadow: theme === 'dark' ? '0 4px 12px rgba(0,0,0,0.2)' : '0 2px 8px rgba(0,0,0,0.04)',
+                    position: 'relative',
+                    transition: 'all 0.25s ease'
                   }}
                   aria-label="Notifications"
                 >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={theme === 'dark' ? '#94a3b8' : '#475569'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
                   {unreadCount > 0 && (
                     <span style={{
                       position: 'absolute',
@@ -375,8 +379,8 @@ const Navbar = () => {
 
 
 
-            <Link to={user ? "/profile" : "/auth"} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none', color: 'var(--text-main)' }}>
-              <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: theme === 'dark' ? '#27272a' : '#F8FAFC', border: theme === 'dark' ? '1px solid #334155' : '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Link to={user ? "/profile" : "/auth"} className="active-scale hover-lift" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none', color: 'var(--text-main)' }}>
+              <div style={{ background: theme === 'dark' ? '#1E293B' : '#FFFFFF', border: theme === 'dark' ? '1px solid #334155' : '1px solid #E2E8F0', borderRadius: '50%', width: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: theme === 'dark' ? '#F8FAFC' : '#334155', boxShadow: theme === 'dark' ? '0 4px 12px rgba(0,0,0,0.2)' : '0 2px 8px rgba(0,0,0,0.04)', transition: 'all 0.25s ease' }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
               </div>
             </Link>
