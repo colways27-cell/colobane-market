@@ -216,21 +216,20 @@ const Navbar = () => {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.4rem',
-                background: 'linear-gradient(135deg, #0F172A 0%, #1E1B4B 100%)',
-                color: '#FFFFFF',
-                padding: '0.42rem 0.85rem',
+                background: theme === 'dark' ? 'rgba(225, 29, 72, 0.15)' : '#FFF1F2',
+                color: '#E11D48',
+                padding: '0.45rem 0.9rem',
                 borderRadius: '999px',
                 fontWeight: '800',
                 textDecoration: 'none',
-                border: '1px solid rgba(244, 63, 94, 0.4)',
-                fontSize: '0.8rem',
-                boxShadow: '0 4px 14px rgba(15, 23, 42, 0.2)',
+                border: `1px solid ${theme === 'dark' ? 'rgba(225, 29, 72, 0.3)' : 'rgba(225, 29, 72, 0.2)'}`,
+                fontSize: '0.82rem',
                 letterSpacing: '0.4px'
               }}
             >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F43F5E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
-              <span>REELS</span>
-              <span style={{ background: 'linear-gradient(135deg, #E11D48, #BE123C)', color: '#FFF', fontSize: '9px', fontWeight: 900, padding: '2px 5px', borderRadius: '6px', marginLeft: '2px', letterSpacing: '0.5px' }}>PRO</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+              <span>Reels</span>
+              <span style={{ background: 'linear-gradient(135deg, #E11D48, #BE123C)', color: '#FFF', fontSize: '9px', fontWeight: 900, padding: '2px 6px', borderRadius: '5px', marginLeft: '2px', letterSpacing: '0.5px', boxShadow: '0 2px 4px rgba(225, 29, 72, 0.25)' }}>PRO</span>
             </Link>
 
             <Link 
