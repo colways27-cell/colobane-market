@@ -929,6 +929,38 @@ const ReelsPage = () => {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!user) {
+                toast.error('Connectez-vous pour publier un Reel.');
+                navigate('/auth');
+              } else {
+                setShowPublishModal(true);
+              }
+            }}
+            style={{
+              background: 'rgba(255,255,255,0.15)',
+              border: '1px solid rgba(255,255,255,0.4)',
+              color: '#FFFFFF',
+              width: '40px',
+              height: '40px',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              backdropFilter: 'blur(12px)',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+            }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+              <circle cx="12" cy="13" r="4"></circle>
+              <line x1="12" y1="10" x2="12" y2="16"></line>
+              <line x1="9" y1="13" x2="15" y2="13"></line>
+            </svg>
+          </button>
 
 
           <button
@@ -1098,7 +1130,7 @@ const ReelsPage = () => {
                     {product.images && product.images.length > 1 && (
                       <div style={{
                         position: 'absolute',
-                        bottom: '120px',
+                        bottom: '90px',
                         left: '50%',
                         transform: 'translateX(-50%)',
                         display: 'flex',
@@ -1197,12 +1229,12 @@ const ReelsPage = () => {
               {/* Floating Action Bar (Right Side) */}
               <div style={{
                 position: 'absolute',
-                right: '16px',
-                bottom: '120px',
+                right: '12px',
+                bottom: '90px',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                gap: '20px',
+                gap: '12px',
                 zIndex: 20
               }}>
                 {/* Seller Avatar */}
@@ -1252,46 +1284,6 @@ const ReelsPage = () => {
                   )}
                 </div>
 
-                {/* Bouton Publier Reel Direct */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (!user) {
-                      toast.error('Connectez-vous pour publier un Reel.');
-                      navigate('/auth');
-                    } else {
-                      setShowPublishModal(true);
-                    }
-                  }}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: '#FFFFFF',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '6px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <div style={{
-                    width: '46px',
-                    height: '46px',
-                    borderRadius: '50%',
-                    background: 'rgba(225, 29, 72, 0.8)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '20px',
-                    backdropFilter: 'blur(12px)',
-                    border: '1px solid rgba(255, 255, 255, 0.3)',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-                  }}>
-                    ➕
-                  </div>
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#FFF', textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>Publier</span>
-                </button>
-
                 {/* Like Button */}
                 <button
                   onClick={() => toggleLike(product.id)}
@@ -1302,27 +1294,24 @@ const ReelsPage = () => {
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    gap: '6px',
+                    gap: '4px',
                     cursor: 'pointer'
                   }}
                 >
                   <div style={{
-                    width: '46px',
-                    height: '46px',
-                    borderRadius: '50%',
-                    background: isLiked ? 'rgba(225, 29, 72, 0.9)' : 'rgba(255,255,255,0.15)',
-                    backdropFilter: 'blur(12px)',
-                    border: '1px solid rgba(255,255,255,0.3)',
+                    width: '40px',
+                    height: '40px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: '20px',
                     transition: 'all 0.2s ease',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                    filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))'
                   }}>
-                    {isLiked ? '❤️' : '🤍'}
+                    <svg width="34" height="34" viewBox="0 0 24 24" fill={isLiked ? "#E11D48" : "none"} stroke={isLiked ? "#E11D48" : "#FFFFFF"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                    </svg>
                   </div>
-                  <span style={{ fontSize: '12px', fontWeight: 700, textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>{likesCount}</span>
+                  <span style={{ fontSize: '13px', fontWeight: 700, textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}>{likesCount}</span>
                 </button>
 
                 {/* WhatsApp Button */}
@@ -1335,26 +1324,23 @@ const ReelsPage = () => {
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    gap: '6px',
+                    gap: '4px',
                     cursor: 'pointer'
                   }}
                 >
                   <div style={{
-                    width: '46px',
-                    height: '46px',
-                    borderRadius: '50%',
-                    background: 'linear-gradient(135deg, rgba(37, 211, 102, 0.9) 0%, rgba(18, 140, 126, 0.9) 100%)',
-                    backdropFilter: 'blur(12px)',
-                    border: '1px solid rgba(255,255,255,0.3)',
+                    width: '40px',
+                    height: '40px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: '20px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                    filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))'
                   }}>
-                    💬
+                    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                    </svg>
                   </div>
-                  <span style={{ fontSize: '12px', fontWeight: 700, textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>WhatsApp</span>
+                  <span style={{ fontSize: '13px', fontWeight: 700, textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}>WhatsApp</span>
                 </button>
 
                 {/* Share Button */}
@@ -1367,26 +1353,27 @@ const ReelsPage = () => {
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    gap: '6px',
+                    gap: '4px',
                     cursor: 'pointer'
                   }}
                 >
                   <div style={{
-                    width: '46px',
-                    height: '46px',
-                    borderRadius: '50%',
-                    background: 'rgba(255,255,255,0.15)',
-                    backdropFilter: 'blur(12px)',
-                    border: '1px solid rgba(255,255,255,0.3)',
+                    width: '40px',
+                    height: '40px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: '18px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                    filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))'
                   }}>
-                    🔗
+                    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="18" cy="5" r="3"></circle>
+                      <circle cx="6" cy="12" r="3"></circle>
+                      <circle cx="18" cy="19" r="3"></circle>
+                      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                    </svg>
                   </div>
-                  <span style={{ fontSize: '12px', fontWeight: 700, textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>Partager</span>
+                  <span style={{ fontSize: '13px', fontWeight: 700, textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}>Partager</span>
                 </button>
 
                 {/* Owner / Admin Delete Reel Button */}
@@ -1403,26 +1390,24 @@ const ReelsPage = () => {
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
-                      gap: '6px',
+                      gap: '4px',
                       cursor: 'pointer'
                     }}
                   >
                     <div style={{
-                      width: '46px',
-                      height: '46px',
-                      borderRadius: '50%',
-                      background: 'rgba(0,0,0,0.5)',
-                      backdropFilter: 'blur(12px)',
-                      border: '1px solid rgba(225, 29, 72, 0.5)',
+                      width: '40px',
+                      height: '40px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: '18px',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                      filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))'
                     }}>
-                      🗑️
+                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                      </svg>
                     </div>
-                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#FFD1D1', textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>Supprimer</span>
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#FFD1D1', textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}>Supprimer</span>
                   </button>
                 )}
 
