@@ -186,25 +186,26 @@ const Navbar = () => {
           </div>
 
           {/* Right: Theme Toggle, Publish Button & Profile */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', flexShrink: 0 }}>
             {/* Theme Toggle Button */}
             <button
               onClick={toggleTheme}
               className="active-scale"
               title={theme === 'dark' ? 'Passer en mode clair' : 'Passer en mode sombre luxe'}
               style={{
-                background: theme === 'dark' ? 'linear-gradient(135deg, #1E1B4B 0%, #312E81 100%)' : '#F1F5F9',
-                border: theme === 'dark' ? '1px solid #4338CA' : '1px solid #CBD5E1',
+                background: theme === 'dark' ? 'linear-gradient(135deg, #1E1B4B 0%, #312E81 100%)' : '#FFFFFF',
+                border: theme === 'dark' ? '1px solid #4338CA' : '1px solid #E2E8F0',
                 borderRadius: '50%',
-                width: '36px',
-                height: '36px',
+                width: '38px',
+                height: '38px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
                 fontSize: '1.05rem',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                flexShrink: 0
+                boxShadow: theme === 'dark' ? '0 4px 12px rgba(67, 56, 202, 0.2)' : '0 2px 8px rgba(0,0,0,0.04)',
+                flexShrink: 0,
+                transition: 'all 0.3s ease'
               }}
             >
               {theme === 'dark' ? '☀️' : '🌙'}
@@ -216,20 +217,32 @@ const Navbar = () => {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.4rem',
-                background: theme === 'dark' ? 'rgba(225, 29, 72, 0.15)' : '#FFF1F2',
-                color: '#E11D48',
-                padding: '0.45rem 0.9rem',
+                background: 'linear-gradient(135deg, #E11D48 0%, #7C3AED 100%)', // Premium Rose to Violet gradient
+                color: '#FFFFFF',
+                padding: '0.45rem 1rem',
                 borderRadius: '999px',
                 fontWeight: '800',
                 textDecoration: 'none',
-                border: `1px solid ${theme === 'dark' ? 'rgba(225, 29, 72, 0.3)' : 'rgba(225, 29, 72, 0.2)'}`,
-                fontSize: '0.82rem',
-                letterSpacing: '0.4px'
+                border: '1px solid rgba(255, 255, 255, 0.25)', // Glassy edge
+                fontSize: '0.85rem',
+                letterSpacing: '0.3px',
+                boxShadow: '0 6px 16px rgba(124, 58, 237, 0.25)', // Soft glow
+                transition: 'all 0.3s ease'
               }}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
-              <span>Reels</span>
-              <span style={{ background: 'linear-gradient(135deg, #E11D48, #BE123C)', color: '#FFF', fontSize: '9px', fontWeight: 900, padding: '2px 6px', borderRadius: '5px', marginLeft: '2px', letterSpacing: '0.5px', boxShadow: '0 2px 4px rgba(225, 29, 72, 0.25)' }}>PRO</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.15))' }}><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+              <span style={{ textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}>Reels</span>
+              <span style={{ 
+                background: '#FFFFFF', 
+                color: '#7C3AED', 
+                fontSize: '9px', 
+                fontWeight: 900, 
+                padding: '2px 7px', 
+                borderRadius: '6px', 
+                marginLeft: '4px', 
+                letterSpacing: '0.5px', 
+                boxShadow: '0 2px 6px rgba(0, 0, 0, 0.1)' 
+              }}>PRO</span>
             </Link>
 
             <Link 
