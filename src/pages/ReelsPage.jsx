@@ -1376,8 +1376,8 @@ const ReelsPage = () => {
                   <span style={{ fontSize: '13px', fontWeight: 700, textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}>Partager</span>
                 </button>
 
-                {/* Owner / Admin Delete Reel Button */}
-                {(product.seller_id === user?.id || userProfile?.is_admin) && (
+                {/* Owner Delete Reel Button */}
+                {(user && product.seller_id === user.id) && (
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
