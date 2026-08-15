@@ -155,7 +155,7 @@ const Navbar = () => {
         <div className="section-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '72px', padding: '0 1rem' }}>
           
           {/* Left: Logo */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
             <button 
               className="active-scale hover-lift" 
               onClick={handleMenuClick} 
@@ -186,7 +186,7 @@ const Navbar = () => {
           </div>
 
           {/* Right: Theme Toggle, Publish Button & Profile */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
             {/* Theme Toggle Button */}
             <button
               onClick={toggleTheme}
@@ -220,7 +220,7 @@ const Navbar = () => {
                 gap: '0.4rem',
                 background: 'linear-gradient(135deg, #E11D48 0%, #7C3AED 100%)', // Premium Rose to Violet gradient
                 color: '#FFFFFF',
-                padding: '0.45rem 1rem',
+                padding: '0.4rem 0.7rem',
                 borderRadius: '999px',
                 fontWeight: '800',
                 textDecoration: 'none',
