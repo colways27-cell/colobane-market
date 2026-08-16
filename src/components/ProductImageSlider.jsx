@@ -54,7 +54,7 @@ export default function ProductImageSlider({ images, alt, style }) {
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
-      style={{ ...style, position: 'relative', overflow: 'hidden', touchAction: 'pan-y' }}
+      style={{ position: 'relative', ...style, overflow: 'hidden', touchAction: 'pan-y' }}
     >
       <img 
         src={validImages[activeImage]} 
