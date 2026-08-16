@@ -432,7 +432,8 @@ const Home = () => {
     // Filtrer par la catégorie active sélectionnée dans le slider
     if (activeCategorySlide) {
       const categoryMapping = {
-        'montres_bijoux': ['accessoires'],
+        'montres': ['accessoires'],
+        'bijoux': ['accessoires'],
         'vetements_homme': ['habillement', 'friperie'],
         'vetements_femme': ['habillement', 'friperie'],
         'chaussures': ['habillement', 'friperie'],

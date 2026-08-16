@@ -173,8 +173,8 @@ const ExplorePage = () => {
           query = query.in('category', ['alimentation', 'restauration', 'cuisine', 'traiteur']);
         } else if (['friperie', 'fripe', 'balles'].includes(cleanCat)) {
           query = query.in('category', ['friperie', 'fripe', 'balles']);
-        } else if (cleanCat === 'montres_bijoux') {
-          query = query.in('category', ['montres_bijoux', 'accessoires']);
+        } else if (['montres', 'bijoux', 'montres_bijoux'].includes(cleanCat)) {
+          query = query.in('category', ['montres', 'bijoux', 'montres_bijoux', 'accessoires']);
         } else if (['vetements_homme', 'vetements_femme', 'chaussures'].includes(cleanCat)) {
           query = query.in('category', [cleanCat, 'habillement', 'friperie']);
         } else if (cleanCat === 'telephones') {
