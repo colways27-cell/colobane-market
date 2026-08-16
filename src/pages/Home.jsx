@@ -1138,12 +1138,13 @@ const Home = () => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
+            gap: '12px',
             cursor: 'pointer',
             boxShadow: '0 8px 30px rgba(190, 18, 60, 0.25)',
             border: '1px solid rgba(244, 63, 94, 0.4)'
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1, minWidth: 0 }}>
             <div style={{
               width: '52px',
               height: '52px',
@@ -1154,19 +1155,20 @@ const Home = () => {
               alignItems: 'center',
               justifyContent: 'center',
               fontSize: '26px',
-              border: '1px solid rgba(255,255,255,0.2)'
+              border: '1px solid rgba(255,255,255,0.2)',
+              flexShrink: 0
             }}>
               🎥
             </div>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
-                <span style={{ background: '#E11D48', color: '#FFF', fontSize: '10px', fontWeight: 900, padding: '2px 8px', borderRadius: '8px' }}>NOUVEAU</span>
-                <span style={{ fontSize: '12px', fontWeight: 600, color: '#FDA4AF' }}>Colobane Shorts</span>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
+                <span style={{ background: '#E11D48', color: '#FFF', fontSize: '10px', fontWeight: 900, padding: '2px 8px', borderRadius: '8px', whiteSpace: 'nowrap' }}>NOUVEAU</span>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: '#FDA4AF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Colobane Shorts</span>
               </div>
-              <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 900, letterSpacing: '-0.3px' }}>
+              <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 900, letterSpacing: '-0.3px', lineHeight: 1.2 }}>
                 Mode TikTok Reels Dakar 🔥
               </h3>
-              <p style={{ margin: 0, fontSize: '0.8rem', color: '#CBD5E1' }}>
+              <p className="hide-on-mobile" style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: '#CBD5E1', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
                 Découvrez les meilleures offres en vidéos verticales immersives
               </p>
             </div>
@@ -1174,16 +1176,19 @@ const Home = () => {
 
           <div style={{
             background: 'rgba(255,255,255,0.15)',
-            padding: '8px 16px',
+            padding: '8px 14px',
             borderRadius: '20px',
             fontWeight: 800,
             fontSize: '13px',
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
-            backdropFilter: 'blur(8px)'
+            backdropFilter: 'blur(8px)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            flexShrink: 0,
+            whiteSpace: 'nowrap'
           }}>
-            Regarder ▶
+            Regarder <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
           </div>
         </div>
       </section>
