@@ -25,19 +25,24 @@ const lazyWithRetry = (componentImport) => {
       return await componentImport();
     } catch (error) {
       console.error("Error loading lazy page, purging cache and retrying:", error);
-      try {
-        if ('serviceWorker' in navigator) {
-          const registrations = await navigator.serviceWorker.getRegistrations();
-          for (let reg of registrations) reg.unregister();
-        }
-        if ('caches' in window) {
-          const keys = await caches.keys();
-          for (let key of keys) await caches.delete(key);
-        }
-      } catch (_e) {}
+      
+      const hasReloaded = window.sessionStorage.getItem('chunk-failed-reloaded');
+      if (!hasReloaded) {
+        window.sessionStorage.setItem('chunk-failed-reloaded', 'true');
+        try {
+          if ('serviceWorker' in navigator) {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            for (let reg of registrations) reg.unregister();
+          }
+          if ('caches' in window) {
+            const keys = await caches.keys();
+            for (let key of keys) await caches.delete(key);
+          }
+        } catch (_e) {}
 
-      const cleanUrl = window.location.origin + window.location.pathname + '?v=' + Date.now();
-      window.location.href = cleanUrl;
+        const cleanUrl = window.location.origin + window.location.pathname + '?v=' + Date.now();
+        window.location.href = cleanUrl;
+      }
       return { default: () => () => null };
     }
   });
