@@ -68,7 +68,13 @@ const HomeHeroBanners = ({ navigate, externalAds }) => {
   const [touchEnd, setTouchEnd] = useState(null);
 
   // Filter only active ads that have an image
-  const validExternalAds = (externalAds || []).filter(ad => ad.is_active && ad.image_url);
+  const validExternalAds = (externalAds || []).filter(ad => {
+    if (!ad.is_active || !ad.image_url) return false;
+    const now = new Date();
+    if (ad.start_date && new Date(ad.start_date) > now) return false;
+    if (ad.end_date && new Date(ad.end_date) < now) return false;
+    return true;
+  });
   const hasExternalAds = validExternalAds.length > 0;
   
   // Base banners (Colobane original)
@@ -255,6 +261,8 @@ const HomeHeroBanners = ({ navigate, externalAds }) => {
               onClick={() => {
                 if (ad.link_url) {
                   window.open(ad.link_url, '_blank', 'noopener,noreferrer');
+                } else if (ad.phone_number) {
+                  window.open(`tel:${ad.phone_number}`, '_self');
                 }
               }}
               style={{
@@ -262,11 +270,20 @@ const HomeHeroBanners = ({ navigate, externalAds }) => {
                 width: '100%',
                 height: '100%',
                 position: 'relative',
-                cursor: ad.link_url ? 'pointer' : 'default',
-                boxSizing: 'border-box'
+                cursor: (ad.link_url || ad.phone_number) ? 'pointer' : 'default',
+                boxSizing: 'border-box',
+                background: '#0F172A',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                overflow: 'hidden'
               }}
             >
-              <img src={ad.image_url} alt={ad.alt_text || "Publicité Partenaire"} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              {ad.media_type === 'video' ? (
+                <video src={ad.image_url} autoPlay loop muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <img src={ad.image_url} alt={ad.alt_text || "Publicité Partenaire"} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              )}
               <div style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.5)', color: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 800, backdropFilter: 'blur(4px)' }}>
                 Sponsorisé
               </div>

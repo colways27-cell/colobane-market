@@ -13,6 +13,7 @@ import SettingsTab from '../components/admin/SettingsTab';
 import ReportsTab from '../components/admin/ReportsTab';
 import NotificationsTab from '../components/admin/NotificationsTab';
 import CategoriesTab from '../components/admin/CategoriesTab';
+import AdsManagementTab from '../components/admin/AdsManagementTab';
 
 const AdminPage = () => {
   const navigate = useNavigate();
@@ -512,6 +513,7 @@ const AdminPage = () => {
     { id: 'reports', label: `🚨 Signalements (${reports.filter(r => r.status === 'pending' || !r.status).length})` },
     { id: 'notifications', label: `💌 Notifications Push` },
     { id: 'categories', label: `📂 Catégories` },
+    { id: 'ads', label: `📢 Publicités` },
     { id: 'settings', label: `⚙️ Paramètres` },
   ];
 
@@ -704,6 +706,10 @@ const AdminPage = () => {
 
         {activeTab === 'categories' && (
           <CategoriesTab />
+        )}
+
+        {activeTab === 'ads' && (
+          <AdsManagementTab />
         )}
 
         {activeTab === 'settings' && (
