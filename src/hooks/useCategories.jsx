@@ -35,7 +35,10 @@ const defaultIconNames = {
   'vetements_femme': 'Shirt',
   'chaussures': 'ShoppingBag',
   'montres_bijoux': 'Sparkles',
-  'electromenager': 'Tv'
+  'electromenager': 'Tv',
+  'accessoires': 'Glasses',
+  'beaute_sante': 'Sparkles',
+  'meubles': 'Armchair'
 };
 
 const legacyCategoryData = {
@@ -46,6 +49,7 @@ const legacyCategoryData = {
   'chaussures': { name: 'Chaussures', color: '#ff9500', iconName: 'ShoppingBag' },
   'montres_bijoux': { name: 'Montres & Bijoux', color: '#ffcc00', iconName: 'Sparkles' },
   'electromenager': { name: 'Électroménager', color: '#4cd964', iconName: 'Tv' },
+  'meubles': { name: 'Meubles', color: '#ff2d55', iconName: 'Armchair' },
 };
 
 export const useCategories = () => {
