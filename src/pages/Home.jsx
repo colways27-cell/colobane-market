@@ -62,10 +62,18 @@ const groupProducts = (prods) => {
   }));
 };
 
-const HomeHeroBanners = ({ navigate }) => {
+const HomeHeroBanners = ({ navigate, externalAds }) => {
   const [activeBanner, setActiveBanner] = useState(0);
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
+
+  // Filter only active ads that have an image
+  const validExternalAds = (externalAds || []).filter(ad => ad.is_active && ad.image_url);
+  const hasExternalAds = validExternalAds.length > 0;
+  
+  // Base banners (Colobane original)
+  const baseBannersCount = 3;
+  const totalBannersCount = baseBannersCount + validExternalAds.length;
 
   const handleTouchStart = (e) => {
     setTouchEnd(null);
@@ -82,18 +90,18 @@ const HomeHeroBanners = ({ navigate }) => {
     const isLeftSwipe = distance > 50;
     const isRightSwipe = distance < -50;
     if (isLeftSwipe) {
-      setActiveBanner(prev => (prev < 2 ? prev + 1 : 0));
+      setActiveBanner(prev => (prev < totalBannersCount - 1 ? prev + 1 : 0));
     } else if (isRightSwipe) {
-      setActiveBanner(prev => (prev > 0 ? prev - 1 : 2));
+      setActiveBanner(prev => (prev > 0 ? prev - 1 : totalBannersCount - 1));
     }
   };
 
   useEffect(() => {
     const bannerTimer = setInterval(() => {
-      setActiveBanner(prev => (prev + 1) % 3);
+      setActiveBanner(prev => (prev + 1) % totalBannersCount);
     }, 4500);
     return () => clearInterval(bannerTimer);
-  }, []);
+  }, [totalBannersCount]);
 
   return (
     <section style={{ marginBottom: '1.5rem', marginTop: '0.5rem', padding: '0 16px', maxWidth: '1200px', margin: '0.5rem auto 1.5rem auto' }}>
@@ -240,60 +248,57 @@ const HomeHeroBanners = ({ navigate }) => {
             </div>
           </div>
 
+          {/* External Ads from Back-Office */}
+          {validExternalAds.map((ad, idx) => (
+            <div 
+              key={`ad-${idx}`}
+              onClick={() => {
+                if (ad.link_url) {
+                  window.open(ad.link_url, '_blank', 'noopener,noreferrer');
+                }
+              }}
+              style={{
+                flex: '0 0 100%',
+                width: '100%',
+                height: '100%',
+                position: 'relative',
+                cursor: ad.link_url ? 'pointer' : 'default',
+                boxSizing: 'border-box'
+              }}
+            >
+              <img src={ad.image_url} alt={ad.alt_text || "Publicité Partenaire"} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <div style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.5)', color: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 800, backdropFilter: 'blur(4px)' }}>
+                Sponsorisé
+              </div>
+            </div>
+          ))}
+
         </div>
 
         {/* Indicateurs (dots) */}
         <div style={{
           position: 'absolute',
           bottom: '12px',
-          left: '50%',
-          transform: 'translateX(-50%)',
+          left: 0,
+          right: 0,
           display: 'flex',
+          justifyContent: 'center',
           gap: '6px',
           zIndex: 10
         }}>
-          <button 
-            onClick={() => setActiveBanner(0)}
-            style={{
-              width: activeBanner === 0 ? '18px' : '6px',
-              height: '6px',
-              borderRadius: '3px',
-              background: activeBanner === 0 ? 'var(--primary)' : 'rgba(255,255,255,0.7)',
-              border: 'none',
-              cursor: 'pointer',
-              padding: 0,
-              transition: 'all 0.3s cubic-bezier(0.25, 1, 0.5, 1)',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-            }}
-          />
-          <button 
-            onClick={() => setActiveBanner(1)}
-            style={{
-              width: activeBanner === 1 ? '18px' : '6px',
-              height: '6px',
-              borderRadius: '3px',
-              background: activeBanner === 1 ? 'var(--primary)' : 'rgba(255,255,255,0.7)',
-              border: 'none',
-              cursor: 'pointer',
-              padding: 0,
-              transition: 'all 0.3s cubic-bezier(0.25, 1, 0.5, 1)',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-            }}
-          />
-          <button 
-            onClick={() => setActiveBanner(2)}
-            style={{
-              width: activeBanner === 2 ? '18px' : '6px',
-              height: '6px',
-              borderRadius: '3px',
-              background: activeBanner === 2 ? 'var(--primary)' : 'rgba(255,255,255,0.7)',
-              border: 'none',
-              cursor: 'pointer',
-              padding: 0,
-              transition: 'all 0.3s cubic-bezier(0.25, 1, 0.5, 1)',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-            }}
-          />
+          {Array.from({ length: totalBannersCount }).map((_, i) => (
+            <div
+              key={i}
+              style={{
+                width: i === activeBanner ? '20px' : '6px',
+                height: '6px',
+                borderRadius: '3px',
+                background: i === activeBanner ? 'var(--primary)' : 'rgba(255,255,255,0.7)',
+                transition: 'all 0.3s cubic-bezier(0.25, 1, 0.5, 1)',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+              }}
+            />
+          ))}
         </div>
       </div>
     </section>
@@ -307,6 +312,9 @@ const Home = () => {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(0);
+  const [promoBanner, setPromoBanner] = useState(null);
+  const [showPromoBanner, setShowPromoBanner] = useState(false);
+  const [externalAds, setExternalAds] = useState([]);
   const [activeCategorySlide, setActiveCategorySlide] = useState(null);
   const [followedCount, setFollowedCount] = useState(() => getFollowedBoutiques().length);
 
@@ -322,8 +330,8 @@ const Home = () => {
   const [contextMenu, setContextMenu] = useState({ visible: false, productId: null });
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportProductId, setReportProductId] = useState(null);
-  const [promoBanner, setPromoBanner] = useState(null);
-  const [showPromoBanner, setShowPromoBanner] = useState(false);
+  
+  const [showAroundMe, setShowAroundMe] = useState(false);
   const subcategoriesRef = useRef(null);
   const categoriesRef = useRef(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
@@ -588,27 +596,34 @@ const Home = () => {
   useEffect(() => {
     fetchProducts(0);
     
-    const fetchPromoBanner = async () => {
+    const fetchSettings = async () => {
       try {
         const { data, error } = await supabase
           .from('app_settings')
-          .select('setting_value')
-          .eq('setting_key', 'promo_banner')
-          .maybeSingle();
+          .select('*')
+          .in('setting_key', ['promo_banner', 'external_ads']);
         
-        if (data && data.setting_value && data.setting_value.is_active) {
-          setPromoBanner(data.setting_value);
-          if (!localStorage.getItem('hidePromoBanner')) {
-            setShowPromoBanner(true);
+        if (data) {
+          const promo = data.find(d => d.setting_key === 'promo_banner');
+          if (promo && promo.setting_value && promo.setting_value.is_active) {
+            setPromoBanner(promo.setting_value);
+            if (!localStorage.getItem('hidePromoBanner')) {
+              setShowPromoBanner(true);
+            }
+          } else {
+            setShowPromoBanner(false);
           }
-        } else {
-          setShowPromoBanner(false);
+
+          const ads = data.find(d => d.setting_key === 'external_ads');
+          if (ads && ads.setting_value) {
+            setExternalAds(ads.setting_value);
+          }
         }
       } catch (err) {
-        console.error('Erreur chargement bannière:', err);
+        console.error('Erreur chargement paramètres:', err);
       }
     };
-    fetchPromoBanner();
+    fetchSettings();
   }, []);
 
   const handleLoadMore = () => {
@@ -845,8 +860,9 @@ const Home = () => {
       </section>
 
       {/* Hero Banners Section */}
-      <HomeHeroBanners navigate={navigate} />
-
+      <div style={{ flex: 1, paddingBottom: '90px', paddingTop: '10px' }}>
+        
+        <HomeHeroBanners navigate={navigate} externalAds={externalAds} />
 
       {/* Categories Grid (CoinAfrique Style) */}
       <section style={{ marginBottom: '1.5rem', padding: '0 16px', maxWidth: '1200px', margin: '0 auto 1.5rem auto', position: 'relative' }}>
