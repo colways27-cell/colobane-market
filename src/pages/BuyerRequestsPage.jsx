@@ -329,6 +329,41 @@ const BuyerRequestsPage = () => {
                   >
                     <Share2 size={16} /> Partager
                   </button>
+                  {user && req.user_id === user.id && (
+                    <button
+                      onClick={async () => {
+                        if (!window.confirm("Êtes-vous sûr de vouloir supprimer cette demande ?")) return;
+                        try {
+                          const { error } = await supabase.from('buyer_requests').delete().eq('id', req.id);
+                          if (error) throw error;
+                          toast.success('Demande supprimée avec succès.');
+                          
+                          // Mettre à jour le localStorage
+                          try {
+                            const saved = localStorage.getItem('colobane_buyer_requests');
+                            if (saved) {
+                              const parsed = JSON.parse(saved);
+                              const updated = parsed.filter(r => r.id !== req.id);
+                              localStorage.setItem('colobane_buyer_requests', JSON.stringify(updated));
+                            }
+                          } catch(e) {}
+                          
+                          setRequests(prev => prev.filter(r => r.id !== req.id));
+                        } catch (err) {
+                          console.error(err);
+                          toast.error('Erreur lors de la suppression de la demande.');
+                        }
+                      }}
+                      className="active-scale"
+                      style={{ background: '#FFE4E6', color: '#E11D48', border: '1px solid #FDA4AF', padding: '10px 14px', borderRadius: '14px', fontWeight: '700', fontSize: '0.88rem', display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                      </svg>
+                      Supprimer
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
