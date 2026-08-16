@@ -429,6 +429,11 @@ const Home = () => {
     // Exclure les Reels vidéo (reels_express) de la liste principale des annonces
     let list = products.filter(p => p.category !== 'reels_express');
 
+    // Filtrer par la catégorie active sélectionnée dans le slider
+    if (activeCategorySlide) {
+      list = list.filter(p => p.category === activeCategorySlide);
+    }
+
     // 1. Filtrer intelligemment par la région / quartier
     const activeReg = (selectedQuartier || selectedRegion || '').trim().toLowerCase();
     if (activeReg && activeReg !== 'all') {
@@ -453,7 +458,7 @@ const Home = () => {
     }
 
     return list;
-  }, [products, selectedQuartier, selectedRegion, activeUserCoords, selectedRadius]);
+  }, [products, selectedQuartier, selectedRegion, activeUserCoords, selectedRadius, activeCategorySlide]);
 
   const displayProducts = useMemo(() => {
     return groupedView ? groupProducts(processedProducts) : processedProducts;
