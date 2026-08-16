@@ -648,28 +648,7 @@ const ProfilePage = () => {
                   🗑️ Supprimer mon compte
                 </button>
 
-                {profile?.is_admin && (
-                  <Link
-                    to="/admin"
-                    className="active-scale touch-target hover-lift"
-                    style={{
-                      width: '100%',
-                      padding: '1rem',
-                      borderRadius: '16px',
-                      background: 'linear-gradient(135deg, #8A1C1C 0%, #BE123C 100%)',
-                      color: 'white',
-                      textDecoration: 'none',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      gap: '8px',
-                      fontWeight: '800',
-                      boxShadow: '0 4px 15px rgba(138, 28, 28, 0.25)'
-                    }}
-                  >
-                    🛡️ Accéder au Back-Office Admin
-                  </Link>
-                )}
+
 
                 {profile?.account_type === 'boutique' ? (
                   <>

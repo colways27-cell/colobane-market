@@ -447,12 +447,7 @@ const Navbar = () => {
                 {theme === 'dark' ? 'Mode Clair' : 'Mode Sombre Luxe'}
               </button>
 
-              {isAdmin && (
-                <Link to="/admin" onClick={closeMenu} style={{ textDecoration: 'none', color: '#BE123C', fontSize: '1.05rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '12px', background: '#FFF1F2', padding: '10px 14px', borderRadius: '12px', border: '1px solid #FECDD3' }}>
-                  <span>🛡️</span>
-                  Back-Office Admin
-                </Link>
-              )}
+
 
               {/* Infos+ Collapsible Section */}
               <div style={{ display: 'flex', flexDirection: 'column' }}>
