@@ -16,7 +16,7 @@ const SettingsTab = () => {
     text_color: '#FFFFFF',
     link_url: ''
   });
-  });
+
 
   useEffect(() => {
     fetchSettings();
@@ -208,8 +208,6 @@ const SettingsTab = () => {
             {isSaving ? 'Enregistrement...' : 'Enregistrer les Prix'}
           </button>
         </div>
-      </div>
-
       </div>
 
     </div>

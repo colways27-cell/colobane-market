@@ -1671,6 +1671,7 @@ const Home = () => {
         setSelectedQuartier={setSelectedQuartier}
       />
     </div>
+    </div>
   );
 };
 

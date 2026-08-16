@@ -79,7 +79,7 @@ const AdsManagementTab = () => {
       toast.success('Média uploadé avec succès !', { id: 'upload_ad' });
     } catch (err) {
       console.error(err);
-      toast.error('Erreur lors de l\\'upload.', { id: 'upload_ad' });
+      toast.error("Erreur lors de l'upload.", { id: 'upload_ad' });
     } finally {
       setUploadingAdIndex(null);
     }
