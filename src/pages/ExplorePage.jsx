@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { categories } from '../data/categories';
 import FavoriteButton from '../components/FavoriteButton';
 import ReportModal from '../components/ReportModal';
+import ProductImageSlider from '../components/ProductImageSlider';
 import AroundMeModal from '../components/AroundMeModal';
 import { sortProductsByProximity } from '../utils/geolocation';
 import { Store, MapPin, Compass } from 'lucide-react';
@@ -916,7 +917,11 @@ const ExplorePage = () => {
                     style={{ cursor: 'pointer', background: 'var(--card-bg)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}
                   >
                     <div style={{ position: 'relative', width: '100%', paddingTop: '100%', background: '#F1F5F9' }}>
-                      <img src={imageUrl} alt={product.title} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <ProductImageSlider 
+                        images={product.images} 
+                        alt={product.title} 
+                        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }} 
+                      />
                       {/* Badge nombre de vendeurs (mode groupé) */}
                       {isMultiGroup && (
                         <span style={{ position: 'absolute', top: '8px', left: '8px', background: 'var(--primary)', color: 'white', padding: '3px 8px', borderRadius: '8px', fontSize: '9.5px', fontWeight: '800', zIndex: 12, boxShadow: '0 2px 6px rgba(0,0,0,0.15)' }}>

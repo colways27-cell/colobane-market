@@ -14,7 +14,7 @@ import AroundMeModal from '../components/AroundMeModal';
 import { getFollowedBoutiques } from '../utils/followHelpers';
 import FollowButton from '../components/FollowButton';
 import SocialSEO from '../components/SocialSEO';
-
+import ProductImageSlider from '../components/ProductImageSlider';
 // Smart Grouping logic for products
 const groupProducts = (prods) => {
   if (!prods || prods.length === 0) return [];
@@ -1273,11 +1273,10 @@ const Home = () => {
                   >
                     {/* Image & Badge Sponsorisé */}
                     <div style={{ height: '135px', position: 'relative', overflow: 'hidden' }}>
-                      <img
-                        src={imageUrl}
+                      <ProductImageSlider
+                        images={product.images}
                         alt={product.title}
-                        loading="lazy"
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        style={{ width: '100%', height: '100%' }}
                       />
                       {/* Badge Top Glowing */}
                       <span style={{
@@ -1468,22 +1467,11 @@ const Home = () => {
               >
                 {/* Image 1:1 Optimisée */}
                 <div style={{ position: 'relative', width: '100%', paddingTop: '100%', background: '#F1F5F9', overflow: 'hidden' }}>
-                  <img 
-                    src={imageUrl} 
+                  <ProductImageSlider 
+                    images={product.images} 
                     alt={product.title} 
-                    loading="lazy" 
-                    decoding="async"
-                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }} 
+                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }} 
                   />
-
-                  {/* Dots indicator */}
-                  {product.images && product.images.length > 1 && (
-                    <div style={{ position: 'absolute', bottom: '8px', left: 0, width: '100%', display: 'flex', justifyContent: 'center', gap: '4px', zIndex: 10 }}>
-                      {product.images.slice(0, 4).map((_, i) => (
-                        <div key={i} style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'rgba(255,255,255,0.9)', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }} />
-                      ))}
-                    </div>
-                  )}
 
                   {/* Badge nombre de vendeurs (mode groupé) */}
                   {groupedView && product._count > 1 && (

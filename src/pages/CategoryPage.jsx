@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { categories } from '../data/categories';
 import { supabase } from '../lib/supabase';
+import ProductImageSlider from '../components/ProductImageSlider';
 import FavoriteButton from '../components/FavoriteButton';
 import { Store, Filter } from 'lucide-react';
 
@@ -143,7 +144,11 @@ const CategoryPage = () => {
             return (
               <Link to={`/product/${product.id}`} key={product.id} className="product-card active-scale hover-lift" style={{ textDecoration: 'none', background: 'var(--card-bg)', borderRadius: '16px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.04)' }}>
                 <div style={{ position: 'relative', width: '100%', paddingTop: '100%', background: '#F1F5F9' }}>
-                  <img src={imageUrl} alt={product.title} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <ProductImageSlider 
+                    images={product.images} 
+                    alt={product.title} 
+                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }} 
+                  />
                   <FavoriteButton 
                     productId={product.id} 
                     style={{ position: 'absolute', top: '8px', right: '8px', width: '32px', height: '32px', zIndex: 10 }} 

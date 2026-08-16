@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import SocialSEO from '../components/SocialSEO';
+import ProductImageSlider from '../components/ProductImageSlider';
 import { shareBoutique } from '../utils/socialShare';
 import { supabase } from '../lib/supabase';
 import FavoriteButton from '../components/FavoriteButton';
@@ -420,7 +421,11 @@ const BoutiqueProfilePage = () => {
                   return (
                     <Link to={`/product/${product.id}`} key={product.id} className={`product-card active-scale animate-fade-in-up stagger-${(index % 4) + 1}`} style={{ textDecoration: 'none', cursor: 'pointer', border: '1px solid rgba(226, 232, 240, 0.6)', background: 'var(--card-bg)', borderRadius: '20px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                       <div style={{ position: 'relative', width: '100%', paddingTop: '100%', background: '#F8FAFC', overflow: 'hidden' }}>
-                        <img src={imageUrl} alt={product.title} className="product-image" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <ProductImageSlider 
+                        images={product.images} 
+                        alt={product.title} 
+                        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }} 
+                      />
                         
                         <span className="glass-panel" style={{ position: 'absolute', top: '10px', left: '10px', color: 'var(--text-main)', fontSize: '11px', fontWeight: '800', padding: '6px 10px', borderRadius: '12px', zIndex: 10, border: '1px solid rgba(255,255,255,0.5)' }}>
                           {condition}
