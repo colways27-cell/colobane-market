@@ -653,11 +653,12 @@ const ProductPage = () => {
         </div>
         
         {/* Action Buttons */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '10px', marginTop: '12px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}>
+          {/* Main Action: WhatsApp */}
           <a 
             href={`https://wa.me/${(product.contact || product.profiles?.whatsapp_number || '').replace(/\+/g, '')}?text=${encodeURIComponent(`Bonjour, je suis intéressé par votre article "${product.title}" sur Colobane Market.`)}`}
             target="_blank" rel="noopener noreferrer"
-            onClick={() => {
+            onClick={(e) => {
               supabase.rpc('track_lead', { p_product_id: product.id, p_type: 'whatsapp' }).catch(() => {});
               try {
                 const sellerId = product.seller_id || product.profiles?.id;
@@ -676,101 +677,111 @@ const ProductPage = () => {
                   read: false
                 };
                 localStorage.setItem(notifKey, JSON.stringify([newNotif, ...notifs.slice(0, 19)]));
-                } catch (_e) {
-                  // Ignore localStorage error
-                }
+              } catch (_e) {
+                // Ignore localStorage error
+              }
             }}
-            className="active-scale" 
+            className="active-scale hover-lift" 
             style={{
+              width: '100%',
               display: 'flex',
               alignItems: 'center',
               justify: 'center',
-              gap: '8px',
-              padding: '12px 14px',
-              borderRadius: '16px',
+              gap: '10px',
+              padding: '16px',
+              borderRadius: '20px',
               color: 'white',
               background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
               textDecoration: 'none',
-              fontWeight: '700',
-              fontSize: '0.9rem',
-              boxShadow: '0 4px 14px rgba(37,211,102,0.35)'
-            }}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.888-.788-1.489-1.761-1.663-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.052 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
-            💬 Discuter sur WhatsApp
-          </a>
-
-          <a 
-            href={phoneNumber ? `tel:${phoneNumber}` : '#'}
-            onClick={(e) => {
-              if (!phoneNumber) {
-                e.preventDefault();
-                toast.error("Aucun numéro de téléphone disponible.");
-              } else {
-                supabase.rpc('track_lead', { p_product_id: product.id, p_type: 'phone' }).catch(() => {});
-                try {
-                  const sellerId = product.seller_id || product.profiles?.id;
-                  const key = `colobane_stats_${sellerId}`;
-                  const current = JSON.parse(localStorage.getItem(key) || '{"views":0,"whatsapp":0,"calls":0}');
-                  current.calls = (current.calls || 0) + 1;
-                  localStorage.setItem(key, JSON.stringify(current));
-
-                  const notifKey = `colobane_notifs_${sellerId}`;
-                  const notifs = JSON.parse(localStorage.getItem(notifKey) || '[]');
-                  const newNotif = {
-                    id: 'notif_' + Date.now(),
-                    title: '📞 Nouvel appel téléphonique !',
-                    message: `Un client a cliqué pour vous appeler au sujet de "${product.title}".`,
-                    created_at: new Date().toISOString(),
-                    read: false
-                  };
-                  localStorage.setItem(notifKey, JSON.stringify([newNotif, ...notifs.slice(0, 19)]));
-                } catch (_err) {
-                  // Ignore localStorage error
-                }
-              }
-            }}
-            className="active-scale" 
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justify: 'center',
-              gap: '8px',
-              padding: '12px 14px',
-              borderRadius: '16px',
-              color: 'white',
-              background: 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)',
-              textDecoration: 'none',
-              fontWeight: '700',
-              fontSize: '0.9rem',
-              boxShadow: '0 4px 14px rgba(59,130,246,0.35)'
-            }}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-            Appel
-          </a>
-
-          <button 
-            onClick={() => setShowFlyerModal(true)}
-            className="active-scale hover-lift" 
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justify: 'center',
-              gap: '6px',
-              padding: '12px 14px',
-              borderRadius: '16px',
-              border: '1.5px solid #10B981',
-              color: '#047857',
-              background: '#F0FDF4',
-              cursor: 'pointer',
               fontWeight: '800',
-              fontSize: '0.88rem',
-              boxShadow: '0 4px 12px rgba(16,185,129,0.15)'
+              fontSize: '1.05rem',
+              boxShadow: '0 8px 24px rgba(37,211,102,0.25)',
+              transition: 'all 0.2s ease'
             }}
           >
-            📲 Statut WhatsApp
-          </button>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.888-.788-1.489-1.761-1.663-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.052 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+            Discuter sur WhatsApp
+          </a>
+
+          {/* Secondary Actions Row */}
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <a 
+              href={phoneNumber ? `tel:${phoneNumber}` : '#'}
+              onClick={(e) => {
+                if (!phoneNumber) {
+                  e.preventDefault();
+                  toast.error("Aucun numéro de téléphone disponible.");
+                } else {
+                  supabase.rpc('track_lead', { p_product_id: product.id, p_type: 'phone' }).catch(() => {});
+                  try {
+                    const sellerId = product.seller_id || product.profiles?.id;
+                    const key = `colobane_stats_${sellerId}`;
+                    const current = JSON.parse(localStorage.getItem(key) || '{"views":0,"whatsapp":0,"calls":0}');
+                    current.calls = (current.calls || 0) + 1;
+                    localStorage.setItem(key, JSON.stringify(current));
+
+                    const notifKey = `colobane_notifs_${sellerId}`;
+                    const notifs = JSON.parse(localStorage.getItem(notifKey) || '[]');
+                    const newNotif = {
+                      id: 'notif_' + Date.now(),
+                      title: '📞 Nouvel appel téléphonique !',
+                      message: `Un client a cliqué pour vous appeler au sujet de "${product.title}".`,
+                      created_at: new Date().toISOString(),
+                      read: false
+                    };
+                    localStorage.setItem(notifKey, JSON.stringify([newNotif, ...notifs.slice(0, 19)]));
+                  } catch (_err) {
+                    // Ignore localStorage error
+                  }
+                }
+              }}
+              className="active-scale hover-lift" 
+              style={{
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justify: 'center',
+                gap: '8px',
+                padding: '14px',
+                borderRadius: '16px',
+                color: '#1D4ED8',
+                background: '#EFF6FF',
+                textDecoration: 'none',
+                fontWeight: '700',
+                fontSize: '0.95rem',
+                border: '1px solid #BFDBFE',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+              Appeler
+            </a>
+
+            <button 
+              onClick={() => setShowFlyerModal(true)}
+              className="active-scale hover-lift" 
+              style={{
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justify: 'center',
+                gap: '8px',
+                padding: '14px',
+                borderRadius: '16px',
+                border: '1.5px solid #10B981',
+                color: '#047857',
+                background: '#F0FDF4',
+                cursor: 'pointer',
+                fontWeight: '700',
+                fontSize: '0.95rem',
+                transition: 'all 0.2s ease',
+                boxShadow: '0 4px 12px rgba(16,185,129,0.08)'
+              }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+              Partager Statut
+            </button>
+          </div>
         </div>
       </div>
 
@@ -826,46 +837,68 @@ const ProductPage = () => {
       )}
 
       {/* Seller Mini Profile & Security */}
-      <div style={{ margin: '12px 0' }}>
+      <div style={{ margin: '24px 0 16px 0' }}>
         <div 
           onClick={() => navigate(`/boutique/${product.seller_id}`)}
-          className="active-scale" 
-          style={{ background: 'white', padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)', cursor: 'pointer' }}
+          className="active-scale hover-lift" 
+          style={{ 
+            background: 'white', 
+            padding: '16px', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'space-between', 
+            borderRadius: '20px', 
+            border: '1px solid #E2E8F0', 
+            boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
+            cursor: 'pointer' 
+          }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'linear-gradient(135deg, #F1F5F9, #E2E8F0)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', flexShrink: 0, boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.05)' }}>
               {product.profiles?.boutique_name ? '🏪' : '👤'}
             </div>
-            <div>
-              <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <div style={{ fontSize: '15px', fontWeight: '800', color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 {product.profiles?.boutique_name || product.profiles?.pseudo || product.profiles?.full_name || 'Vendeur'}
                 {product.profiles?.is_verified && (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="#25D366" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L15 8L22 9L17 14L18.5 21L12 17.5L5.5 21L7 14L2 9L9 8L12 2Z" stroke="#25D366" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="#10B981" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L15 8L22 9L17 14L18.5 21L12 17.5L5.5 21L7 14L2 9L9 8L12 2Z" stroke="white" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 )}
               </div>
-              <div className="text-meta" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
-                <span style={{ width: '15px', height: '15px', borderRadius: '50%', background: 'linear-gradient(135deg, #d97706, #92400e)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'white', flexShrink: 0 }}>
-                  <MapPin size={9} strokeWidth={3} />
-                </span>
-                {product.location || 'Dakar'} 
+              
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#64748B', fontWeight: '600' }}>
+                  <MapPin size={12} strokeWidth={2.5} color="#94A3B8" />
+                  {product.location || 'Dakar'}
+                </div>
                 {product.profiles?.is_verified && (
-                  <> • <span style={{ color: '#25D366', fontWeight: '600' }}>Certifié 🛡️</span></>
+                  <>
+                    <span style={{ color: '#CBD5E1' }}>•</span>
+                    <span style={{ color: '#10B981', fontSize: '11px', fontWeight: '800', background: '#ECFDF5', padding: '2px 6px', borderRadius: '6px' }}>Certifié</span>
+                  </>
                 )}
                 {sellerRating && (
-                  <span style={{ marginLeft: '4px', background: '#FFFBEB', color: '#B45309', border: '1px solid #FCD34D', padding: '1px 6px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '800', display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
-                    ⭐ {sellerRating} ({sellerReviewCount})
-                  </span>
+                  <>
+                    <span style={{ color: '#CBD5E1' }}>•</span>
+                    <span style={{ color: '#D97706', fontSize: '11px', fontWeight: '800', background: '#FFFBEB', padding: '2px 6px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                      {sellerRating} ({sellerReviewCount})
+                    </span>
+                  </>
                 )}
               </div>
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <FollowButton 
+          
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px' }}>
+             <FollowButton 
               boutiqueId={product.seller_id || product.profiles?.id}
               boutiqueName={product.profiles?.boutique_name || product.profiles?.full_name || 'Vendeur'}
               size="sm"
             />
-            <div style={{ color: 'var(--primary)', fontWeight: '700', fontSize: '13px' }}>Profil →</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '2px', color: '#64748B', fontSize: '12px', fontWeight: '600' }}>
+              Voir profil
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </div>
           </div>
         </div>
 
