@@ -1000,8 +1000,18 @@ const Home = () => {
                 <button 
                   key={cat.id} 
                   onClick={() => {
-                    if (isActive) setActiveCategorySlide(null);
-                    else setActiveCategorySlide(cat.id);
+                    if (isActive) {
+                      setActiveCategorySlide(null);
+                    } else {
+                      setActiveCategorySlide(cat.id);
+                      setTimeout(() => {
+                        if (recentProductsRef.current) {
+                          const yOffset = -80;
+                          const y = recentProductsRef.current.getBoundingClientRect().top + window.scrollY + yOffset;
+                          window.scrollTo({ top: y, behavior: 'smooth' });
+                        }
+                      }, 100);
+                    }
                   }} 
                   className="touch-target active-scale" 
                   style={{
