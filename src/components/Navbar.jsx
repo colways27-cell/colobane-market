@@ -190,7 +190,7 @@ const Navbar = () => {
             {/* Theme Toggle Button */}
             <button
               onClick={toggleTheme}
-              className="active-scale hover-lift"
+              className="hide-on-mobile active-scale hover-lift"
               title={theme === 'dark' ? 'Passer en mode clair' : 'Passer en mode sombre luxe'}
               style={{
                 background: theme === 'dark' ? '#1E293B' : '#FFFFFF',
@@ -213,7 +213,7 @@ const Navbar = () => {
             </button>
             <Link 
               to="/reels" 
-              className="active-scale hover-lift" 
+              className="hide-on-mobile active-scale hover-lift" 
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -436,6 +436,16 @@ const Navbar = () => {
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
                 Nos Offres
               </Link>
+              
+              <button 
+                onClick={() => { toggleTheme(); closeMenu(); }}
+                style={{ background: 'none', border: 'none', padding: 0, color: 'var(--text-main)', fontSize: '1.1rem', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', textAlign: 'left' }}
+              >
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  {theme === 'dark' ? <><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></> : <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>}
+                </svg>
+                {theme === 'dark' ? 'Mode Clair' : 'Mode Sombre Luxe'}
+              </button>
 
               {isAdmin && (
                 <Link to="/admin" onClick={closeMenu} style={{ textDecoration: 'none', color: '#BE123C', fontSize: '1.05rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '12px', background: '#FFF1F2', padding: '10px 14px', borderRadius: '12px', border: '1px solid #FECDD3' }}>
