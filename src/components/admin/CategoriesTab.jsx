@@ -123,7 +123,7 @@ const CategoriesTab = () => {
                   <IconComp size={24} strokeWidth={1.5} />
                 </div>
                 <div style={{ minWidth: '0' }}>
-                  <div style={{ fontWeight: 800, fontSize: '1rem', color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{cat.name}</div>
+                  <div style={{ fontWeight: 800, fontSize: '1rem', color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{cat.name || cat.id || 'Catégorie Inconnue'}</div>
                   <div style={{ fontSize: '0.75rem', color: '#64748B', display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                     <span>ID: {cat.id}</span>
                     <span>|</span>
