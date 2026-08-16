@@ -34,7 +34,18 @@ const defaultIconNames = {
   'vetements_homme': 'Shirt',
   'vetements_femme': 'Shirt',
   'chaussures': 'ShoppingBag',
-  'montres_bijoux': 'Sparkles'
+  'montres_bijoux': 'Sparkles',
+  'electromenager': 'Tv'
+};
+
+const legacyCategoryData = {
+  'telephones': { name: 'Téléphones & Tablettes', color: '#007aff', iconName: 'Smartphone' },
+  'ordinateurs': { name: 'Informatique', color: '#5856d6', iconName: 'Laptop' },
+  'vetements_homme': { name: 'Vêtements Homme', color: '#ff2d55', iconName: 'Shirt' },
+  'vetements_femme': { name: 'Vêtements Femme', color: '#ff2d55', iconName: 'Shirt' },
+  'chaussures': { name: 'Chaussures', color: '#ff9500', iconName: 'ShoppingBag' },
+  'montres_bijoux': { name: 'Montres & Bijoux', color: '#ffcc00', iconName: 'Sparkles' },
+  'electromenager': { name: 'Électroménager', color: '#4cd964', iconName: 'Tv' },
 };
 
 export const useCategories = () => {
@@ -55,8 +66,8 @@ export const useCategories = () => {
           const dynamicCats = data.setting_value
             .filter(cat => cat.is_active !== false) // Filtrer les inactifs
             .map(cat => {
-              const defaultCat = defaultCategories.find(dc => dc.id === cat.id) || {};
-              const iconName = cat.iconName || defaultIconNames[cat.id] || 'Box';
+              const defaultCat = defaultCategories.find(dc => dc.id === cat.id) || legacyCategoryData[cat.id] || {};
+              const iconName = cat.iconName || defaultCat.iconName || defaultIconNames[cat.id] || 'Box';
               return {
                 ...defaultCat,
                 ...cat,
