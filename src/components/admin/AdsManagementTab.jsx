@@ -177,7 +177,7 @@ const AdsManagementTab = () => {
                     </button>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: '24px' }}>
                     
                     {/* COLONNE GAUCHE: MEDIA & INFOS */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
