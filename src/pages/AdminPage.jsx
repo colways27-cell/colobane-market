@@ -10,6 +10,9 @@ import BoutiqueApprovalTab from '../components/admin/BoutiqueApprovalTab';
 import CertificationTab from '../components/admin/CertificationTab';
 import ProductModerationTab from '../components/admin/ProductModerationTab';
 import SettingsTab from '../components/admin/SettingsTab';
+import ReportsTab from '../components/admin/ReportsTab';
+import NotificationsTab from '../components/admin/NotificationsTab';
+import CategoriesTab from '../components/admin/CategoriesTab';
 
 const AdminPage = () => {
   const navigate = useNavigate();
@@ -328,7 +331,7 @@ const AdminPage = () => {
     }
   };
 
-  const handleUpdateUserPlan = async ({ userId, plan, accountType, isVerified }) => {
+  const handleUpdateUserPlan = async ({ userId, plan, accountType, isVerified, isSponsored }) => {
     setUpdatingUser(true);
     toast.loading('Mise à jour...', { id: 'update-user' });
     try {
@@ -342,7 +345,8 @@ const AdminPage = () => {
           subscription_plan: plan,
           subscription_end_date: subEndDateISO,
           account_type: accountType,
-          is_verified: isVerified
+          is_verified: isVerified,
+          is_sponsored: isSponsored
         })
         .eq('id', userId);
 
@@ -505,6 +509,9 @@ const AdminPage = () => {
     { id: 'boutiques', label: `🏪 Boutiques (${boutiques.length})` },
     { id: 'certifications', label: `👑 Certifications (${demandesCertification.filter(c => c.status === 'pending').length})` },
     { id: 'moderation', label: `🛡️ Modération (${reports.filter(r => r.status === 'pending' || !r.status).length})` },
+    { id: 'reports', label: `🚨 Signalements (${reports.filter(r => r.status === 'pending' || !r.status).length})` },
+    { id: 'notifications', label: `💌 Notifications Push` },
+    { id: 'categories', label: `📂 Catégories` },
     { id: 'settings', label: `⚙️ Paramètres` },
   ];
 
@@ -681,6 +688,22 @@ const AdminPage = () => {
             onEditProduct={editProduct}
             onZoomImage={setZoomImage}
           />
+        )}
+
+        {activeTab === 'reports' && (
+          <ReportsTab 
+            reports={reports} 
+            setReports={setReports}
+            fetchAllData={fetchAllData}
+          />
+        )}
+
+        {activeTab === 'notifications' && (
+          <NotificationsTab />
+        )}
+
+        {activeTab === 'categories' && (
+          <CategoriesTab />
         )}
 
         {activeTab === 'settings' && (

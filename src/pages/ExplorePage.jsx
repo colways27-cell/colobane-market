@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { categories } from '../data/categories';
+import { useCategories } from '../hooks/useCategories';
 import FavoriteButton from '../components/FavoriteButton';
 import ReportModal from '../components/ReportModal';
 import ProductImageSlider from '../components/ProductImageSlider';
@@ -23,6 +23,8 @@ const ExplorePage = () => {
   const initialCategory = searchParams.get('category') || location.state?.category || 'all';
   const initialSearch = searchParams.get('q') || '';
   const initialSubcategory = searchParams.get('subcategory') || 'all';
+
+  const { categories, loading: categoriesLoading } = useCategories();
   const initialBoosted = searchParams.get('boosted') === 'true';
 
   const resultsRef = useRef(null);

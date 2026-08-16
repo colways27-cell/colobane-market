@@ -20,6 +20,7 @@ const UserManagementTab = ({
   const [editPlan, setEditPlan] = useState('none');
   const [editAccountType, setEditAccountType] = useState('particulier');
   const [editIsVerified, setEditIsVerified] = useState(false);
+  const [editIsSponsored, setEditIsSponsored] = useState(false);
 
   const filteredUsers = utilisateurs.filter(u => {
     const query = searchQuery.toLowerCase().trim();
@@ -43,6 +44,7 @@ const UserManagementTab = ({
     setEditPlan(user.subscription_plan || 'none');
     setEditAccountType(user.account_type || 'particulier');
     setEditIsVerified(!!user.is_verified);
+    setEditIsSponsored(!!user.is_sponsored);
   };
 
   const handleSave = () => {
@@ -51,7 +53,8 @@ const UserManagementTab = ({
       userId: editingUser.id,
       plan: editPlan,
       accountType: editAccountType,
-      isVerified: editIsVerified
+      isVerified: editIsVerified,
+      isSponsored: editIsSponsored
     });
     setEditingUser(null);
   };
@@ -344,6 +347,19 @@ const UserManagementTab = ({
                 />
                 <label htmlFor="isVerified" style={{ fontWeight: 700, cursor: 'pointer', fontSize: '0.9rem' }}>
                   👑 Badge Vendeur Certifié Officiel
+                </label>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '4px' }}>
+                <input
+                  type="checkbox"
+                  id="isSponsored"
+                  checked={editIsSponsored}
+                  onChange={e => setEditIsSponsored(e.target.checked)}
+                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                />
+                <label htmlFor="isSponsored" style={{ fontWeight: 700, cursor: 'pointer', fontSize: '0.9rem', color: '#B45309' }}>
+                  ⭐ Boutique Sponsorisée (Mise en avant)
                 </label>
               </div>
             </div>

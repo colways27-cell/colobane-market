@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import imageCompression from 'browser-image-compression';
-import { categories } from '../data/categories';
+import { useCategories } from '../hooks/useCategories';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../components/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -196,6 +196,7 @@ const categoryDescriptionTemplates = {
 const PublishPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { categories, loading: categoriesLoading } = useCategories();
   
   const [step, setStep] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState('');

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { categories } from '../data/categories';
+import { useCategories } from '../hooks/useCategories';
 import { products as mockProducts } from '../data/products';
 import { supabase } from '../lib/supabase';
 import SkeletonCard from '../components/SkeletonCard';
@@ -338,6 +338,9 @@ const Home = () => {
   const [showRightArrow, setShowRightArrow] = useState(true);
   const PAGE_SIZE = 15;
   const navigate = useNavigate();
+
+  // Custom Hook for Dynamic Categories
+  const { categories, loading: categoriesLoading } = useCategories();
 
   // Smart Search & Autocomplete State for Homepage
   const [homeSearchQuery, setHomeSearchQuery] = useState('');

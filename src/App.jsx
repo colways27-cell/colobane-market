@@ -8,6 +8,7 @@ import ScrollToTop from './components/ScrollToTop';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import BottomNav from './components/BottomNav';
+import GlobalAnnouncement from './components/GlobalAnnouncement';
 import { Toaster } from 'react-hot-toast';
 import Home from './pages/Home';
 
@@ -128,6 +129,7 @@ const LayoutWrapper = () => {
       <Navbar />
       <InstallPWA />
       <PushNotificationPrompt />
+      <GlobalAnnouncement />
       <main className="main-content">
         <Suspense fallback={<PageLoader />}>
           <Routes>

@@ -331,11 +331,27 @@ const AdminOverview = ({
             </div>
           </div>
 
-          <div style={{ marginTop: '16px', padding: '10px 12px', background: '#F8FAFC', borderRadius: '12px', border: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '0.8rem', color: '#475569', fontWeight: 600 }}>Taux d'acceptation :</span>
-            <strong style={{ color: '#059669', fontSize: '0.95rem' }}>
-              {paiements.length > 0 ? Math.round((approvedPayments.length / paiements.length) * 100) : 100}%
-            </strong>
+          <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ padding: '10px 12px', background: '#F8FAFC', borderRadius: '12px', border: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '0.8rem', color: '#475569', fontWeight: 600 }}>Taux d'acceptation (Paiements) :</span>
+              <strong style={{ color: '#059669', fontSize: '0.95rem' }}>
+                {paiements.length > 0 ? Math.round((approvedPayments.length / paiements.length) * 100) : 100}%
+              </strong>
+            </div>
+
+            <div style={{ padding: '10px 12px', background: '#F8FAFC', borderRadius: '12px', border: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '0.8rem', color: '#475569', fontWeight: 600 }}>Taux de Résolution (Signalements) :</span>
+              <strong style={{ color: '#0284C7', fontSize: '0.95rem' }}>
+                {reports.length > 0 ? Math.round((reports.filter(r => r.status === 'resolved').length / reports.length) * 100) : 100}%
+              </strong>
+            </div>
+
+            <div style={{ padding: '10px 12px', background: '#F8FAFC', borderRadius: '12px', border: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '0.8rem', color: '#475569', fontWeight: 600 }}>Proportion Boutiques / Utilisateurs :</span>
+              <strong style={{ color: '#9333EA', fontSize: '0.95rem' }}>
+                {utilisateurs.length > 0 ? Math.round((boutiques.length / utilisateurs.length) * 100) : 0}% Boutiques
+              </strong>
+            </div>
           </div>
         </div>
 

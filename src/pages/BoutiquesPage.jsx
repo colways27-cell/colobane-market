@@ -84,6 +84,10 @@ const BoutiquesPage = () => {
     const matchesFilter = filterType === 'all' || (filterType === 'verified' && b.is_verified);
 
     return matchesSearch && matchesRegion && matchesFilter;
+  }).sort((a, b) => {
+    if (a.is_sponsored && !b.is_sponsored) return -1;
+    if (!a.is_sponsored && b.is_sponsored) return 1;
+    return 0;
   });
 
   const verifiedCount = boutiques.filter(b => b.is_verified).length;
@@ -264,12 +268,24 @@ const BoutiquesPage = () => {
                   position: 'relative'
                 }}
               >
-                {/* Banner / Cover */}
                 <div style={{ 
                   height: '140px', 
                   background: boutique.banner_url ? `url(${boutique.banner_url}) center/cover no-repeat` : 'linear-gradient(135deg, #1e293b 0%, #334155 100%)', 
                   position: 'relative' 
                 }}>
+                  {/* Badge Sponsorisé */}
+                  {boutique.is_sponsored && (
+                    <div style={{
+                      position: 'absolute', top: '12px', left: '12px',
+                      background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)', color: 'white',
+                      padding: '4px 10px', borderRadius: '8px', fontSize: '0.7rem',
+                      fontWeight: '900', display: 'flex', alignItems: 'center', gap: '4px',
+                      boxShadow: '0 4px 12px rgba(245, 158, 11, 0.4)'
+                    }}>
+                      ⭐ SPONSORISÉ
+                    </div>
+                  )}
+
                   {/* Badge Certification Header */}
                   {boutique.is_verified ? (
                     <div style={{ 
