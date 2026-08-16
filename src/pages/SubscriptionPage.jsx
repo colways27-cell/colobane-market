@@ -20,6 +20,15 @@ const SubscriptionPage = () => {
   
   const [maxSelectionLimit, setMaxSelectionLimit] = useState(0);
   const [selectedProductIds, setSelectedProductIds] = useState([]);
+  
+  const [pricingPlans, setPricingPlans] = useState({
+    boost_product_1j: { price: 500, duration_days: 1, ads_count: 1, label: "1 Annonce - 24H" },
+    boost_product_7j: { price: 1500, duration_days: 7, ads_count: 2, label: "2 Annonces - 1 Semaine" },
+    boost_product_30j: { price: 5000, duration_days: 30, ads_count: 5, label: "5 Annonces - 1 Mois" },
+    boost_product_12_30j: { price: 10000, duration_days: 30, ads_count: 12, label: "12 Annonces - 1 Mois" },
+    forfait_boutique: { price: 5000, duration_days: 30, label: "Boutique Pro (1 Mois)" },
+    forfait_premium: { price: 10000, duration_days: 30, ads_count: 5, label: "Boutique Premium + 5 Boosts" }
+  });
 
   useEffect(() => {
     if (!user) {
@@ -27,6 +36,20 @@ const SubscriptionPage = () => {
       return;
     }
     const fetchData = async () => {
+      // Load pricing settings
+      try {
+        const { data: settingsData } = await supabase
+          .from('app_settings')
+          .select('setting_value')
+          .eq('setting_key', 'pricing_plans')
+          .maybeSingle();
+        if (settingsData && settingsData.setting_value) {
+          setPricingPlans(settingsData.setting_value);
+        }
+      } catch (err) {
+        console.error('Erreur chargement des tarifs', err);
+      }
+
       const { data: profileData } = await supabase.from('profiles').select('*').eq('id', user.id).single();
       setProfile(profileData);
       
@@ -161,14 +184,14 @@ const SubscriptionPage = () => {
           <div style={{ background: 'white', borderRadius: '24px', padding: '24px', border: '1.5px solid #CBD5E1', display: 'flex', flexDirection: 'column', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
             <div style={{ fontSize: '0.85rem', color: '#475569', fontWeight: '800', textTransform: 'uppercase', marginBottom: '8px' }}>Boutique Pro</div>
             <div style={{ fontSize: '2.2rem', fontWeight: '900', color: '#0F172A', margin: '0 0 16px 0', lineHeight: 1 }}>
-              5 000 <span style={{ fontSize: '1rem', color: '#64748B', fontWeight: '700' }}>FCFA / mois</span>
+              {pricingPlans.forfait_boutique?.price.toLocaleString()} <span style={{ fontSize: '1rem', color: '#64748B', fontWeight: '700' }}>FCFA / mois</span>
             </div>
             <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px 0', display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
               <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', fontWeight: '600' }}><span>🏪</span> Page Boutique dédiée</li>
               <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', color: '#475569' }}><span>🛡️</span> Badge Vendeur Pro</li>
               <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', color: '#475569' }}><span>📞</span> Boutons de contact optimisés</li>
             </ul>
-            <button onClick={() => initiatePayment('abonnement_boutique_5000', 5000, 0)} className="active-scale" style={{ width: '100%', padding: '12px', borderRadius: '14px', background: '#0F172A', color: 'white', border: 'none', fontWeight: '800', fontSize: '1rem', cursor: 'pointer' }}>
+            <button onClick={() => initiatePayment('abonnement_boutique_5000', pricingPlans.forfait_boutique?.price || 5000, 0)} className="active-scale" style={{ width: '100%', padding: '12px', borderRadius: '14px', background: '#0F172A', color: 'white', border: 'none', fontWeight: '800', fontSize: '1rem', cursor: 'pointer' }}>
               Devenir Vendeur Pro
             </button>
           </div>
@@ -180,14 +203,14 @@ const SubscriptionPage = () => {
             </div>
             <div style={{ fontSize: '0.85rem', color: '#D97706', fontWeight: '800', textTransform: 'uppercase', marginBottom: '8px', marginTop: '10px' }}>Boutique Premium</div>
             <div style={{ fontSize: '2.2rem', fontWeight: '900', color: '#92400E', margin: '0 0 16px 0', lineHeight: 1 }}>
-              10 000 <span style={{ fontSize: '1rem', color: '#B45309', fontWeight: '700' }}>FCFA / mois</span>
+              {pricingPlans.forfait_premium?.price.toLocaleString()} <span style={{ fontSize: '1rem', color: '#B45309', fontWeight: '700' }}>FCFA / mois</span>
             </div>
             <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px 0', display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
               <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', fontWeight: '600' }}><span>🏪</span> Tous les avantages Boutique</li>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', fontWeight: '700', color: '#92400E' }}><span>🚀</span> + 5 Annonces Boostées incluses</li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', fontWeight: '700', color: '#92400E' }}><span>🚀</span> + {pricingPlans.forfait_premium?.ads_count || 5} Annonces Boostées incluses</li>
               <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', color: '#475569' }}><span>⭐</span> Visibilité maximale</li>
             </ul>
-            <button onClick={() => initiatePayment('abonnement_boutique_10000', 10000, 5)} className="active-scale" style={{ width: '100%', padding: '12px', borderRadius: '14px', background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: 'white', border: 'none', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', boxShadow: '0 4px 15px rgba(245,158,11,0.2)' }}>
+            <button onClick={() => initiatePayment('abonnement_boutique_10000', pricingPlans.forfait_premium?.price || 10000, pricingPlans.forfait_premium?.ads_count || 5)} className="active-scale" style={{ width: '100%', padding: '12px', borderRadius: '14px', background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: 'white', border: 'none', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', boxShadow: '0 4px 15px rgba(245,158,11,0.2)' }}>
               Prendre le Pack Premium
             </button>
           </div>
@@ -208,14 +231,14 @@ const SubscriptionPage = () => {
           <div style={{ background: 'white', borderRadius: '24px', padding: '24px', border: '1.5px solid #FDE68A', display: 'flex', flexDirection: 'column', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
             <div style={{ fontSize: '0.85rem', color: '#D97706', fontWeight: '800', textTransform: 'uppercase', marginBottom: '8px' }}>Boost Flash</div>
             <div style={{ fontSize: '2.2rem', fontWeight: '900', color: '#B45309', margin: '0 0 16px 0', lineHeight: 1 }}>
-              500 <span style={{ fontSize: '1rem', color: '#92400E', fontWeight: '700' }}>FCFA</span>
+              {pricingPlans.boost_product_1j?.price.toLocaleString()} <span style={{ fontSize: '1rem', color: '#92400E', fontWeight: '700' }}>FCFA</span>
             </div>
             <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px 0', display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', fontWeight: '600' }}><span>📢</span> <strong>1 Annonce</strong> sponsorisée</li>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', color: '#475569' }}><span>⏳</span> Valable pour 24 Heures</li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', fontWeight: '600' }}><span>📢</span> <strong>{pricingPlans.boost_product_1j?.ads_count || 1} Annonce</strong> sponsorisée</li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', color: '#475569' }}><span>⏳</span> Valable pour {pricingPlans.boost_product_1j?.duration_days || 1} Jour(s)</li>
             </ul>
-            <button onClick={() => initiatePayment('boost_1_annonce_24h', 500, 1)} className="active-scale" style={{ width: '100%', padding: '12px', borderRadius: '14px', background: '#F59E0B', color: 'white', border: 'none', fontWeight: '800', fontSize: '1rem', cursor: 'pointer' }}>
-              Booster 1 Annonce
+            <button onClick={() => initiatePayment('boost_1_annonce_24h', pricingPlans.boost_product_1j?.price || 500, pricingPlans.boost_product_1j?.ads_count || 1)} className="active-scale" style={{ width: '100%', padding: '12px', borderRadius: '14px', background: '#F59E0B', color: 'white', border: 'none', fontWeight: '800', fontSize: '1rem', cursor: 'pointer' }}>
+              Booster {pricingPlans.boost_product_1j?.ads_count || 1} Annonce
             </button>
           </div>
 
@@ -223,14 +246,14 @@ const SubscriptionPage = () => {
           <div style={{ background: 'white', borderRadius: '24px', padding: '24px', border: '1.5px solid #FCD34D', display: 'flex', flexDirection: 'column', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
             <div style={{ fontSize: '0.85rem', color: '#D97706', fontWeight: '800', textTransform: 'uppercase', marginBottom: '8px' }}>Pack Semaine</div>
             <div style={{ fontSize: '2.2rem', fontWeight: '900', color: '#B45309', margin: '0 0 16px 0', lineHeight: 1 }}>
-              1 500 <span style={{ fontSize: '1rem', color: '#92400E', fontWeight: '700' }}>FCFA</span>
+              {pricingPlans.boost_product_7j?.price.toLocaleString()} <span style={{ fontSize: '1rem', color: '#92400E', fontWeight: '700' }}>FCFA</span>
             </div>
             <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px 0', display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', fontWeight: '600' }}><span>📢</span> <strong>2 Annonces</strong> au choix</li>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', color: '#475569' }}><span>⏳</span> Valable pour 1 semaine (7j)</li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', fontWeight: '600' }}><span>📢</span> <strong>{pricingPlans.boost_product_7j?.ads_count || 2} Annonces</strong> au choix</li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', color: '#475569' }}><span>⏳</span> Valable pour {pricingPlans.boost_product_7j?.duration_days || 7} jour(s)</li>
             </ul>
-            <button onClick={() => initiatePayment('pack_2_annonces', 1500, 2)} className="active-scale" style={{ width: '100%', padding: '12px', borderRadius: '14px', background: '#D97706', color: 'white', border: 'none', fontWeight: '800', fontSize: '1rem', cursor: 'pointer' }}>
-              Booster 2 Annonces
+            <button onClick={() => initiatePayment('pack_2_annonces', pricingPlans.boost_product_7j?.price || 1500, pricingPlans.boost_product_7j?.ads_count || 2)} className="active-scale" style={{ width: '100%', padding: '12px', borderRadius: '14px', background: '#D97706', color: 'white', border: 'none', fontWeight: '800', fontSize: '1rem', cursor: 'pointer' }}>
+              Booster {pricingPlans.boost_product_7j?.ads_count || 2} Annonces
             </button>
           </div>
 
@@ -238,14 +261,14 @@ const SubscriptionPage = () => {
           <div style={{ background: '#FFFBEB', borderRadius: '24px', padding: '24px', border: '1.5px solid #FCD34D', display: 'flex', flexDirection: 'column', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
             <div style={{ fontSize: '0.85rem', color: '#B45309', fontWeight: '800', textTransform: 'uppercase', marginBottom: '8px' }}>Pack Mensuel</div>
             <div style={{ fontSize: '2.2rem', fontWeight: '900', color: '#92400E', margin: '0 0 16px 0', lineHeight: 1 }}>
-              5 000 <span style={{ fontSize: '1rem', color: '#78350F', fontWeight: '700' }}>FCFA</span>
+              {pricingPlans.boost_product_30j?.price.toLocaleString()} <span style={{ fontSize: '1rem', color: '#78350F', fontWeight: '700' }}>FCFA</span>
             </div>
             <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px 0', display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', fontWeight: '600' }}><span>📢</span> <strong>5 Annonces</strong> au choix</li>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', color: '#475569' }}><span>⏳</span> Valable pour 1 mois (30j)</li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', fontWeight: '600' }}><span>📢</span> <strong>{pricingPlans.boost_product_30j?.ads_count || 5} Annonces</strong> au choix</li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', color: '#475569' }}><span>⏳</span> Valable pour {pricingPlans.boost_product_30j?.duration_days || 30} jour(s)</li>
             </ul>
-            <button onClick={() => initiatePayment('pack_5_annonces_mois', 5000, 5)} className="active-scale" style={{ width: '100%', padding: '12px', borderRadius: '14px', background: '#B45309', color: 'white', border: 'none', fontWeight: '800', fontSize: '1rem', cursor: 'pointer' }}>
-              Booster 5 Annonces
+            <button onClick={() => initiatePayment('pack_5_annonces_mois', pricingPlans.boost_product_30j?.price || 5000, pricingPlans.boost_product_30j?.ads_count || 5)} className="active-scale" style={{ width: '100%', padding: '12px', borderRadius: '14px', background: '#B45309', color: 'white', border: 'none', fontWeight: '800', fontSize: '1rem', cursor: 'pointer' }}>
+              Booster {pricingPlans.boost_product_30j?.ads_count || 5} Annonces
             </button>
           </div>
 
@@ -253,14 +276,14 @@ const SubscriptionPage = () => {
           <div style={{ background: '#FEF2F2', borderRadius: '24px', padding: '24px', border: '1.5px solid #FECACA', display: 'flex', flexDirection: 'column', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
             <div style={{ fontSize: '0.85rem', color: '#B91C1C', fontWeight: '800', textTransform: 'uppercase', marginBottom: '8px' }}>Pack Max</div>
             <div style={{ fontSize: '2.2rem', fontWeight: '900', color: '#991B1B', margin: '0 0 16px 0', lineHeight: 1 }}>
-              10 000 <span style={{ fontSize: '1rem', color: '#7F1D1D', fontWeight: '700' }}>FCFA</span>
+              {pricingPlans.boost_product_12_30j?.price.toLocaleString()} <span style={{ fontSize: '1rem', color: '#7F1D1D', fontWeight: '700' }}>FCFA</span>
             </div>
             <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px 0', display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', fontWeight: '600' }}><span>📢</span> <strong>12 Annonces</strong> au choix</li>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', color: '#475569' }}><span>⏳</span> Valable pour 1 mois (30j)</li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', fontWeight: '600' }}><span>📢</span> <strong>{pricingPlans.boost_product_12_30j?.ads_count || 12} Annonces</strong> au choix</li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', color: '#475569' }}><span>⏳</span> Valable pour {pricingPlans.boost_product_12_30j?.duration_days || 30} jour(s)</li>
             </ul>
-            <button onClick={() => initiatePayment('pack_12_annonces', 10000, 12)} className="active-scale" style={{ width: '100%', padding: '12px', borderRadius: '14px', background: '#B91C1C', color: 'white', border: 'none', fontWeight: '800', fontSize: '1rem', cursor: 'pointer' }}>
-              Booster 12 Annonces
+            <button onClick={() => initiatePayment('pack_12_annonces', pricingPlans.boost_product_12_30j?.price || 10000, pricingPlans.boost_product_12_30j?.ads_count || 12)} className="active-scale" style={{ width: '100%', padding: '12px', borderRadius: '14px', background: '#B91C1C', color: 'white', border: 'none', fontWeight: '800', fontSize: '1rem', cursor: 'pointer' }}>
+              Booster {pricingPlans.boost_product_12_30j?.ads_count || 12} Annonces
             </button>
           </div>
 

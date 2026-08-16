@@ -224,6 +224,15 @@ const PublishPage = () => {
   const [hasReachedLimit, setHasReachedLimit] = useState(false);
   const locationQuery = useLocation();
 
+  const [pricingPlans, setPricingPlans] = useState({
+    boost_product_1j: { price: 500, duration_days: 1, ads_count: 1, label: "1 Annonce - 24H" },
+    boost_product_7j: { price: 1500, duration_days: 7, ads_count: 2, label: "2 Annonces - 1 Semaine" },
+    boost_product_30j: { price: 5000, duration_days: 30, ads_count: 5, label: "5 Annonces - 1 Mois" },
+    boost_product_12_30j: { price: 10000, duration_days: 30, ads_count: 12, label: "12 Annonces - 1 Mois" },
+    forfait_boutique: { price: 5000, duration_days: 30, label: "Boutique Pro (1 Mois)" },
+    forfait_premium: { price: 10000, duration_days: 30, ads_count: 5, label: "Boutique Premium + 5 Boosts" }
+  });
+
   useEffect(() => {
     try {
       const savedCats = JSON.parse(localStorage.getItem('colobane_recent_cats') || '[]');
@@ -234,6 +243,22 @@ const PublishPage = () => {
     if (params.get('mode') === 'reel') {
       toast('🎬 Mode Publication Reel TikTok activé ! Ajoutez le lien de votre vidéo.', { icon: '🎥', duration: 4000 });
     }
+
+    const fetchPricing = async () => {
+      try {
+        const { data: settingsData } = await supabase
+          .from('app_settings')
+          .select('setting_value')
+          .eq('setting_key', 'pricing_plans')
+          .maybeSingle();
+        if (settingsData && settingsData.setting_value) {
+          setPricingPlans(settingsData.setting_value);
+        }
+      } catch (err) {
+        console.error('Erreur chargement des tarifs', err);
+      }
+    };
+    fetchPricing();
   }, [locationQuery]);
 
   // Draft Recovery & Auto-saving (Option B)
@@ -892,36 +917,36 @@ const PublishPage = () => {
                       Multipliez vos vues par 10 et vendez en un temps record ! Choisissez votre pack de Boost :
                     </p>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      <button type="button" onClick={() => setSelectedBoost({ price: 500, days: 1, title: 'Boost Flash' })} style={{ width: '100%', padding: '12px 14px', borderRadius: '12px', fontWeight: '700', fontSize: '0.9rem', background: '#FAFAF9', color: '#B45309', border: '1.5px solid #FCD34D', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
+                      <button type="button" onClick={() => setSelectedBoost({ price: pricingPlans.boost_product_1j?.price || 500, days: pricingPlans.boost_product_1j?.duration_days || 1, title: 'Boost Flash' })} style={{ width: '100%', padding: '12px 14px', borderRadius: '12px', fontWeight: '700', fontSize: '0.9rem', background: '#FAFAF9', color: '#B45309', border: '1.5px solid #FCD34D', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
                           <span style={{ fontWeight: '800' }}>⚡ Boost Flash</span>
-                          <span style={{ fontSize: '0.75rem', fontWeight: '500', color: '#92400E' }}>1 Annonce (24 Heures)</span>
+                          <span style={{ fontSize: '0.75rem', fontWeight: '500', color: '#92400E' }}>{pricingPlans.boost_product_1j?.ads_count || 1} Annonce ({pricingPlans.boost_product_1j?.duration_days || 1} Jour)</span>
                         </div>
-                        <span style={{ fontWeight: '900', fontSize: '1.1rem' }}>500 F</span>
+                        <span style={{ fontWeight: '900', fontSize: '1.1rem' }}>{(pricingPlans.boost_product_1j?.price || 500).toLocaleString()} F</span>
                       </button>
 
-                      <button type="button" onClick={() => setSelectedBoost({ price: 1500, days: 7, title: 'Pack Semaine' })} style={{ width: '100%', padding: '12px 14px', borderRadius: '12px', fontWeight: '700', fontSize: '0.9rem', background: '#FFFBEB', color: '#B45309', border: '2px solid #F59E0B', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
+                      <button type="button" onClick={() => setSelectedBoost({ price: pricingPlans.boost_product_7j?.price || 1500, days: pricingPlans.boost_product_7j?.duration_days || 7, title: 'Pack Semaine' })} style={{ width: '100%', padding: '12px 14px', borderRadius: '12px', fontWeight: '700', fontSize: '0.9rem', background: '#FFFBEB', color: '#B45309', border: '2px solid #F59E0B', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
                           <span style={{ fontWeight: '800' }}>⭐️ Pack Semaine</span>
-                          <span style={{ fontSize: '0.75rem', fontWeight: '500', color: '#92400E' }}>Jusqu'à 2 Annonces (7 Jours)</span>
+                          <span style={{ fontSize: '0.75rem', fontWeight: '500', color: '#92400E' }}>Jusqu'à {pricingPlans.boost_product_7j?.ads_count || 2} Annonces ({pricingPlans.boost_product_7j?.duration_days || 7} Jours)</span>
                         </div>
-                        <span style={{ fontWeight: '900', fontSize: '1.1rem' }}>1 500 F</span>
+                        <span style={{ fontWeight: '900', fontSize: '1.1rem' }}>{(pricingPlans.boost_product_7j?.price || 1500).toLocaleString()} F</span>
                       </button>
 
-                      <button type="button" onClick={() => setSelectedBoost({ price: 5000, days: 30, title: 'Pack Mensuel' })} style={{ width: '100%', padding: '12px 14px', borderRadius: '12px', fontWeight: '700', fontSize: '0.9rem', background: '#FAFAF9', color: '#B45309', border: '1.5px solid #FCD34D', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
+                      <button type="button" onClick={() => setSelectedBoost({ price: pricingPlans.boost_product_30j?.price || 5000, days: pricingPlans.boost_product_30j?.duration_days || 30, title: 'Pack Mensuel' })} style={{ width: '100%', padding: '12px 14px', borderRadius: '12px', fontWeight: '700', fontSize: '0.9rem', background: '#FAFAF9', color: '#B45309', border: '1.5px solid #FCD34D', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
                           <span style={{ fontWeight: '800' }}>🚀 Pack Mensuel</span>
-                          <span style={{ fontSize: '0.75rem', fontWeight: '500', color: '#92400E' }}>Jusqu'à 5 Annonces (30 Jours)</span>
+                          <span style={{ fontSize: '0.75rem', fontWeight: '500', color: '#92400E' }}>Jusqu'à {pricingPlans.boost_product_30j?.ads_count || 5} Annonces ({pricingPlans.boost_product_30j?.duration_days || 30} Jours)</span>
                         </div>
-                        <span style={{ fontWeight: '900', fontSize: '1.1rem' }}>5 000 F</span>
+                        <span style={{ fontWeight: '900', fontSize: '1.1rem' }}>{(pricingPlans.boost_product_30j?.price || 5000).toLocaleString()} F</span>
                       </button>
 
-                      <button type="button" onClick={() => setSelectedBoost({ price: 10000, days: 30, title: 'Pack Max' })} style={{ width: '100%', padding: '12px 14px', borderRadius: '12px', fontWeight: '700', fontSize: '0.9rem', background: '#FEF2F2', color: '#B91C1C', border: '1.5px solid #FECACA', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
+                      <button type="button" onClick={() => setSelectedBoost({ price: pricingPlans.boost_product_12_30j?.price || 10000, days: pricingPlans.boost_product_12_30j?.duration_days || 30, title: 'Pack Max' })} style={{ width: '100%', padding: '12px 14px', borderRadius: '12px', fontWeight: '700', fontSize: '0.9rem', background: '#FEF2F2', color: '#B91C1C', border: '1.5px solid #FECACA', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
                           <span style={{ fontWeight: '800' }}>🔥 Pack Max</span>
-                          <span style={{ fontSize: '0.75rem', fontWeight: '500', color: '#7F1D1D' }}>Jusqu'à 12 Annonces (30 Jours)</span>
+                          <span style={{ fontSize: '0.75rem', fontWeight: '500', color: '#7F1D1D' }}>Jusqu'à {pricingPlans.boost_product_12_30j?.ads_count || 12} Annonces ({pricingPlans.boost_product_12_30j?.duration_days || 30} Jours)</span>
                         </div>
-                        <span style={{ fontWeight: '900', fontSize: '1.1rem' }}>10 000 F</span>
+                        <span style={{ fontWeight: '900', fontSize: '1.1rem' }}>{(pricingPlans.boost_product_12_30j?.price || 10000).toLocaleString()} F</span>
                       </button>
                     </div>
                   </div>
@@ -1513,11 +1538,11 @@ const PublishPage = () => {
                     <span style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#000', fontSize: '10px', fontWeight: 900, padding: '3px 8px', borderRadius: '10px' }}>FORFAIT PRO / VIP</span>
                   </div>
                   <p style={{ fontSize: '0.82rem', color: '#CBD5E1', margin: '0 0 12px 0', lineHeight: '1.5' }}>
-                    👑 <strong>Forfait VIP (10 000F)</strong> : Reels Vidéo <strong>ILLIMITÉS</strong> pendant 1 mois.
+                    👑 <strong>Forfait VIP ({pricingPlans.forfait_premium?.price || 10000}F)</strong> : Reels Vidéo <strong>ILLIMITÉS</strong> pendant 1 mois.
                     <br />
-                    🔥 <strong>Forfait Pro (5 000F)</strong> : <strong>3 Reels Vidéo</strong> inclus par mois.
+                    🔥 <strong>Forfait Pro ({pricingPlans.forfait_boutique?.price || 5000}F)</strong> : <strong>3 Reels Vidéo</strong> inclus par mois.
                     <br />
-                    ⚡ <strong>Non Abonné</strong> : Option <strong>Boost Reel à 1 500 FCFA / 1 Semaine</strong> (7 jours).
+                    ⚡ <strong>Non Abonné</strong> : Option <strong>Boost Reel à {(pricingPlans.boost_product_7j?.price || 1500).toLocaleString()} FCFA / {pricingPlans.boost_product_7j?.duration_days || 7} Jours</strong>.
                   </p>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '12px' }}>

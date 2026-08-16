@@ -32,6 +32,7 @@ const UserManagementTab = ({
     const matchType = filterAccountType === 'all' ||
       (filterAccountType === 'boutique' && u.account_type === 'boutique') ||
       (filterAccountType === 'verified' && u.is_verified) ||
+      (filterAccountType === 'admin' && u.is_admin) ||
       (filterAccountType === 'particulier' && u.account_type !== 'boutique');
 
     return matchSearch && matchType;
@@ -73,6 +74,7 @@ const UserManagementTab = ({
           style={{ padding: '12px 16px', borderRadius: '12px', border: '1px solid #CBD5E1', background: 'white' }}
         >
           <option value="all">Tous les utilisateurs ({utilisateurs.length})</option>
+          <option value="admin">Administrateurs</option>
           <option value="boutique">Boutiques PRO uniquement</option>
           <option value="verified">Vendeurs Certifiés 👑</option>
           <option value="particulier">Particuliers</option>
@@ -124,8 +126,8 @@ const UserManagementTab = ({
                         📞 {rawPhone || 'Pas de numéro'}
                       </div>
                     </div>
-                    <span style={accountBadgeStyle(u.account_type)}>
-                      {u.account_type === 'boutique' ? '🏪 PRO' : '👤 Particulier'}
+                    <span style={accountBadgeStyle(u.account_type, u.is_admin)}>
+                      {u.is_admin ? '🛡️ ADMIN' : u.account_type === 'boutique' ? '🏪 PRO' : '👤 Particulier'}
                     </span>
                   </div>
 
@@ -222,8 +224,8 @@ const UserManagementTab = ({
                         <small style={{ color: '#64748B' }}>{rawPhone || 'N/A'}</small>
                       </td>
                       <td style={tdStyle}>
-                        <span style={accountBadgeStyle(u.account_type)}>
-                          {u.account_type === 'boutique' ? '🏪 PRO' : '👤 Particulier'}
+                        <span style={accountBadgeStyle(u.account_type, u.is_admin)}>
+                          {u.is_admin ? '🛡️ ADMIN' : u.account_type === 'boutique' ? '🏪 PRO' : '👤 Particulier'}
                         </span>
                       </td>
                       <td style={tdStyle}>
@@ -371,13 +373,13 @@ const UserManagementTab = ({
 const thStyle = { padding: '14px 16px', fontWeight: '700', fontSize: '0.8rem', textTransform: 'uppercase' };
 const tdStyle = { padding: '14px 16px', verticalAlign: 'middle' };
 
-const accountBadgeStyle = (type) => ({
+const accountBadgeStyle = (type, isAdmin) => ({
   padding: '4px 10px',
   borderRadius: '20px',
   fontSize: '0.75rem',
   fontWeight: '700',
-  background: type === 'boutique' ? '#EFF6FF' : '#F1F5F9',
-  color: type === 'boutique' ? '#1D4ED8' : '#475569'
+  background: isAdmin ? '#FEF2F2' : type === 'boutique' ? '#EFF6FF' : '#F1F5F9',
+  color: isAdmin ? '#DC2626' : type === 'boutique' ? '#1D4ED8' : '#475569'
 });
 
 const modalOverlayStyle = {

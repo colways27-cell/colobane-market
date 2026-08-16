@@ -9,6 +9,7 @@ import UserManagementTab from '../components/admin/UserManagementTab';
 import BoutiqueApprovalTab from '../components/admin/BoutiqueApprovalTab';
 import CertificationTab from '../components/admin/CertificationTab';
 import ProductModerationTab from '../components/admin/ProductModerationTab';
+import SettingsTab from '../components/admin/SettingsTab';
 
 const AdminPage = () => {
   const navigate = useNavigate();
@@ -126,79 +127,96 @@ const AdminPage = () => {
   };
 
   const validerPaiement = async (paiement) => {
+    if (!window.confirm(`Valider le paiement de ${paiement.amount || 0}F ?`)) return;
     try {
-      toast.loading('Validation en cours...', { id: 'validate' });
-      const { error: payError } = await supabase.from('payment_requests').update({ status: 'approved' }).eq('id', paiement.id);
-      if (payError) throw payError;
-
-      const subEndDate = new Date();
-      subEndDate.setDate(subEndDate.getDate() + 30);
-      const subEndDateISO = subEndDate.toISOString();
-
-      if (paiement.plan_type === 'pass_semaine') {
-        const pass7 = new Date(); pass7.setDate(pass7.getDate() + 7);
-        await supabase.from('profiles').update({ subscription_plan: 'pass_semaine', subscription_end_date: pass7.toISOString(), account_type: 'boutique', is_verified: true }).eq('id', paiement.user_id);
-      } else if (paiement.plan_type === 'pass_15jours') {
-        const pass15 = new Date(); pass15.setDate(pass15.getDate() + 15);
-        await supabase.from('profiles').update({ subscription_plan: 'pass_15jours', subscription_end_date: pass15.toISOString(), account_type: 'boutique', is_verified: true }).eq('id', paiement.user_id);
-      }
-      
-      let type = paiement.plan_type || '';
-      let adsToBoost = [];
-      if (type.includes('|')) {
-        const parts = type.split('|');
-        type = parts[0];
-        adsToBoost = parts[1].split(',');
-      }
-
-      const boostPacks = ['boost_1_annonce_24h', 'pack_2_annonces', 'pack_5_annonces_mois', 'pack_12_annonces', 'abonnement_boutique_10000'];
-      
-      if (boostPacks.includes(type)) {
-        if (adsToBoost.length > 0) {
-          const boostEndDate = new Date();
-          let days = 1; // Default for flash
-          if (type === 'pack_2_annonces') days = 7;
-          if (['pack_5_annonces_mois', 'pack_12_annonces', 'abonnement_boutique_10000'].includes(type)) days = 30;
-          boostEndDate.setDate(boostEndDate.getDate() + days);
-          
-          await supabase.from('products').update({ 
-            is_boosted: true, 
-            boost_end_date: boostEndDate.toISOString() 
-          }).in('id', adsToBoost);
-        }
-      } 
-      
-      if (type === 'abonnement_boutique_5000' || type === 'abonnement_boutique_10000') {
-        await supabase.from('profiles').update({ subscription_plan: 'boutique', subscription_end_date: subEndDateISO, account_type: 'boutique', is_verified: true }).eq('id', paiement.user_id);
-      } else if (type === 'boost_reel_semaine' || type === 'boost_reel_7j') {
-        const passReel7 = new Date(); passReel7.setDate(passReel7.getDate() + 7);
-        await supabase.from('profiles').update({ is_verified: true, subscription_plan: 'boost_reel_7j', subscription_end_date: passReel7.toISOString() }).eq('id', paiement.user_id);
-        await supabase.from('products').update({ is_boosted: true, boost_end_date: passReel7.toISOString() }).eq('seller_id', paiement.user_id);
-      } else if (type === 'forfait_basique') {
-        await supabase.from('profiles').update({ subscription_plan: 'basique', subscription_end_date: subEndDateISO, account_type: 'boutique', is_verified: true }).eq('id', paiement.user_id);
-      } else if (type === 'forfait_premium') {
-        await supabase.from('profiles').update({ subscription_plan: 'premium', subscription_end_date: subEndDateISO, account_type: 'boutique', is_verified: true }).eq('id', paiement.user_id);
-        await supabase.from('products').update({ is_boosted: true }).eq('seller_id', paiement.user_id);
-      } else if (type === 'forfait_boutique') {
-        await supabase.from('profiles').update({ subscription_plan: 'boutique', subscription_end_date: subEndDateISO, account_type: 'boutique', is_verified: true }).eq('id', paiement.user_id);
-      } else if (type === 'forfait_standard') {
-        await supabase.from('profiles').update({ subscription_plan: 'standard', subscription_end_date: subEndDateISO }).eq('id', paiement.user_id);
-      } else if (type === 'Certification') {
-        await supabase.from('profiles').update({ is_verified: true }).eq('id', paiement.user_id);
-      } else if (type?.startsWith('boost_product_')) {
-        const match = type.match(/^boost_product_(\d+)d_(.+)$/);
-        if (match) {
-          const endDate = new Date();
-          endDate.setDate(endDate.getDate() + parseInt(match[1], 10));
-          await supabase.from('products').update({ is_boosted: true, boost_end_date: endDate.toISOString() }).eq('id', match[2]);
-        } else {
-          await supabase.from('products').update({ is_boosted: true }).eq('id', type.replace('boost_product_', ''));
-        }
-      }
+      toast.loading('Validation...', { id: 'validate' });
+      await processValidation(paiement);
       toast.success('✅ Paiement validé !', { id: 'validate' });
       fetchAllData();
     } catch {
       toast.error('Erreur de validation', { id: 'validate' });
+    }
+  };
+
+  const processValidation = async (paiement) => {
+    await supabase.from('payment_requests').update({ status: 'approved' }).eq('id', paiement.id);
+    
+    const subEndDate = new Date();
+    subEndDate.setDate(subEndDate.getDate() + 30);
+    const subEndDateISO = subEndDate.toISOString();
+
+    if (paiement.plan_type === 'pass_semaine') {
+      const pass7 = new Date(); pass7.setDate(pass7.getDate() + 7);
+      await supabase.from('profiles').update({ subscription_plan: 'pass_semaine', subscription_end_date: pass7.toISOString(), account_type: 'boutique', is_verified: true }).eq('id', paiement.user_id);
+    } else if (paiement.plan_type === 'pass_15jours') {
+      const pass15 = new Date(); pass15.setDate(pass15.getDate() + 15);
+      await supabase.from('profiles').update({ subscription_plan: 'pass_15jours', subscription_end_date: pass15.toISOString(), account_type: 'boutique', is_verified: true }).eq('id', paiement.user_id);
+    }
+    
+    let type = paiement.plan_type || '';
+    let adsToBoost = [];
+    if (type.includes('|')) {
+      const parts = type.split('|');
+      type = parts[0];
+      adsToBoost = parts[1].split(',');
+    }
+
+    const boostPacks = ['boost_1_annonce_24h', 'pack_2_annonces', 'pack_5_annonces_mois', 'pack_12_annonces', 'abonnement_boutique_10000'];
+    
+    if (boostPacks.includes(type)) {
+      if (adsToBoost.length > 0) {
+        const boostEndDate = new Date();
+        let days = 1; // Default for flash
+        if (type === 'pack_2_annonces') days = 7;
+        if (['pack_5_annonces_mois', 'pack_12_annonces', 'abonnement_boutique_10000'].includes(type)) days = 30;
+        boostEndDate.setDate(boostEndDate.getDate() + days);
+        
+        await supabase.from('products').update({ 
+          is_boosted: true, 
+          boost_end_date: boostEndDate.toISOString() 
+        }).in('id', adsToBoost);
+      }
+    } 
+    
+    if (type === 'abonnement_boutique_5000' || type === 'abonnement_boutique_10000') {
+      await supabase.from('profiles').update({ subscription_plan: 'boutique', subscription_end_date: subEndDateISO, account_type: 'boutique', is_verified: true }).eq('id', paiement.user_id);
+    } else if (type === 'boost_reel_semaine' || type === 'boost_reel_7j') {
+      const passReel7 = new Date(); passReel7.setDate(passReel7.getDate() + 7);
+      await supabase.from('profiles').update({ is_verified: true, subscription_plan: 'boost_reel_7j', subscription_end_date: passReel7.toISOString() }).eq('id', paiement.user_id);
+      await supabase.from('products').update({ is_boosted: true, boost_end_date: passReel7.toISOString() }).eq('seller_id', paiement.user_id);
+    } else if (type === 'forfait_basique') {
+      await supabase.from('profiles').update({ subscription_plan: 'basique', subscription_end_date: subEndDateISO, account_type: 'boutique', is_verified: true }).eq('id', paiement.user_id);
+    } else if (type === 'forfait_premium') {
+      await supabase.from('profiles').update({ subscription_plan: 'premium', subscription_end_date: subEndDateISO, account_type: 'boutique', is_verified: true }).eq('id', paiement.user_id);
+      await supabase.from('products').update({ is_boosted: true }).eq('seller_id', paiement.user_id);
+    } else if (type === 'forfait_boutique') {
+      await supabase.from('profiles').update({ subscription_plan: 'boutique', subscription_end_date: subEndDateISO, account_type: 'boutique', is_verified: true }).eq('id', paiement.user_id);
+    } else if (type === 'forfait_standard') {
+      await supabase.from('profiles').update({ subscription_plan: 'standard', subscription_end_date: subEndDateISO }).eq('id', paiement.user_id);
+    } else if (type === 'Certification') {
+      await supabase.from('profiles').update({ is_verified: true }).eq('id', paiement.user_id);
+    } else if (type?.startsWith('boost_product_')) {
+      const match = type.match(/^boost_product_(\d+)d_(.+)$/);
+      if (match) {
+        const endDate = new Date();
+        endDate.setDate(endDate.getDate() + parseInt(match[1], 10));
+        await supabase.from('products').update({ is_boosted: true, boost_end_date: endDate.toISOString() }).eq('id', match[2]);
+      } else {
+        await supabase.from('products').update({ is_boosted: true }).eq('id', type.replace('boost_product_', ''));
+      }
+    }
+  };
+
+  const validerPlusieursPaiements = async (paiementsArray) => {
+    try {
+      toast.loading(`Validation de ${paiementsArray.length} paiements...`, { id: 'bulk-val' });
+      for (const p of paiementsArray) {
+        await processValidation(p);
+      }
+      toast.success(`✅ ${paiementsArray.length} paiements validés !`, { id: 'bulk-val' });
+      fetchAllData();
+    } catch {
+      toast.error('Erreur lors de la validation groupée', { id: 'bulk-val' });
     }
   };
 
@@ -211,6 +229,17 @@ const AdminPage = () => {
       fetchAllData();
     } catch {
       toast.error('Erreur', { id: 'refuse' });
+    }
+  };
+
+  const refuserPlusieursPaiements = async (ids) => {
+    try {
+      toast.loading(`Refus de ${ids.length} paiements...`, { id: 'bulk-ref' });
+      await supabase.from('payment_requests').update({ status: 'rejected' }).in('id', ids);
+      toast.success(`${ids.length} paiements refusés`, { id: 'bulk-ref' });
+      fetchAllData();
+    } catch {
+      toast.error('Erreur lors du refus groupé', { id: 'bulk-ref' });
     }
   };
 
@@ -237,6 +266,19 @@ const AdminPage = () => {
     }
   };
 
+  const editProduct = async (productId, updates) => {
+    try {
+      toast.loading('Mise à jour...', { id: 'edit-prod' });
+      const { error } = await supabase.from('products').update(updates).eq('id', productId);
+      if (error) throw error;
+      toast.success('Annonce modifiée avec succès !', { id: 'edit-prod' });
+      fetchAllData();
+    } catch (err) {
+      console.error(err);
+      toast.error('Erreur lors de la modification', { id: 'edit-prod' });
+    }
+  };
+
   const supprimerProduit = async (productId, productTitle) => {
     if (!window.confirm(`⚠️ Supprimer définitivement l'annonce "${productTitle}" ?`)) return;
     try {
@@ -248,6 +290,41 @@ const AdminPage = () => {
     } catch (err) {
       console.error(err);
       toast.error('Erreur lors de la suppression.', { id: 'del-prod' });
+    }
+  };
+
+  const supprimerPlusieursProduits = async (productIds) => {
+    try {
+      toast.loading(`Suppression de ${productIds.length} annonces...`, { id: 'bulk-del' });
+      const { error } = await supabase.from('products').delete().in('id', productIds);
+      if (error) throw error;
+      toast.success(`${productIds.length} annonces supprimées.`, { id: 'bulk-del' });
+      fetchAllData();
+    } catch (err) {
+      console.error(err);
+      toast.error('Erreur suppression groupée', { id: 'bulk-del' });
+    }
+  };
+
+  const resolveReport = async (reportId, status) => {
+    try {
+      toast.loading('Mise à jour...', { id: 'res-report' });
+      await supabase.from('reports').update({ status }).eq('id', reportId);
+      toast.success('Signalement mis à jour', { id: 'res-report' });
+      fetchAllData();
+    } catch {
+      toast.error('Erreur', { id: 'res-report' });
+    }
+  };
+
+  const resoudrePlusieursReports = async (reportIds, status) => {
+    try {
+      toast.loading('Mise à jour...', { id: 'bulk-res' });
+      await supabase.from('reports').update({ status }).in('id', reportIds);
+      toast.success('Signalements mis à jour', { id: 'bulk-res' });
+      fetchAllData();
+    } catch {
+      toast.error('Erreur', { id: 'bulk-res' });
     }
   };
 
@@ -428,6 +505,7 @@ const AdminPage = () => {
     { id: 'boutiques', label: `🏪 Boutiques (${boutiques.length})` },
     { id: 'certifications', label: `👑 Certifications (${demandesCertification.filter(c => c.status === 'pending').length})` },
     { id: 'moderation', label: `🛡️ Modération (${reports.filter(r => r.status === 'pending' || !r.status).length})` },
+    { id: 'settings', label: `⚙️ Paramètres` },
   ];
 
   return (
@@ -554,11 +632,13 @@ const AdminPage = () => {
         })()}
 
         {activeTab === 'paiements' && (
-          <PaymentRequestsTab
-            paiements={paiements}
-            onValiderPaiement={validerPaiement}
-            onRefuserPaiement={refuserPaiement}
-            onZoomImage={setZoomImage}
+          <PaymentRequestsTab 
+            paiements={filteredPaiements} 
+            onValiderPaiement={validerPaiement} 
+            onValiderPlusieursPaiements={validerPlusieursPaiements}
+            onRefuserPaiement={refuserPaiement} 
+            onRefuserPlusieursPaiements={refuserPlusieursPaiements}
+            onZoomImage={setZoomImage} 
           />
         )}
 
@@ -589,15 +669,22 @@ const AdminPage = () => {
         )}
 
         {(activeTab === 'annonces' || activeTab === 'moderation') && (
-          <ProductModerationTab
-            allProducts={allProducts}
-            reports={reports}
-            boosts={boosts}
-            onDesactiverBoost={desactiverBoost}
+          <ProductModerationTab 
+            allProducts={products} 
+            reports={reports} 
+            boosts={products.filter(p => p.is_boosted)}
+            onDesactiverBoost={desactiverBoost} 
             onSupprimerProduit={supprimerProduit}
-            onResolveReport={handleResolveReport}
+            onSupprimerPlusieursProduits={supprimerPlusieursProduits}
+            onResolveReport={resolveReport} 
+            onResoudrePlusieursReports={resoudrePlusieursReports}
+            onEditProduct={editProduct}
             onZoomImage={setZoomImage}
           />
+        )}
+
+        {activeTab === 'settings' && (
+          <SettingsTab />
         )}
       </div>
 

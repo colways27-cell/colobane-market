@@ -33,16 +33,22 @@ const formatPlanType = (rawPlanType) => {
   return base;
 };
 
+import BulkActionBar from './BulkActionBar';
+
 const PaymentRequestsTab = ({
   paiements = [],
   onValiderPaiement,
+  onValiderPlusieursPaiements,
   onRefuserPaiement,
+  onRefuserPlusieursPaiements,
   onZoomImage
 }) => {
   const [activeSubTab, setActiveSubTab] = useState('pending');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [selectedTemplatePaiement, setSelectedTemplatePaiement] = useState(null);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const pendingList = paiements.filter(p => p.status === 'pending');
   const historyList = paiements.filter(p => p.status !== 'pending');
@@ -65,6 +71,40 @@ const PaymentRequestsTab = ({
 
     return matchSearch && matchType;
   });
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === filteredList.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filteredList.map(p => p.id));
+    }
+  };
+
+  const toggleSelect = (id) => {
+    if (selectedIds.includes(id)) {
+      setSelectedIds(selectedIds.filter(i => i !== id));
+    } else {
+      setSelectedIds([...selectedIds, id]);
+    }
+  };
+
+  const handleBulkValidate = async () => {
+    if (!onValiderPlusieursPaiements) return;
+    const itemsToValidate = filteredList.filter(p => selectedIds.includes(p.id));
+    setIsProcessing(true);
+    await onValiderPlusieursPaiements(itemsToValidate);
+    setIsProcessing(false);
+    setSelectedIds([]);
+  };
+
+  const handleBulkReject = async () => {
+    if (!onRefuserPlusieursPaiements) return;
+    if (!window.confirm(`Voulez-vous vraiment refuser ces ${selectedIds.length} paiements ?`)) return;
+    setIsProcessing(true);
+    await onRefuserPlusieursPaiements(selectedIds);
+    setIsProcessing(false);
+    setSelectedIds([]);
+  };
 
   const exportToCSV = () => {
     if (filteredList.length === 0) {
@@ -123,13 +163,13 @@ const PaymentRequestsTab = ({
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #E2E8F0', paddingBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
         <div style={{ display: 'flex', gap: '12px' }}>
           <button
-            onClick={() => setActiveSubTab('pending')}
+            onClick={() => { setActiveSubTab('pending'); setSelectedIds([]); }}
             style={subTabStyle(activeSubTab === 'pending')}
           >
             ⏳ En Attente ({pendingList.length})
           </button>
           <button
-            onClick={() => setActiveSubTab('history')}
+            onClick={() => { setActiveSubTab('history'); setSelectedIds([]); }}
             style={subTabStyle(activeSubTab === 'history')}
           >
             📜 Historique Traité ({historyList.length})
@@ -186,18 +226,30 @@ const PaymentRequestsTab = ({
         </div>
       ) : (
         <>
-          {/* MOBILE CARDS VIEW (Displayed on mobile screens) */}
+          {/* MOBILE CARDS VIEW */}
           <div className="mobile-only-payments" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 8px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', fontWeight: 'bold' }}>
+                <input
+                  type="checkbox"
+                  checked={selectedIds.length === filteredList.length && filteredList.length > 0}
+                  onChange={toggleSelectAll}
+                  style={{ width: '18px', height: '18px' }}
+                />
+                Tout sélectionner
+              </label>
+            </div>
             {filteredList.map((p) => {
               const rawPhone = p.phone_used || p.phone_number || p.profiles?.phone_number || '';
+              const isSelected = selectedIds.includes(p.id);
               return (
                 <div
                   key={p.id}
                   style={{
-                    background: 'white',
+                    background: isSelected ? '#F0F9FF' : 'white',
                     borderRadius: '16px',
                     padding: '16px',
-                    border: '1px solid #E2E8F0',
+                    border: `1px solid ${isSelected ? '#3B82F6' : '#E2E8F0'}`,
                     boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
                     display: 'flex',
                     flexDirection: 'column',
@@ -205,12 +257,20 @@ const PaymentRequestsTab = ({
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div>
-                      <div style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A' }}>
-                        {p.profiles?.full_name || 'Utilisateur'}
-                      </div>
-                      <div style={{ fontSize: '13px', color: '#64748B', marginTop: '2px' }}>
-                        📞 {rawPhone || 'Pas de numéro'}
+                    <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleSelect(p.id)}
+                        style={{ width: '20px', height: '20px', marginTop: '4px' }}
+                      />
+                      <div>
+                        <div style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A' }}>
+                          {p.profiles?.full_name || 'Utilisateur'}
+                        </div>
+                        <div style={{ fontSize: '13px', color: '#64748B', marginTop: '2px' }}>
+                          📞 {rawPhone || 'Pas de numéro'}
+                        </div>
                       </div>
                     </div>
                     <span style={statusBadgeStyle(p.status)}>
@@ -233,7 +293,7 @@ const PaymentRequestsTab = ({
                     <span>📅 {new Date(p.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
                     {p.proof_url && (
                       <button
-                        onClick={() => onZoomImage(p.proof_url)}
+                         onClick={(e) => { e.stopPropagation(); onZoomImage(p.proof_url); }}
                         style={{ padding: '4px 8px', fontSize: '0.75rem', borderRadius: '6px', border: '1px solid #CBD5E1', background: '#F1F5F9', cursor: 'pointer' }}
                       >
                         🖼️ Reçu
@@ -246,13 +306,13 @@ const PaymentRequestsTab = ({
                     {p.status === 'pending' && (
                       <>
                         <button
-                          onClick={() => onValiderPaiement(p)}
+                          onClick={(e) => { e.stopPropagation(); onValiderPaiement(p); }}
                           style={{ flex: 1, padding: '10px', background: '#16A34A', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 800, cursor: 'pointer', fontSize: '13px' }}
                         >
                           ✓ Valider
                         </button>
                         <button
-                          onClick={() => onRefuserPaiement(p.id)}
+                          onClick={(e) => { e.stopPropagation(); onRefuserPaiement(p.id); }}
                           style={{ flex: 1, padding: '10px', background: '#DC2626', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 800, cursor: 'pointer', fontSize: '13px' }}
                         >
                           ✕ Refuser
@@ -260,7 +320,7 @@ const PaymentRequestsTab = ({
                       </>
                     )}
                     <button
-                      onClick={() => setSelectedTemplatePaiement(p)}
+                      onClick={(e) => { e.stopPropagation(); setSelectedTemplatePaiement(p); }}
                       style={{
                         flex: 1,
                         padding: '10px',
@@ -285,11 +345,19 @@ const PaymentRequestsTab = ({
             })}
           </div>
 
-          {/* DESKTOP TABLE VIEW (With horizontal scroll wrapper) */}
+          {/* DESKTOP TABLE VIEW */}
           <div className="desktop-only-payments" style={{ background: 'white', borderRadius: '16px', overflowX: 'auto', border: '1px solid #E2E8F0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
             <table style={{ width: '100%', minWidth: '700px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
               <thead style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0', color: '#64748B' }}>
                 <tr>
+                  <th style={{ ...thStyle, width: '40px', textAlign: 'center' }}>
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.length === filteredList.length && filteredList.length > 0}
+                      onChange={toggleSelectAll}
+                      style={{ width: '16px', height: '16px' }}
+                    />
+                  </th>
                   <th style={thStyle}>Date</th>
                   <th style={thStyle}>Vendeur</th>
                   <th style={thStyle}>Formule / Offre</th>
@@ -302,8 +370,21 @@ const PaymentRequestsTab = ({
               <tbody>
                 {filteredList.map((p) => {
                   const rawPhone = p.phone_used || p.phone_number || p.profiles?.phone_number || '';
+                  const isSelected = selectedIds.includes(p.id);
                   return (
-                    <tr key={p.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                    <tr 
+                      key={p.id} 
+                      onClick={() => toggleSelect(p.id)}
+                      style={{ borderBottom: '1px solid #F1F5F9', background: isSelected ? '#F0F9FF' : 'transparent', cursor: 'pointer', transition: 'background 0.2s' }}
+                    >
+                      <td style={{ ...tdStyle, textAlign: 'center' }}>
+                         <input
+                           type="checkbox"
+                           checked={isSelected}
+                           onChange={() => {}} // handled by tr click
+                           style={{ width: '16px', height: '16px', pointerEvents: 'none' }}
+                         />
+                      </td>
                       <td style={tdStyle}>{new Date(p.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</td>
                       <td style={tdStyle}>
                         <strong>{p.profiles?.full_name || 'Utilisateur'}</strong>
@@ -320,7 +401,7 @@ const PaymentRequestsTab = ({
                         <code>{p.transaction_id || 'N/A'}</code>
                         {p.proof_url && (
                           <button
-                            onClick={() => onZoomImage(p.proof_url)}
+                            onClick={(e) => { e.stopPropagation(); onZoomImage(p.proof_url); }}
                             style={{ marginLeft: '8px', padding: '4px 8px', fontSize: '0.75rem', borderRadius: '6px', border: '1px solid #CBD5E1', background: '#F8FAFC', cursor: 'pointer' }}
                           >
                             🖼️ Reçu
@@ -337,13 +418,13 @@ const PaymentRequestsTab = ({
                           {p.status === 'pending' && (
                             <>
                               <button
-                                onClick={() => onValiderPaiement(p)}
+                                onClick={(e) => { e.stopPropagation(); onValiderPaiement(p); }}
                                 style={{ padding: '6px 12px', background: '#16A34A', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', fontSize: '12px' }}
                               >
                                 Valider
                               </button>
                               <button
-                                onClick={() => onRefuserPaiement(p.id)}
+                                onClick={(e) => { e.stopPropagation(); onRefuserPaiement(p.id); }}
                                 style={{ padding: '6px 10px', background: '#DC2626', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', fontSize: '12px' }}
                               >
                                 Refuser
@@ -351,7 +432,7 @@ const PaymentRequestsTab = ({
                             </>
                           )}
                           <button
-                            onClick={() => setSelectedTemplatePaiement(p)}
+                            onClick={(e) => { e.stopPropagation(); setSelectedTemplatePaiement(p); }}
                             style={{
                               padding: '6px 10px',
                               background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
@@ -428,6 +509,15 @@ const PaymentRequestsTab = ({
           </div>
         </div>
       )}
+
+      {/* Bulk Action Bar */}
+      <BulkActionBar 
+        selectedCount={selectedIds.length} 
+        onClear={() => setSelectedIds([])}
+        onValidate={activeSubTab === 'pending' ? handleBulkValidate : null}
+        onReject={activeSubTab === 'pending' ? handleBulkReject : null}
+        isLoading={isProcessing}
+      />
     </div>
   );
 };

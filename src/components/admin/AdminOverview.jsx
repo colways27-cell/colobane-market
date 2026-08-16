@@ -396,7 +396,81 @@ const AdminOverview = ({
             )}
           </div>
         </div>
+      </div>
 
+      {/* Top Lists Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))', gap: '16px' }}>
+        {/* Top Sellers */}
+        <div style={panelStyle}>
+          <h3 style={{ ...titleStyle, fontSize: '1.05rem', marginBottom: '16px' }}>🏆 Top Vendeurs (Annonces)</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {(() => {
+              const sellerCounts = {};
+              allProducts.forEach(p => {
+                if (p.seller_id) {
+                  if (!sellerCounts[p.seller_id]) {
+                    sellerCounts[p.seller_id] = { count: 0, name: p.profiles?.boutique_name || p.profiles?.full_name || 'Utilisateur' };
+                  }
+                  sellerCounts[p.seller_id].count++;
+                }
+              });
+              const topSellers = Object.values(sellerCounts).sort((a, b) => b.count - a.count).slice(0, 5);
+              
+              if (topSellers.length === 0) return <div style={{ color: '#94A3B8', fontSize: '0.85rem' }}>Aucune donnée.</div>;
+
+              const maxCount = topSellers[0].count;
+
+              return topSellers.map((seller, index) => (
+                <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ fontSize: '1.2rem' }}>{index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '👤'}</div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 700, marginBottom: '4px' }}>
+                      <span style={{ color: '#1E293B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{seller.name}</span>
+                      <span style={{ color: '#64748B' }}>{seller.count} annonces</span>
+                    </div>
+                    <div style={{ height: '6px', background: '#F1F5F9', borderRadius: '3px', overflow: 'hidden' }}>
+                      <div style={{ width: `${(seller.count / maxCount) * 100}%`, height: '100%', background: '#3B82F6', borderRadius: '3px' }} />
+                    </div>
+                  </div>
+                </div>
+              ));
+            })()}
+          </div>
+        </div>
+
+        {/* Top Ads */}
+        <div style={panelStyle}>
+          <h3 style={{ ...titleStyle, fontSize: '1.05rem', marginBottom: '16px' }}>💰 Annonces les plus chères</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {(() => {
+              const topAds = [...allProducts]
+                .filter(p => p.price)
+                .sort((a, b) => Number(b.price) - Number(a.price))
+                .slice(0, 5);
+              
+              if (topAds.length === 0) return <div style={{ color: '#94A3B8', fontSize: '0.85rem' }}>Aucune donnée.</div>;
+
+              return topAds.map((ad, index) => (
+                <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '12px', background: '#F8FAFC', padding: '10px', borderRadius: '12px' }}>
+                  <div style={{ width: '40px', height: '40px', background: '#E2E8F0', borderRadius: '8px', overflow: 'hidden', flexShrink: 0 }}>
+                    {ad.images?.[0] ? <img src={ad.images[0]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>📸</div>}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {ad.title || 'Sans titre'}
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: '#64748B' }}>
+                      Vendeur: {ad.profiles?.boutique_name || ad.profiles?.full_name || 'Inconnu'}
+                    </div>
+                  </div>
+                  <div style={{ fontWeight: 900, color: '#059669', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>
+                    {Number(ad.price).toLocaleString()} F
+                  </div>
+                </div>
+              ));
+            })()}
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -322,13 +322,8 @@ const Home = () => {
   const [contextMenu, setContextMenu] = useState({ visible: false, productId: null });
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportProductId, setReportProductId] = useState(null);
-  const [showPromoBanner, setShowPromoBanner] = useState(() => {
-    try {
-      return !localStorage.getItem('hidePromoBanner');
-    } catch (e) {
-      return true;
-    }
-  });
+  const [promoBanner, setPromoBanner] = useState(null);
+  const [showPromoBanner, setShowPromoBanner] = useState(false);
   const subcategoriesRef = useRef(null);
   const categoriesRef = useRef(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
@@ -592,6 +587,28 @@ const Home = () => {
 
   useEffect(() => {
     fetchProducts(0);
+    
+    const fetchPromoBanner = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('app_settings')
+          .select('setting_value')
+          .eq('setting_key', 'promo_banner')
+          .maybeSingle();
+        
+        if (data && data.setting_value && data.setting_value.is_active) {
+          setPromoBanner(data.setting_value);
+          if (!localStorage.getItem('hidePromoBanner')) {
+            setShowPromoBanner(true);
+          }
+        } else {
+          setShowPromoBanner(false);
+        }
+      } catch (err) {
+        console.error('Erreur chargement bannière:', err);
+      }
+    };
+    fetchPromoBanner();
   }, []);
 
   const handleLoadMore = () => {
@@ -1003,14 +1020,14 @@ const Home = () => {
       })()}
 
       {/* Promo Banner - Design Premium */}
-      {showPromoBanner && (
+      {showPromoBanner && promoBanner && (
         <section style={{
           margin: '0 16px 1.5rem 16px',
           borderRadius: '20px',
           overflow: 'hidden',
-          boxShadow: '0 8px 32px rgba(138, 28, 28, 0.25)',
+          boxShadow: `0 8px 32px ${promoBanner.bg_color}40`,
           position: 'relative',
-          background: 'linear-gradient(135deg, #8A1C1C 0%, #C0392B 50%, #8A1C1C 100%)',
+          background: promoBanner.bg_color,
           animation: 'fadeIn 0.4s ease-out',
         }}>
           {/* Decorative circles */}
@@ -1031,7 +1048,7 @@ const Home = () => {
               position: 'absolute', top: '14px', right: '14px',
               background: 'rgba(255,255,255,0.15)',
               backdropFilter: 'blur(4px)',
-              color: 'white', border: '1px solid rgba(255,255,255,0.3)',
+              color: promoBanner.text_color, border: '1px solid rgba(255,255,255,0.3)',
               borderRadius: '50%', width: '28px', height: '28px',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               cursor: 'pointer', fontSize: '13px', fontWeight: '700',
@@ -1040,60 +1057,34 @@ const Home = () => {
             className="active-scale"
           >✕</button>
 
-          <div style={{ padding: '22px 24px 20px 24px', position: 'relative', zIndex: 1 }}>
-            {/* Header row */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
-              <div style={{
-                width: '38px', height: '38px', borderRadius: '12px',
+          <div style={{ padding: '22px 24px 20px 24px', position: 'relative', zIndex: 1, textAlign: 'center' }}>
+            <div style={{
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                width: '40px', height: '40px', borderRadius: '12px',
                 background: 'rgba(255,255,255,0.2)',
                 backdropFilter: 'blur(6px)',
                 border: '1px solid rgba(255,255,255,0.25)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '18px', flexShrink: 0,
+                fontSize: '20px', marginBottom: '12px'
               }}>📣</div>
-              <div>
-                <p style={{ margin: 0, fontSize: '0.7rem', fontWeight: '600', color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '1px' }}>ColobaneMarket</p>
-                <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '800', color: 'white', lineHeight: 1.2 }}>Besoin d'informations ?</h3>
-              </div>
-            </div>
+            <h3 style={{ margin: '0 0 16px 0', fontSize: '1.1rem', fontWeight: '800', color: promoBanner.text_color, lineHeight: 1.4 }}>
+              {promoBanner.message}
+            </h3>
 
-            {/* Body text */}
-            <p style={{ margin: '0 0 16px 0', fontSize: '0.88rem', lineHeight: '1.6', color: 'rgba(255,255,255,0.92)', fontWeight: '400' }}>
-              Pour toutes questions concernant nos <strong style={{ color: 'white' }}>offres</strong> ou toutes autres informations, contactez-nous directement :
-            </p>
-
-            {/* Phone numbers pills */}
-            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '20px' }}>
-              <a href="tel:+221773713175" style={{
-                display: 'flex', alignItems: 'center', gap: '7px',
-                background: 'rgba(255,255,255,0.15)',
-                backdropFilter: 'blur(4px)',
-                border: '1px solid rgba(255,255,255,0.25)',
-                borderRadius: '30px', padding: '8px 16px',
-                color: 'white', textDecoration: 'none',
-                fontSize: '0.88rem', fontWeight: '700',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                transition: 'background 0.2s',
+            {promoBanner.link_url && (
+              <a href={promoBanner.link_url} style={{
+                display: 'inline-flex', alignItems: 'center', gap: '8px',
+                background: promoBanner.text_color,
+                color: promoBanner.bg_color,
+                padding: '10px 20px', borderRadius: '20px',
+                textDecoration: 'none', fontWeight: '800', fontSize: '0.9rem',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                transition: 'transform 0.2s',
+                marginBottom: '16px'
               }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.18h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.1a16 16 0 0 0 5.61 5.61l.76-.76a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-                77 371 31 75
+                En profiter <span style={{ fontSize: '1.1rem' }}>→</span>
               </a>
-              <a href="tel:+221777671120" style={{
-                display: 'flex', alignItems: 'center', gap: '7px',
-                background: 'rgba(255,255,255,0.15)',
-                backdropFilter: 'blur(4px)',
-                border: '1px solid rgba(255,255,255,0.25)',
-                borderRadius: '30px', padding: '8px 16px',
-                color: 'white', textDecoration: 'none',
-                fontSize: '0.88rem', fontWeight: '700',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-              }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.18h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.1a16 16 0 0 0 5.61 5.61l.76-.76a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-                77 767 11 20
-              </a>
-            </div>
+            )}
 
-            {/* Divider */}
             <div style={{ height: '1px', background: 'rgba(255,255,255,0.15)', marginBottom: '18px' }} />
 
             {/* CTA Button */}
