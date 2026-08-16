@@ -9,29 +9,71 @@ const SubscriptionPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [profile, setProfile] = useState(null);
+  const [userProducts, setUserProducts] = useState([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [loading, setLoading] = useState(true);
+  
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showProductSelectionModal, setShowProductSelectionModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [paymentPhone, setPaymentPhone] = useState('');
+  
+  const [maxSelectionLimit, setMaxSelectionLimit] = useState(0);
+  const [selectedProductIds, setSelectedProductIds] = useState([]);
 
   useEffect(() => {
     if (!user) {
       navigate('/auth');
       return;
     }
-    const fetchProfile = async () => {
-      const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-      setProfile(data);
+    const fetchData = async () => {
+      const { data: profileData } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+      setProfile(profileData);
+      
+      const { data: productsData } = await supabase.from('products')
+        .select('id, title, images')
+        .eq('seller_id', user.id)
+        .order('created_at', { ascending: false });
+        
+      setUserProducts(productsData || []);
       setLoading(false);
     };
-    fetchProfile();
+    fetchData();
   }, [user, navigate]);
 
-  const initiatePayment = (planType, price) => {
+  const initiatePayment = (planType, price, limit = 0) => {
     setSelectedPlan({ type: planType, price: price });
+    
+    if (limit > 0) {
+      setMaxSelectionLimit(limit);
+      setSelectedProductIds([]);
+      setShowProductSelectionModal(true);
+    } else {
+      setShowPaymentModal(true);
+      openWavePayment();
+    }
+  };
+
+  const toggleProductSelection = (productId) => {
+    setSelectedProductIds(prev => {
+      if (prev.includes(productId)) {
+        return prev.filter(id => id !== productId);
+      }
+      if (prev.length >= maxSelectionLimit) {
+        toast.error(`Vous ne pouvez sélectionner que ${maxSelectionLimit} annonce(s) maximum.`);
+        return prev;
+      }
+      return [...prev, productId];
+    });
+  };
+
+  const handleSelectionConfirm = () => {
+    if (selectedProductIds.length === 0) {
+      toast.error('Veuillez sélectionner au moins une annonce à booster.');
+      return;
+    }
+    setShowProductSelectionModal(false);
     setShowPaymentModal(true);
-    // Le lien Wave s'ouvre pour l'utilisateur
     openWavePayment();
   };
 
@@ -45,7 +87,6 @@ const SubscriptionPage = () => {
     setIsProcessing(true);
     toast.loading('Envoi de la demande...', { id: 'payment' });
 
-    // Ouvrir un onglet vide immédiatement de manière synchrone pour contourner le bloqueur de popups
     const whatsappWindow = window.open('', '_blank');
 
     try {
@@ -60,15 +101,25 @@ const SubscriptionPage = () => {
       if (error) throw error;
       
       const adminNumber = "221773713175";
-      const text = encodeURIComponent(`Nouvelle demande de paiement ! L'utilisateur ${profile?.full_name || user.id} a payé ${selectedPlan.price}F pour ${selectedPlan.type} avec le numéro ${paymentPhone}. Vérifiez Wave et activez le compte.`);
+      
+      const selectedAdsText = selectedProductIds.length > 0 
+        ? `\n\n🎯 Annonces sélectionnées (${selectedProductIds.length}/${maxSelectionLimit}) :\n` + 
+          selectedProductIds.map((id, index) => {
+            const prod = userProducts.find(p => p.id === id);
+            return `${index + 1}. ${prod ? prod.title : 'Annonce inconnue'}`;
+          }).join('\n')
+        : '';
+
+      const text = encodeURIComponent(`Nouvelle demande de paiement ! L'utilisateur ${profile?.full_name || user.id} a payé ${selectedPlan.price}F pour ${selectedPlan.type} avec le numéro Wave: ${paymentPhone}.${selectedAdsText}\n\nVérifiez Wave et activez les boosts svp.`);
       
       if (whatsappWindow) {
         whatsappWindow.location.href = `https://wa.me/${adminNumber}?text=${text}`;
       }
       
-      toast.success('Demande envoyée ! Votre compte sera activé après vérification.', { id: 'payment', duration: 5000 });
+      toast.success('Demande envoyée ! Les boosts seront activés après vérification.', { id: 'payment', duration: 5000 });
       setShowPaymentModal(false);
       setPaymentPhone('');
+      setSelectedProductIds([]);
     } catch (err) {
       if (whatsappWindow) whatsappWindow.close();
       console.error(err);
@@ -79,8 +130,6 @@ const SubscriptionPage = () => {
   };
 
   if (loading) return <div style={{ padding: '50px', textAlign: 'center' }}>Chargement...</div>;
-
-
 
   return (
     <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto', paddingBottom: '100px' }}>
@@ -116,7 +165,7 @@ const SubscriptionPage = () => {
               <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', color: '#475569' }}><span>⏳</span> Valable pendant 2 jours</li>
               <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', color: '#475569' }}><span>⚡</span> Apparaît dans "Vedette"</li>
             </ul>
-            <button onClick={() => initiatePayment('boost_1_annonce', 500)} className="active-scale" style={{ width: '100%', padding: '12px', borderRadius: '14px', background: '#F59E0B', color: 'white', border: 'none', fontWeight: '800', fontSize: '1rem', cursor: 'pointer' }}>
+            <button onClick={() => initiatePayment('boost_1_annonce', 500, 1)} className="active-scale" style={{ width: '100%', padding: '12px', borderRadius: '14px', background: '#F59E0B', color: 'white', border: 'none', fontWeight: '800', fontSize: '1rem', cursor: 'pointer' }}>
               Booster 1 Annonce
             </button>
           </div>
@@ -135,7 +184,7 @@ const SubscriptionPage = () => {
               <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', color: '#475569' }}><span>⏳</span> Valable pour 1 semaine (7j)</li>
               <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', color: '#475569' }}><span>⚡</span> Rotation en tête de liste</li>
             </ul>
-            <button onClick={() => initiatePayment('pack_5_annonces', 1500)} className="active-scale" style={{ width: '100%', padding: '12px', borderRadius: '14px', background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: 'white', border: 'none', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', boxShadow: '0 4px 15px rgba(245,158,11,0.2)' }}>
+            <button onClick={() => initiatePayment('pack_5_annonces', 1500, 5)} className="active-scale" style={{ width: '100%', padding: '12px', borderRadius: '14px', background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: 'white', border: 'none', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', boxShadow: '0 4px 15px rgba(245,158,11,0.2)' }}>
               Prendre le Pack Semaine
             </button>
           </div>
@@ -151,7 +200,7 @@ const SubscriptionPage = () => {
               <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', color: '#475569' }}><span>⏳</span> Valable pour 1 mois (30j)</li>
               <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', color: '#475569' }}><span>🛡️</span> Badge Vendeur Pro inclus</li>
             </ul>
-            <button onClick={() => initiatePayment('pack_10_annonces', 5000)} className="active-scale" style={{ width: '100%', padding: '12px', borderRadius: '14px', background: '#B45309', color: 'white', border: 'none', fontWeight: '800', fontSize: '1rem', cursor: 'pointer' }}>
+            <button onClick={() => initiatePayment('pack_10_annonces', 5000, 10)} className="active-scale" style={{ width: '100%', padding: '12px', borderRadius: '14px', background: '#B45309', color: 'white', border: 'none', fontWeight: '800', fontSize: '1rem', cursor: 'pointer' }}>
               Prendre le Pack VIP
             </button>
           </div>
@@ -167,7 +216,7 @@ const SubscriptionPage = () => {
               <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem' }}><span>⏳</span> Valable pour 1 semaine (7j)</li>
               <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem' }}><span>🔥</span> Flux vidéo immersif type TikTok</li>
             </ul>
-            <button onClick={() => initiatePayment('boost_reel_semaine', 1500)} className="active-scale" style={{ width: '100%', padding: '12px', borderRadius: '14px', background: 'linear-gradient(135deg, #E11D48, #BE123C)', color: 'white', border: 'none', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', boxShadow: '0 4px 15px rgba(225,29,72,0.3)' }}>
+            <button onClick={() => initiatePayment('boost_reel_semaine', 1500, 0)} className="active-scale" style={{ width: '100%', padding: '12px', borderRadius: '14px', background: 'linear-gradient(135deg, #E11D48, #BE123C)', color: 'white', border: 'none', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', boxShadow: '0 4px 15px rgba(225,29,72,0.3)' }}>
               Activer Reel Vidéo
             </button>
           </div>
@@ -184,6 +233,65 @@ const SubscriptionPage = () => {
         </div>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '15px' }}>Paiement 100% sécurisé au Sénégal. Activation immédiate.</p>
       </div>
+
+      {/* Modal de Sélection des Annonces */}
+      {showProductSelectionModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div style={{ background: 'white', borderRadius: '24px', padding: '24px', width: '100%', maxWidth: '500px', maxHeight: '80vh', display: 'flex', flexDirection: 'column', position: 'relative', animation: 'scaleUp 0.3s ease-out' }}>
+            <button onClick={() => setShowProductSelectionModal(false)} style={{ position: 'absolute', top: '15px', right: '15px', background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: 'var(--text-muted)' }}>×</button>
+            
+            <div style={{ marginBottom: '20px' }}>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: '800', margin: '0 0 8px 0', fontFamily: 'var(--font-heading)' }}>Sélectionnez vos annonces</h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>
+                Choisissez jusqu'à <strong>{maxSelectionLimit} annonce(s)</strong> à mettre en vedette. ({selectedProductIds.length}/{maxSelectionLimit} sélectionnées)
+              </p>
+            </div>
+
+            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px', paddingRight: '4px', marginBottom: '20px' }}>
+              {userProducts.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)', background: '#F8FAFC', borderRadius: '16px' }}>
+                  Vous n'avez pas encore d'annonce publiée.
+                </div>
+              ) : (
+                userProducts.map(product => {
+                  const isSelected = selectedProductIds.includes(product.id);
+                  const imageUrl = product.images && product.images.length > 0 ? product.images[0] : '/placeholder.png';
+                  
+                  return (
+                    <div 
+                      key={product.id}
+                      onClick={() => toggleProductSelection(product.id)}
+                      style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '12px', 
+                        padding: '12px', 
+                        border: `2px solid ${isSelected ? '#F59E0B' : '#E2E8F0'}`, 
+                        borderRadius: '16px', 
+                        background: isSelected ? '#FFFBEB' : 'white',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      <div style={{ width: '24px', height: '24px', borderRadius: '6px', border: `2px solid ${isSelected ? '#F59E0B' : '#CBD5E1'}`, background: isSelected ? '#F59E0B' : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {isSelected && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
+                      </div>
+                      <img src={imageUrl} alt="" style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '10px' }} />
+                      <div style={{ flex: 1, overflow: 'hidden' }}>
+                        <div style={{ fontWeight: '700', fontSize: '0.95rem', color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{product.title}</div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            <button onClick={handleSelectionConfirm} disabled={selectedProductIds.length === 0} className="active-scale" style={{ width: '100%', padding: '16px', borderRadius: '14px', fontWeight: '800', fontSize: '1rem', background: selectedProductIds.length > 0 ? '#F59E0B' : '#CBD5E1', color: 'white', border: 'none', cursor: selectedProductIds.length > 0 ? 'pointer' : 'not-allowed', transition: 'background 0.2s ease' }}>
+              Continuer vers le paiement ({selectedProductIds.length} sélectionnée{selectedProductIds.length > 1 ? 's' : ''})
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Modal de Confirmation de Paiement */}
       {showPaymentModal && (
