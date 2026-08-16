@@ -892,10 +892,10 @@ const PublishPage = () => {
                       Multipliez vos vues par 10 et vendez en un temps record ! Choisissez votre pack de Boost :
                     </p>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      <button type="button" onClick={() => setSelectedBoost({ price: 500, days: 2, title: 'Boost Flash' })} style={{ width: '100%', padding: '12px 14px', borderRadius: '12px', fontWeight: '700', fontSize: '0.9rem', background: '#FAFAF9', color: '#B45309', border: '1.5px solid #FCD34D', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
+                      <button type="button" onClick={() => setSelectedBoost({ price: 500, days: 1, title: 'Boost Flash' })} style={{ width: '100%', padding: '12px 14px', borderRadius: '12px', fontWeight: '700', fontSize: '0.9rem', background: '#FAFAF9', color: '#B45309', border: '1.5px solid #FCD34D', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
                           <span style={{ fontWeight: '800' }}>⚡ Boost Flash</span>
-                          <span style={{ fontSize: '0.75rem', fontWeight: '500', color: '#92400E' }}>1 Annonce (2 Jours)</span>
+                          <span style={{ fontSize: '0.75rem', fontWeight: '500', color: '#92400E' }}>1 Annonce (24 Heures)</span>
                         </div>
                         <span style={{ fontWeight: '900', fontSize: '1.1rem' }}>500 F</span>
                       </button>
@@ -903,17 +903,25 @@ const PublishPage = () => {
                       <button type="button" onClick={() => setSelectedBoost({ price: 1500, days: 7, title: 'Pack Semaine' })} style={{ width: '100%', padding: '12px 14px', borderRadius: '12px', fontWeight: '700', fontSize: '0.9rem', background: '#FFFBEB', color: '#B45309', border: '2px solid #F59E0B', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
                           <span style={{ fontWeight: '800' }}>⭐️ Pack Semaine</span>
-                          <span style={{ fontSize: '0.75rem', fontWeight: '500', color: '#92400E' }}>Jusqu'à 5 Annonces (7 Jours)</span>
+                          <span style={{ fontSize: '0.75rem', fontWeight: '500', color: '#92400E' }}>Jusqu'à 2 Annonces (7 Jours)</span>
                         </div>
                         <span style={{ fontWeight: '900', fontSize: '1.1rem' }}>1 500 F</span>
                       </button>
 
                       <button type="button" onClick={() => setSelectedBoost({ price: 5000, days: 30, title: 'Pack Mensuel' })} style={{ width: '100%', padding: '12px 14px', borderRadius: '12px', fontWeight: '700', fontSize: '0.9rem', background: '#FAFAF9', color: '#B45309', border: '1.5px solid #FCD34D', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                          <span style={{ fontWeight: '800' }}>🚀 Pack Mensuel (VIP)</span>
-                          <span style={{ fontSize: '0.75rem', fontWeight: '500', color: '#92400E' }}>Jusqu'à 10 Annonces (30 Jours)</span>
+                          <span style={{ fontWeight: '800' }}>🚀 Pack Mensuel</span>
+                          <span style={{ fontSize: '0.75rem', fontWeight: '500', color: '#92400E' }}>Jusqu'à 5 Annonces (30 Jours)</span>
                         </div>
                         <span style={{ fontWeight: '900', fontSize: '1.1rem' }}>5 000 F</span>
+                      </button>
+
+                      <button type="button" onClick={() => setSelectedBoost({ price: 10000, days: 30, title: 'Pack Max' })} style={{ width: '100%', padding: '12px 14px', borderRadius: '12px', fontWeight: '700', fontSize: '0.9rem', background: '#FEF2F2', color: '#B91C1C', border: '1.5px solid #FECACA', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                          <span style={{ fontWeight: '800' }}>🔥 Pack Max</span>
+                          <span style={{ fontSize: '0.75rem', fontWeight: '500', color: '#7F1D1D' }}>Jusqu'à 12 Annonces (30 Jours)</span>
+                        </div>
+                        <span style={{ fontWeight: '900', fontSize: '1.1rem' }}>10 000 F</span>
                       </button>
                     </div>
                   </div>

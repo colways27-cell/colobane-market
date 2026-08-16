@@ -143,9 +143,55 @@ const SubscriptionPage = () => {
       
       <div style={{ textAlign: 'center', marginBottom: '40px' }}>
         <h1 style={{ fontSize: '2rem', fontWeight: '800', fontFamily: 'var(--font-heading)', margin: '0 0 10px 0' }}>
-          Boostez vos Ventes
+          Développez vos Ventes
         </h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>Choisissez le forfait ou l'option adapté à vos ambitions.</p>
+        <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>Choisissez l'offre qui correspond à vos ambitions.</p>
+      </div>
+
+      <div style={{ marginBottom: '40px' }}>
+        <h2 style={{ fontSize: '1.4rem', fontWeight: '900', color: 'var(--text-main)', textAlign: 'center', marginBottom: '20px', fontFamily: 'var(--font-heading)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+          🏪 Abonnements Boutique
+        </h2>
+        <p style={{ textAlign: 'center', color: 'var(--text-muted)', marginBottom: '30px', fontSize: '1rem', padding: '0 20px' }}>
+          Créez votre boutique professionnelle et inspirez confiance à vos clients.
+        </p>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', padding: '0 10px' }}>
+          {/* Abonnement Boutique 5000F */}
+          <div style={{ background: 'white', borderRadius: '24px', padding: '24px', border: '1.5px solid #CBD5E1', display: 'flex', flexDirection: 'column', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
+            <div style={{ fontSize: '0.85rem', color: '#475569', fontWeight: '800', textTransform: 'uppercase', marginBottom: '8px' }}>Boutique Pro</div>
+            <div style={{ fontSize: '2.2rem', fontWeight: '900', color: '#0F172A', margin: '0 0 16px 0', lineHeight: 1 }}>
+              5 000 <span style={{ fontSize: '1rem', color: '#64748B', fontWeight: '700' }}>FCFA / mois</span>
+            </div>
+            <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px 0', display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', fontWeight: '600' }}><span>🏪</span> Page Boutique dédiée</li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', color: '#475569' }}><span>🛡️</span> Badge Vendeur Pro</li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', color: '#475569' }}><span>📞</span> Boutons de contact optimisés</li>
+            </ul>
+            <button onClick={() => initiatePayment('abonnement_boutique_5000', 5000, 0)} className="active-scale" style={{ width: '100%', padding: '12px', borderRadius: '14px', background: '#0F172A', color: 'white', border: 'none', fontWeight: '800', fontSize: '1rem', cursor: 'pointer' }}>
+              Devenir Vendeur Pro
+            </button>
+          </div>
+
+          {/* Abonnement Boutique 10000F */}
+          <div style={{ background: '#FFFBEB', borderRadius: '24px', padding: '24px', border: '2px solid #F59E0B', display: 'flex', flexDirection: 'column', position: 'relative', boxShadow: '0 8px 25px rgba(245,158,11,0.15)' }}>
+            <div style={{ position: 'absolute', top: '-14px', left: '50%', transform: 'translateX(-50%)', background: '#F59E0B', color: 'white', padding: '4px 16px', borderRadius: '20px', fontWeight: '800', fontSize: '0.85rem', whiteSpace: 'nowrap', boxShadow: '0 4px 10px rgba(245,158,11,0.3)' }}>
+              ⭐️ LE PLUS COMPLET
+            </div>
+            <div style={{ fontSize: '0.85rem', color: '#D97706', fontWeight: '800', textTransform: 'uppercase', marginBottom: '8px', marginTop: '10px' }}>Boutique Premium</div>
+            <div style={{ fontSize: '2.2rem', fontWeight: '900', color: '#92400E', margin: '0 0 16px 0', lineHeight: 1 }}>
+              10 000 <span style={{ fontSize: '1rem', color: '#B45309', fontWeight: '700' }}>FCFA / mois</span>
+            </div>
+            <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px 0', display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', fontWeight: '600' }}><span>🏪</span> Tous les avantages Boutique</li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', fontWeight: '700', color: '#92400E' }}><span>🚀</span> + 5 Annonces Boostées incluses</li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', color: '#475569' }}><span>⭐</span> Visibilité maximale</li>
+            </ul>
+            <button onClick={() => initiatePayment('abonnement_boutique_10000', 10000, 5)} className="active-scale" style={{ width: '100%', padding: '12px', borderRadius: '14px', background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: 'white', border: 'none', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', boxShadow: '0 4px 15px rgba(245,158,11,0.2)' }}>
+              Prendre le Pack Premium
+            </button>
+          </div>
+        </div>
       </div>
 
       <div style={{ marginBottom: '40px' }}>
@@ -153,12 +199,12 @@ const SubscriptionPage = () => {
           🚀 Nos Packs de Boost
         </h2>
         <p style={{ textAlign: 'center', color: 'var(--text-muted)', marginBottom: '30px', fontSize: '1rem', padding: '0 20px' }}>
-          Propulsez vos annonces en tête de liste et multipliez vos ventes en un temps record.
+          Propulsez vos annonces existantes en tête de liste pour vendre plus vite.
         </p>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', padding: '0 10px' }}>
           
-          {/* Boost Flash 500 FCFA (1 annonce) */}
+          {/* Boost Flash 500 FCFA */}
           <div style={{ background: 'white', borderRadius: '24px', padding: '24px', border: '1.5px solid #FDE68A', display: 'flex', flexDirection: 'column', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
             <div style={{ fontSize: '0.85rem', color: '#D97706', fontWeight: '800', textTransform: 'uppercase', marginBottom: '8px' }}>Boost Flash</div>
             <div style={{ fontSize: '2.2rem', fontWeight: '900', color: '#B45309', margin: '0 0 16px 0', lineHeight: 1 }}>
@@ -166,62 +212,55 @@ const SubscriptionPage = () => {
             </div>
             <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px 0', display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
               <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', fontWeight: '600' }}><span>📢</span> <strong>1 Annonce</strong> sponsorisée</li>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', color: '#475569' }}><span>⏳</span> Valable pendant 2 jours</li>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', color: '#475569' }}><span>⚡</span> Apparaît dans "Vedette"</li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', color: '#475569' }}><span>⏳</span> Valable pour 24 Heures</li>
             </ul>
-            <button onClick={() => initiatePayment('boost_1_annonce', 500, 1)} className="active-scale" style={{ width: '100%', padding: '12px', borderRadius: '14px', background: '#F59E0B', color: 'white', border: 'none', fontWeight: '800', fontSize: '1rem', cursor: 'pointer' }}>
+            <button onClick={() => initiatePayment('boost_1_annonce_24h', 500, 1)} className="active-scale" style={{ width: '100%', padding: '12px', borderRadius: '14px', background: '#F59E0B', color: 'white', border: 'none', fontWeight: '800', fontSize: '1rem', cursor: 'pointer' }}>
               Booster 1 Annonce
             </button>
           </div>
 
-          {/* Pack Semaine 1500 FCFA (5 annonces) */}
-          <div style={{ background: 'white', borderRadius: '24px', padding: '24px', border: '2px solid #F59E0B', display: 'flex', flexDirection: 'column', position: 'relative', boxShadow: '0 8px 25px rgba(245,158,11,0.15)' }}>
-            <div style={{ position: 'absolute', top: '-14px', left: '50%', transform: 'translateX(-50%)', background: '#F59E0B', color: 'white', padding: '4px 16px', borderRadius: '20px', fontWeight: '800', fontSize: '0.85rem', whiteSpace: 'nowrap', boxShadow: '0 4px 10px rgba(245,158,11,0.3)' }}>
-              ⭐️ LE PLUS POPULAIRE
-            </div>
-            <div style={{ fontSize: '0.85rem', color: '#D97706', fontWeight: '800', textTransform: 'uppercase', marginBottom: '8px', marginTop: '10px' }}>Pack Semaine</div>
+          {/* Pack Semaine 1500 FCFA */}
+          <div style={{ background: 'white', borderRadius: '24px', padding: '24px', border: '1.5px solid #FCD34D', display: 'flex', flexDirection: 'column', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
+            <div style={{ fontSize: '0.85rem', color: '#D97706', fontWeight: '800', textTransform: 'uppercase', marginBottom: '8px' }}>Pack Semaine</div>
             <div style={{ fontSize: '2.2rem', fontWeight: '900', color: '#B45309', margin: '0 0 16px 0', lineHeight: 1 }}>
               1 500 <span style={{ fontSize: '1rem', color: '#92400E', fontWeight: '700' }}>FCFA</span>
             </div>
             <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px 0', display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', fontWeight: '600' }}><span>📢</span> <strong>5 Annonces</strong> au choix</li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', fontWeight: '600' }}><span>📢</span> <strong>2 Annonces</strong> au choix</li>
               <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', color: '#475569' }}><span>⏳</span> Valable pour 1 semaine (7j)</li>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', color: '#475569' }}><span>⚡</span> Rotation en tête de liste</li>
             </ul>
-            <button onClick={() => initiatePayment('pack_5_annonces', 1500, 5)} className="active-scale" style={{ width: '100%', padding: '12px', borderRadius: '14px', background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: 'white', border: 'none', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', boxShadow: '0 4px 15px rgba(245,158,11,0.2)' }}>
-              Prendre le Pack Semaine
+            <button onClick={() => initiatePayment('pack_2_annonces', 1500, 2)} className="active-scale" style={{ width: '100%', padding: '12px', borderRadius: '14px', background: '#D97706', color: 'white', border: 'none', fontWeight: '800', fontSize: '1rem', cursor: 'pointer' }}>
+              Booster 2 Annonces
             </button>
           </div>
 
-          {/* Pack Mensuel 5000 FCFA (10 annonces) */}
+          {/* Pack Mensuel 5000 FCFA */}
           <div style={{ background: '#FFFBEB', borderRadius: '24px', padding: '24px', border: '1.5px solid #FCD34D', display: 'flex', flexDirection: 'column', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
-            <div style={{ fontSize: '0.85rem', color: '#B45309', fontWeight: '800', textTransform: 'uppercase', marginBottom: '8px' }}>Pack Mensuel (VIP)</div>
+            <div style={{ fontSize: '0.85rem', color: '#B45309', fontWeight: '800', textTransform: 'uppercase', marginBottom: '8px' }}>Pack Mensuel</div>
             <div style={{ fontSize: '2.2rem', fontWeight: '900', color: '#92400E', margin: '0 0 16px 0', lineHeight: 1 }}>
               5 000 <span style={{ fontSize: '1rem', color: '#78350F', fontWeight: '700' }}>FCFA</span>
             </div>
             <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px 0', display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', fontWeight: '600' }}><span>📢</span> <strong>10 Annonces</strong> au choix</li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', fontWeight: '600' }}><span>📢</span> <strong>5 Annonces</strong> au choix</li>
               <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', color: '#475569' }}><span>⏳</span> Valable pour 1 mois (30j)</li>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', color: '#475569' }}><span>🛡️</span> Badge Vendeur Pro inclus</li>
             </ul>
-            <button onClick={() => initiatePayment('pack_10_annonces', 5000, 10)} className="active-scale" style={{ width: '100%', padding: '12px', borderRadius: '14px', background: '#B45309', color: 'white', border: 'none', fontWeight: '800', fontSize: '1rem', cursor: 'pointer' }}>
-              Prendre le Pack VIP
+            <button onClick={() => initiatePayment('pack_5_annonces_mois', 5000, 5)} className="active-scale" style={{ width: '100%', padding: '12px', borderRadius: '14px', background: '#B45309', color: 'white', border: 'none', fontWeight: '800', fontSize: '1rem', cursor: 'pointer' }}>
+              Booster 5 Annonces
             </button>
           </div>
 
-          {/* Boost Reel Vidéo 1500 FCFA */}
-          <div style={{ background: 'linear-gradient(135deg, #0F172A 0%, #1E1B4B 100%)', borderRadius: '24px', padding: '24px', border: '1px solid #312E81', display: 'flex', flexDirection: 'column', boxShadow: '0 8px 20px rgba(0,0,0,0.2)' }}>
-            <div style={{ fontSize: '0.85rem', color: '#E2E8F0', fontWeight: '800', textTransform: 'uppercase', marginBottom: '8px' }}>🎬 Spécial Vidéo</div>
-            <div style={{ fontSize: '2.2rem', fontWeight: '900', color: 'white', margin: '0 0 16px 0', lineHeight: 1 }}>
-              1 500 <span style={{ fontSize: '1rem', color: '#94A3B8', fontWeight: '700' }}>FCFA</span>
+          {/* Pack Pro 10000 FCFA */}
+          <div style={{ background: '#FEF2F2', borderRadius: '24px', padding: '24px', border: '1.5px solid #FECACA', display: 'flex', flexDirection: 'column', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
+            <div style={{ fontSize: '0.85rem', color: '#B91C1C', fontWeight: '800', textTransform: 'uppercase', marginBottom: '8px' }}>Pack Max</div>
+            <div style={{ fontSize: '2.2rem', fontWeight: '900', color: '#991B1B', margin: '0 0 16px 0', lineHeight: 1 }}>
+              10 000 <span style={{ fontSize: '1rem', color: '#7F1D1D', fontWeight: '700' }}>FCFA</span>
             </div>
-            <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px 0', display: 'flex', flexDirection: 'column', gap: '12px', flex: 1, color: '#E2E8F0' }}>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', fontWeight: '600' }}><span>📱</span> <strong>1 Reel Vidéo</strong> publié</li>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem' }}><span>⏳</span> Valable pour 1 semaine (7j)</li>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem' }}><span>🔥</span> Flux vidéo immersif type TikTok</li>
+            <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px 0', display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', fontWeight: '600' }}><span>📢</span> <strong>12 Annonces</strong> au choix</li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', color: '#475569' }}><span>⏳</span> Valable pour 1 mois (30j)</li>
             </ul>
-            <button onClick={() => initiatePayment('boost_reel_semaine', 1500, 0)} className="active-scale" style={{ width: '100%', padding: '12px', borderRadius: '14px', background: 'linear-gradient(135deg, #E11D48, #BE123C)', color: 'white', border: 'none', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', boxShadow: '0 4px 15px rgba(225,29,72,0.3)' }}>
-              Activer Reel Vidéo
+            <button onClick={() => initiatePayment('pack_12_annonces', 10000, 12)} className="active-scale" style={{ width: '100%', padding: '12px', borderRadius: '14px', background: '#B91C1C', color: 'white', border: 'none', fontWeight: '800', fontSize: '1rem', cursor: 'pointer' }}>
+              Booster 12 Annonces
             </button>
           </div>
 
@@ -232,7 +271,7 @@ const SubscriptionPage = () => {
         <h3 style={{ fontSize: '1.2rem', fontWeight: '800', marginBottom: '20px', fontFamily: 'var(--font-heading)' }}>Paiement Sécurisé</h3>
         <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', flexWrap: 'wrap' }}>
           <div style={{ background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', color: 'white', padding: '12px 24px', borderRadius: '14px', fontWeight: '800', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '10px', boxShadow: '0 4px 15px rgba(16, 185, 129, 0.25)' }}>
-            💳 Payer
+            💳 Payer par Wave
           </div>
         </div>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '15px' }}>Paiement 100% sécurisé au Sénégal. Activation immédiate.</p>
@@ -290,7 +329,7 @@ const SubscriptionPage = () => {
               )}
             </div>
 
-            <button onClick={handleSelectionConfirm} disabled={selectedProductIds.length === 0} className="active-scale" style={{ width: '100%', padding: '16px', borderRadius: '14px', fontWeight: '800', fontSize: '1rem', background: selectedProductIds.length > 0 ? '#F59E0B' : '#CBD5E1', color: 'white', border: 'none', cursor: selectedProductIds.length > 0 ? 'pointer' : 'not-allowed', transition: 'background 0.2s ease' }}>
+            <button onClick={handleSelectionConfirm} disabled={selectedProductIds.length === 0 && selectedPlan?.type !== 'abonnement_boutique_10000'} className="active-scale" style={{ width: '100%', padding: '16px', borderRadius: '14px', fontWeight: '800', fontSize: '1rem', background: selectedProductIds.length > 0 ? '#F59E0B' : '#CBD5E1', color: 'white', border: 'none', cursor: selectedProductIds.length > 0 ? 'pointer' : 'not-allowed', transition: 'background 0.2s ease' }}>
               Continuer vers le paiement ({selectedProductIds.length} sélectionnée{selectedProductIds.length > 1 ? 's' : ''})
             </button>
           </div>

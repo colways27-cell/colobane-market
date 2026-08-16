@@ -14,20 +14,15 @@ const formatPlanType = (rawPlanType) => {
   }
   
   const types = {
-    boost_1_annonce:     '⚡ Boost Flash (2j)',
-    pack_5_annonces:     '⭐️ Pack Semaine (7j)',
-    pack_10_annonces:    '🚀 Pack VIP (30j)',
+    boost_1_annonce_24h: '⚡ Boost Flash (24h)',
+    pack_2_annonces:     '⭐️ Pack Semaine (7j)',
+    pack_5_annonces_mois:'🚀 Pack Mensuel (30j)',
+    pack_12_annonces:    '🔥 Pack Max (30j)',
+    abonnement_boutique_5000: '🏪 Boutique Pro',
+    abonnement_boutique_10000: '🏆 Boutique Premium (+5 Boosts)',
     boost_reel_semaine:  '🎬 Boost Reel (7j)',
     pass_semaine:        '⚡ Pass Semaine (7j)',
-    pass_15jours:        '⚡ Pass 15 Jours (15j)',
-    forfait_basique:     '📦 Forfait Basique (30j)',
-    forfait_premium:     '⭐ Forfait Premium (30j)',
-    forfait_boutique:    '🏪 Forfait Boutique (30j)',
-    forfait_standard:    '📋 Forfait Standard',
-    seller_pro:          '💼 Seller Pro',
-    boutique_premium:    '🏆 Boutique Premium',
-    Certification:       '👑 Certification',
-    boost_reel_7j:       '🎬 Boost Reel (7j)'
+    pass_15jours:        '⚡ Pass 15 Jours (15j)'
   };
   
   const base = types[planType] || planType;

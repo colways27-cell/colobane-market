@@ -151,12 +151,14 @@ const AdminPage = () => {
         adsToBoost = parts[1].split(',');
       }
 
-      if (['pack_5_annonces', 'pack_10_annonces', 'boost_1_annonce'].includes(type)) {
+      const boostPacks = ['boost_1_annonce_24h', 'pack_2_annonces', 'pack_5_annonces_mois', 'pack_12_annonces', 'abonnement_boutique_10000'];
+      
+      if (boostPacks.includes(type)) {
         if (adsToBoost.length > 0) {
           const boostEndDate = new Date();
-          let days = 2; // Default for flash
-          if (type === 'pack_5_annonces') days = 7;
-          if (type === 'pack_10_annonces') days = 30;
+          let days = 1; // Default for flash
+          if (type === 'pack_2_annonces') days = 7;
+          if (['pack_5_annonces_mois', 'pack_12_annonces', 'abonnement_boutique_10000'].includes(type)) days = 30;
           boostEndDate.setDate(boostEndDate.getDate() + days);
           
           await supabase.from('products').update({ 
@@ -164,6 +166,10 @@ const AdminPage = () => {
             boost_end_date: boostEndDate.toISOString() 
           }).in('id', adsToBoost);
         }
+      } 
+      
+      if (type === 'abonnement_boutique_5000' || type === 'abonnement_boutique_10000') {
+        await supabase.from('profiles').update({ subscription_plan: 'boutique', subscription_end_date: subEndDateISO, account_type: 'boutique', is_verified: true }).eq('id', paiement.user_id);
       } else if (type === 'boost_reel_semaine' || type === 'boost_reel_7j') {
         const passReel7 = new Date(); passReel7.setDate(passReel7.getDate() + 7);
         await supabase.from('profiles').update({ is_verified: true, subscription_plan: 'boost_reel_7j', subscription_end_date: passReel7.toISOString() }).eq('id', paiement.user_id);
