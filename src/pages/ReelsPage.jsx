@@ -1653,13 +1653,10 @@ const ReelsPage = () => {
             overflowY: 'auto'
           }}>
             {/* Modal Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '24px' }}>🎬</span>
-                <div>
-                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800 }}>Publier un Reel Express</h3>
-                  <p style={{ margin: 0, fontSize: '12px', color: '#A1A1AA' }}>Affichage exclusif dans le flux vidéo Reels</p>
-                </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
+              <div>
+                <h3 style={{ margin: '0 0 4px 0', fontSize: '20px', fontWeight: 900, fontFamily: 'var(--font-heading)' }}>Publier un Reel Express 🎬</h3>
+                <p style={{ margin: 0, fontSize: '13px', color: '#A1A1AA', fontWeight: 500 }}>Affichage exclusif dans le flux vidéo immersif</p>
               </div>
               <button
                 onClick={() => {
@@ -1670,7 +1667,7 @@ const ReelsPage = () => {
                   setPreviewSoundId(null);
                   setShowPublishModal(false);
                 }}
-                style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#FFF', width: '36px', height: '36px', borderRadius: '50%', cursor: 'pointer', fontSize: '16px' }}
+                style={{ background: '#27272A', border: 'none', color: '#A1A1AA', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
                 ✕
               </button>
@@ -1679,29 +1676,31 @@ const ReelsPage = () => {
             {/* Quota Info Banner */}
             <div style={{
               background: userProfile?.subscription_plan === 'premium' || userProfile?.account_type === 'vip'
-                ? 'linear-gradient(135deg, rgba(234,179,8,0.2) 0%, rgba(202,138,4,0.1) 100%)'
+                ? 'linear-gradient(135deg, rgba(234,179,8,0.1) 0%, rgba(202,138,4,0.05) 100%)'
                 : userProfile?.subscription_plan === 'basique' || userProfile?.account_type === 'pro' || userProfile?.account_type === 'boutique'
-                ? 'linear-gradient(135deg, rgba(225,29,72,0.2) 0%, rgba(190,18,60,0.1) 100%)'
-                : 'rgba(255, 255, 255, 0.05)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+                ? 'linear-gradient(135deg, rgba(225,29,72,0.1) 0%, rgba(190,18,60,0.05) 100%)'
+                : 'rgba(255, 255, 255, 0.03)',
+              border: userProfile?.subscription_plan === 'premium' || userProfile?.account_type === 'vip'
+                ? '1px solid rgba(234,179,8,0.2)'
+                : '1px solid rgba(225,29,72,0.2)',
               borderRadius: '16px',
-              padding: '12px 16px',
-              marginBottom: '20px',
+              padding: '14px 16px',
+              marginBottom: '24px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between'
             }}>
               <div>
-                <div style={{ fontSize: '13px', fontWeight: 800, color: '#F43F5E' }}>
+                <div style={{ fontSize: '13px', fontWeight: 800, color: userProfile?.subscription_plan === 'premium' || userProfile?.account_type === 'vip' ? '#FACC15' : '#F43F5E' }}>
                   {userProfile?.subscription_plan === 'premium' || userProfile?.account_type === 'vip'
                     ? '👑 VIP : Reels Illimités inclus'
                     : userProfile?.subscription_plan === 'basique' || userProfile?.account_type === 'pro' || userProfile?.account_type === 'boutique'
                     ? `🔥 Forfait Pro : ${userReelCountThisMonth} / 3 Reels utilisés ce mois-ci`
                     : '⚡ Compte Gratuit'}
                 </div>
-                <div style={{ fontSize: '11px', color: '#D4D4D8', marginTop: '2px' }}>
+                <div style={{ fontSize: '11px', color: '#D4D4D8', marginTop: '4px', fontWeight: 500 }}>
                   {userProfile?.subscription_plan === 'premium' || userProfile?.account_type === 'vip'
-                    ? 'Publication vidéo instantanée sans limite'
+                    ? 'Publication vidéo instantanée sans aucune limite'
                     : userProfile?.subscription_plan === 'basique' || userProfile?.account_type === 'pro' || userProfile?.account_type === 'boutique'
                     ? (userReelCountThisMonth < 3 ? 'Inclus dans votre forfait mensuel' : 'Quota mensuel atteint -> Option Boost 1 500F')
                     : 'Boost Reel disponible à 1 500 FCFA / 7 jours'}
@@ -1710,13 +1709,13 @@ const ReelsPage = () => {
             </div>
 
             {/* Form */}
-            <form onSubmit={handlePublishReelExpress} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <form onSubmit={handlePublishReelExpress} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               {/* Media Mode Selector */}
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '8px', color: '#E4E4E7' }}>
-                  📱 Type de Média du Reel *
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '10px', color: '#F4F4F5' }}>
+                  Type de média *
                 </label>
-                <div style={{ display: 'flex', gap: '10px', marginBottom: '12px' }}>
+                <div style={{ display: 'flex', background: '#27272A', padding: '4px', borderRadius: '16px', gap: '4px', marginBottom: '16px' }}>
                   <button
                     type="button"
                     onClick={() => {
@@ -1728,15 +1727,17 @@ const ReelsPage = () => {
                       flex: 1,
                       padding: '10px',
                       borderRadius: '12px',
-                      border: mediaMode === 'video' ? '2px solid #E11D48' : '1px solid #3F3F46',
-                      background: mediaMode === 'video' ? 'rgba(225, 29, 72, 0.15)' : '#27272A',
-                      color: mediaMode === 'video' ? '#F43F5E' : '#A1A1AA',
+                      border: 'none',
+                      background: mediaMode === 'video' ? '#E11D48' : 'transparent',
+                      color: mediaMode === 'video' ? '#FFFFFF' : '#A1A1AA',
                       fontWeight: 700,
                       fontSize: '13px',
-                      cursor: 'pointer'
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      boxShadow: mediaMode === 'video' ? '0 2px 8px rgba(225,29,72,0.4)' : 'none'
                     }}
                   >
-                    🎥 Vidéo MP4 / MOV
+                    🎥 Vidéo MP4/MOV
                   </button>
 
                   <button
@@ -1750,15 +1751,17 @@ const ReelsPage = () => {
                       flex: 1,
                       padding: '10px',
                       borderRadius: '12px',
-                      border: mediaMode === 'photos' ? '2px solid #E11D48' : '1px solid #3F3F46',
-                      background: mediaMode === 'photos' ? 'rgba(225, 29, 72, 0.15)' : '#27272A',
-                      color: mediaMode === 'photos' ? '#F43F5E' : '#A1A1AA',
+                      border: 'none',
+                      background: mediaMode === 'photos' ? '#E11D48' : 'transparent',
+                      color: mediaMode === 'photos' ? '#FFFFFF' : '#A1A1AA',
                       fontWeight: 700,
                       fontSize: '13px',
-                      cursor: 'pointer'
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      boxShadow: mediaMode === 'photos' ? '0 2px 8px rgba(225,29,72,0.4)' : 'none'
                     }}
                   >
-                    📸 Photos (1 à 3)
+                    📸 Photos (1-3)
                   </button>
                 </div>
 
@@ -1766,26 +1769,27 @@ const ReelsPage = () => {
                 <button
                   type="button"
                   onClick={openCamera}
+                  className="active-scale"
                   style={{
                     width: '100%',
                     padding: '14px',
-                    borderRadius: '14px',
-                    border: '2px dashed #E11D48',
-                    background: 'linear-gradient(135deg, rgba(225, 29, 72, 0.12), rgba(168, 85, 247, 0.12))',
-                    color: '#F43F5E',
+                    borderRadius: '16px',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    background: 'linear-gradient(135deg, #27272A 0%, #18181B 100%)',
+                    color: '#FFFFFF',
                     fontWeight: 800,
-                    fontSize: '15px',
+                    fontSize: '14px',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '10px',
-                    marginBottom: '12px',
-                    transition: 'all 0.3s ease'
+                    transition: 'all 0.2s ease',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
                   }}
                 >
-                  <span style={{ fontSize: '22px' }}>📹</span>
-                  <span>Filmer Direct mon Reel (60s max)</span>
+                  <span style={{ fontSize: '20px' }}>📹</span>
+                  <span>Filmer avec la caméra (60s max)</span>
                 </button>
 
                 {/* ═══ CAMERA RECORDING OVERLAY ═══ */}
@@ -1967,10 +1971,14 @@ const ReelsPage = () => {
 
                 {/* Top Sounds Music Selector */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '8px', color: '#E4E4E7' }}>
-                    🎵 Musique & Sons Tendances (22 sons)
-                  </label>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '220px', overflowY: 'auto', paddingRight: '4px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                    <label style={{ margin: 0, fontSize: '13px', fontWeight: 700, color: '#F4F4F5' }}>
+                      Musique & Sons Tendances
+                    </label>
+                    <span style={{ fontSize: '11px', color: '#A1A1AA', background: '#27272A', padding: '2px 8px', borderRadius: '10px' }}>22 sons</span>
+                  </div>
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '200px', overflowY: 'auto', paddingRight: '4px' }}>
                     {TOP_REELS_SOUNDS.map((sound) => {
                       const isSelected = selectedSound.id === sound.id;
                       const isPreviewing = previewSoundId === sound.id;
@@ -1986,21 +1994,21 @@ const ReelsPage = () => {
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
-                            padding: '10px 12px',
+                            padding: '10px 14px',
                             borderRadius: '12px',
-                            background: isSelected ? 'rgba(225, 29, 72, 0.18)' : '#27272A',
-                            border: isSelected ? '1.5px solid #E11D48' : '1px solid #3F3F46',
+                            background: isSelected ? 'rgba(225, 29, 72, 0.1)' : '#18181B',
+                            border: isSelected ? '1px solid rgba(225,29,72,0.4)' : '1px solid rgba(255,255,255,0.05)',
                             cursor: 'pointer',
-                            transition: 'all 0.2s'
+                            transition: 'all 0.2s ease'
                           }}
                         >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
-                            <span style={{ fontSize: '18px' }}>{sound.icon}</span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+                            <span style={{ fontSize: '20px', filter: isSelected ? 'drop-shadow(0 0 8px rgba(225,29,72,0.5))' : 'none' }}>{sound.icon}</span>
                             <div style={{ minWidth: 0 }}>
-                              <div style={{ fontSize: '13px', fontWeight: 700, color: isSelected ? '#F43F5E' : '#FFF', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              <div style={{ fontSize: '13px', fontWeight: 700, color: isSelected ? '#F43F5E' : '#E4E4E7', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                 {sound.title}
                               </div>
-                              <div style={{ fontSize: '11px', color: '#A1A1AA' }}>{sound.artist}</div>
+                              <div style={{ fontSize: '11px', color: '#71717A', marginTop: '2px' }}>{sound.artist}</div>
                             </div>
                           </div>
 
@@ -2012,18 +2020,22 @@ const ReelsPage = () => {
                                 toggleSoundPreview(sound);
                               }}
                               style={{
-                                background: isPreviewing ? '#E11D48' : 'rgba(255,255,255,0.1)',
+                                background: isPreviewing ? '#E11D48' : '#27272A',
                                 border: 'none',
-                                color: '#FFF',
-                                padding: '6px 10px',
-                                borderRadius: '20px',
+                                color: isPreviewing ? '#FFFFFF' : '#A1A1AA',
+                                padding: '6px 12px',
+                                borderRadius: '12px',
                                 fontSize: '11px',
                                 fontWeight: 700,
                                 cursor: 'pointer',
-                                flexShrink: 0
+                                flexShrink: 0,
+                                transition: 'all 0.2s ease',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px'
                               }}
                             >
-                              {isPreviewing ? '⏸️ Stop' : '▶️ Ecouter'}
+                              {isPreviewing ? '⏸️ Stop' : '▶️ Play'}
                             </button>
                           )}
                         </div>
@@ -2032,24 +2044,24 @@ const ReelsPage = () => {
                   </div>
 
                   {/* Custom Audio Upload Button */}
-                  <div style={{ marginTop: '10px' }}>
-                    <label style={{
+                  <div style={{ marginTop: '12px' }}>
+                    <label className="active-scale" style={{
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      gap: '8px',
-                      padding: '10px 14px',
+                      gap: '10px',
+                      padding: '12px 14px',
                       borderRadius: '12px',
-                      background: customAudioFile ? 'rgba(16, 185, 129, 0.18)' : 'rgba(255, 255, 255, 0.05)',
-                      border: customAudioFile ? '1.5px solid #10B981' : '1px dashed #52525B',
-                      color: customAudioFile ? '#10B981' : '#E4E4E7',
-                      fontSize: '12px',
-                      fontWeight: 700,
+                      background: customAudioFile ? 'rgba(16, 185, 129, 0.1)' : '#18181B',
+                      border: customAudioFile ? '1px solid rgba(16,185,129,0.4)' : '1px solid rgba(255,255,255,0.1)',
+                      color: customAudioFile ? '#10B981' : '#A1A1AA',
+                      fontSize: '13px',
+                      fontWeight: 600,
                       cursor: 'pointer',
-                      transition: 'all 0.2s'
+                      transition: 'all 0.2s ease'
                     }}>
-                      <span>🎙️</span>
-                      <span>{customAudioName ? `Son chargé : ${customAudioName}` : 'Ou importer un MP3 / Voix off (Optionnel)'}</span>
+                      <span style={{ fontSize: '18px' }}>🎙️</span>
+                      <span>{customAudioName ? `Fichier importé : ${customAudioName}` : 'Importer un fichier MP3 / Voix off'}</span>
                       <input
                         type="file"
                         accept="audio/*"
