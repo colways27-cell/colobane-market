@@ -3,9 +3,13 @@ import { supabase } from '../lib/supabase';
 import { categories as defaultCategories } from '../data/categories';
 import * as Icons from 'lucide-react';
 import React from 'react';
+import { DressIcon } from '../components/icons/DressIcon';
 
 // Construit le bon icône React à partir d'un nom de chaîne de caractères (ex: 'Smartphone')
 const getIconComponent = (iconName, size = 28, strokeWidth = 1.5) => {
+  if (iconName === 'Dress') {
+    return <DressIcon size={size} strokeWidth={strokeWidth} />;
+  }
   const IconComponent = Icons[iconName] || Icons.HelpCircle;
   return <IconComponent size={size} strokeWidth={strokeWidth} />;
 };
@@ -32,7 +36,7 @@ const defaultIconNames = {
   'telephones': 'Smartphone',
   'ordinateurs': 'Laptop',
   'vetements_homme': 'Shirt',
-  'vetements_femme': 'Handbag',
+  'vetements_femme': 'Dress',
   'chaussures': 'ShoppingBag',
   'montres_bijoux': 'Watch',
   'electromenager': 'Tv',
@@ -45,7 +49,7 @@ const legacyCategoryData = {
   'telephones': { name: 'Téléphones & Tablettes', color: '#007aff', iconName: 'Smartphone' },
   'ordinateurs': { name: 'Informatique', color: '#5856d6', iconName: 'Laptop' },
   'vetements_homme': { name: 'Vêtements Homme', color: '#ff2d55', iconName: 'Shirt' },
-  'vetements_femme': { name: 'Vêtements Femme', color: '#ff2d55', iconName: 'Handbag' },
+  'vetements_femme': { name: 'Vêtements Femme', color: '#ff2d55', iconName: 'Dress' },
   'chaussures': { name: 'Chaussures', color: '#ff9500', iconName: 'ShoppingBag' },
   'montres_bijoux': { name: 'Montres & Bijoux', color: '#ffcc00', iconName: 'Watch' },
   'electromenager': { name: 'Électroménager', color: '#4cd964', iconName: 'Tv' },
