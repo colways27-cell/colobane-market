@@ -32,12 +32,12 @@ const defaultIconNames = {
   'telephones': 'Smartphone',
   'ordinateurs': 'Laptop',
   'vetements_homme': 'Shirt',
-  'vetements_femme': 'Shirt',
+  'vetements_femme': 'Handbag',
   'chaussures': 'ShoppingBag',
-  'montres_bijoux': 'Sparkles',
+  'montres_bijoux': 'Watch',
   'electromenager': 'Tv',
   'accessoires': 'Glasses',
-  'beaute_sante': 'Sparkles',
+  'beaute_sante': 'Flower2',
   'meubles': 'Armchair'
 };
 
@@ -45,9 +45,9 @@ const legacyCategoryData = {
   'telephones': { name: 'Téléphones & Tablettes', color: '#007aff', iconName: 'Smartphone' },
   'ordinateurs': { name: 'Informatique', color: '#5856d6', iconName: 'Laptop' },
   'vetements_homme': { name: 'Vêtements Homme', color: '#ff2d55', iconName: 'Shirt' },
-  'vetements_femme': { name: 'Vêtements Femme', color: '#ff2d55', iconName: 'Shirt' },
+  'vetements_femme': { name: 'Vêtements Femme', color: '#ff2d55', iconName: 'Handbag' },
   'chaussures': { name: 'Chaussures', color: '#ff9500', iconName: 'ShoppingBag' },
-  'montres_bijoux': { name: 'Montres & Bijoux', color: '#ffcc00', iconName: 'Sparkles' },
+  'montres_bijoux': { name: 'Montres & Bijoux', color: '#ffcc00', iconName: 'Watch' },
   'electromenager': { name: 'Électroménager', color: '#4cd964', iconName: 'Tv' },
   'meubles': { name: 'Meubles', color: '#ff2d55', iconName: 'Armchair' },
 };

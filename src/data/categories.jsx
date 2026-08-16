@@ -7,6 +7,9 @@ import {
   ShoppingBag, 
   Glasses, 
   Sparkles, 
+  Flower2,
+  Watch,
+  Handbag,
   CarFront, 
   Building, 
   Hammer, 
@@ -106,7 +109,7 @@ export const categories = [
   {
     id: 'accessoires',
     name: 'Accessoires',
-    icon: <Glasses size={28} strokeWidth={1.5} />,
+    icon: <Watch size={28} strokeWidth={1.5} />,
     color: '#ff9500',
     fields: [
       { name: 'type', label: 'Sous-catégorie', type: 'select', options: ['Montre', 'Lunettes', 'Bracelet', 'Collier', 'Bague', 'Boucles d\'oreilles', 'Ceinture', 'Chapeau / Casquette', 'Autre'] },
@@ -119,7 +122,7 @@ export const categories = [
   {
     id: 'beaute_sante',
     name: 'Beauté & Santé',
-    icon: <Sparkles size={28} strokeWidth={1.5} />,
+    icon: <Flower2 size={28} strokeWidth={1.5} />,
     color: '#ff2d55',
     fields: [
       { name: 'type', label: 'Type', type: 'select', options: ['Parfum', 'Maquillage', 'Soin du visage', 'Soin du corps', 'Cheveux', 'Compléments alimentaires', 'Matériel beauté', 'Autre'] },
