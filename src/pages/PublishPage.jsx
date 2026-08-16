@@ -889,24 +889,31 @@ const PublishPage = () => {
                 ) : (
                   <div>
                     <p style={{ color: '#78350f', fontSize: '0.85rem', margin: '0 0 16px 0', lineHeight: '1.4', fontWeight: '500' }}>
-                      Multipliez vos vues par 10 et vendez votre article en un temps record !
+                      Multipliez vos vues par 10 et vendez en un temps record ! Choisissez votre pack de Boost :
                     </p>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      <button type="button" onClick={() => setSelectedBoost({ price: 500, days: 2 })} style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', fontWeight: '700', fontSize: '0.9rem', background: '#FAFAF9', color: '#f59e0b', border: '1.5px solid #f59e0b', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
-                        <span>⚡ 2 Jours</span>
-                        <span style={{ fontWeight: '800' }}>500 FCFA</span>
+                      <button type="button" onClick={() => setSelectedBoost({ price: 500, days: 2, title: 'Boost Flash' })} style={{ width: '100%', padding: '12px 14px', borderRadius: '12px', fontWeight: '700', fontSize: '0.9rem', background: '#FAFAF9', color: '#B45309', border: '1.5px solid #FCD34D', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                          <span style={{ fontWeight: '800' }}>⚡ Boost Flash</span>
+                          <span style={{ fontSize: '0.75rem', fontWeight: '500', color: '#92400E' }}>1 Annonce (2 Jours)</span>
+                        </div>
+                        <span style={{ fontWeight: '900', fontSize: '1.1rem' }}>500 F</span>
                       </button>
-                      <button type="button" onClick={() => setSelectedBoost({ price: 1500, days: 7 })} style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', fontWeight: '700', fontSize: '0.9rem', background: '#FAFAF9', color: '#f59e0b', border: '1.5px solid #f59e0b', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
-                        <span>⚡ 7 Jours</span>
-                        <span style={{ fontWeight: '800' }}>1500 FCFA</span>
+
+                      <button type="button" onClick={() => setSelectedBoost({ price: 1500, days: 7, title: 'Pack Semaine' })} style={{ width: '100%', padding: '12px 14px', borderRadius: '12px', fontWeight: '700', fontSize: '0.9rem', background: '#FFFBEB', color: '#B45309', border: '2px solid #F59E0B', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                          <span style={{ fontWeight: '800' }}>⭐️ Pack Semaine</span>
+                          <span style={{ fontSize: '0.75rem', fontWeight: '500', color: '#92400E' }}>Jusqu'à 5 Annonces (7 Jours)</span>
+                        </div>
+                        <span style={{ fontWeight: '900', fontSize: '1.1rem' }}>1 500 F</span>
                       </button>
-                      <button type="button" onClick={() => setSelectedBoost({ price: 2500, days: 15 })} style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', fontWeight: '700', fontSize: '0.9rem', background: '#FAFAF9', color: '#f59e0b', border: '1.5px solid #f59e0b', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
-                        <span>⚡ 15 Jours</span>
-                        <span style={{ fontWeight: '800' }}>2500 FCFA</span>
-                      </button>
-                      <button type="button" onClick={() => setSelectedBoost({ price: 5000, days: 30 })} style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', fontWeight: '700', fontSize: '0.9rem', background: '#FAFAF9', color: '#f59e0b', border: '1.5px solid #f59e0b', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
-                        <span>⚡ Mensuel (30 Jours)</span>
-                        <span style={{ fontWeight: '800' }}>5000 FCFA</span>
+
+                      <button type="button" onClick={() => setSelectedBoost({ price: 5000, days: 30, title: 'Pack Mensuel' })} style={{ width: '100%', padding: '12px 14px', borderRadius: '12px', fontWeight: '700', fontSize: '0.9rem', background: '#FAFAF9', color: '#B45309', border: '1.5px solid #FCD34D', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                          <span style={{ fontWeight: '800' }}>🚀 Pack Mensuel (VIP)</span>
+                          <span style={{ fontSize: '0.75rem', fontWeight: '500', color: '#92400E' }}>Jusqu'à 10 Annonces (30 Jours)</span>
+                        </div>
+                        <span style={{ fontWeight: '900', fontSize: '1.1rem' }}>5 000 F</span>
                       </button>
                     </div>
                   </div>
