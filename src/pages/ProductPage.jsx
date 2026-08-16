@@ -56,6 +56,9 @@ const ProductPage = () => {
     if (isRightSwipe && activeImage > 0) {
       setActiveImage(a => a - 1);
     }
+    
+    setTouchStart(null);
+    setTouchEnd(null);
   };
 
   const handleShare = async () => {
@@ -379,7 +382,8 @@ const ProductPage = () => {
           background: '#09090B', 
           overflow: 'hidden',
           userSelect: 'none',
-          WebkitUserSelect: 'none'
+          WebkitUserSelect: 'none',
+          touchAction: 'pan-y'
         }}
       >
         {/* Story Segment Bars Top */}
@@ -419,6 +423,7 @@ const ProductPage = () => {
           <img 
             src={imageUrl} 
             alt={`${product.title} ${activeImage + 1}`} 
+            draggable={false}
             style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'all 0.25s ease-out' }} 
           />
         )}
@@ -539,7 +544,7 @@ const ProductPage = () => {
             onTouchStart={onTouchStart}
             onTouchMove={onTouchMove}
             onTouchEnd={onTouchEnd}
-            style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}
+            style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', touchAction: 'pan-y' }}
           >
             {hasVideo && activeImage === 0 ? (
               <video 
@@ -556,6 +561,7 @@ const ProductPage = () => {
               <img 
                 src={imageUrl} 
                 alt={product.title} 
+                draggable={false}
                 style={{ maxWidth: '100%', maxHeight: '82vh', objectFit: 'contain', transition: 'transform 0.2s ease' }} 
               />
             )}
