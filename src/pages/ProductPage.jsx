@@ -32,6 +32,32 @@ const ProductPage = () => {
   const [submittingReview, setSubmittingReview] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
 
+  // Swipe logic state
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e) => setTouchEnd(e.targetTouches[0].clientX);
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe && product?.images && activeImage < product.images.length - 1) {
+      setActiveImage(a => a + 1);
+    }
+    if (isRightSwipe && activeImage > 0) {
+      setActiveImage(a => a - 1);
+    }
+  };
+
   const handleShare = async () => {
     setShowShareMenu(false);
     await shareProduct(product);
@@ -343,6 +369,9 @@ const ProductPage = () => {
 
       {/* Instagram Stories Style Gallery */}
       <div 
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
         style={{ 
           width: '100%', 
           height: '420px', 
@@ -506,7 +535,12 @@ const ProductPage = () => {
           </div>
 
           {/* Fullscreen Story Main Image */}
-          <div style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+          <div 
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+            style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}
+          >
             {hasVideo && activeImage === 0 ? (
               <video 
                 src={videoUrl} 
