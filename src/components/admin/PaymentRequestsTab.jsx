@@ -1,26 +1,41 @@
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 
-const formatPlanType = (planType) => {
-  if (!planType) return 'Inconnu';
+const formatPlanType = (rawPlanType) => {
+  if (!rawPlanType) return 'Inconnu';
+  
+  const parts = rawPlanType.split('|');
+  const planType = parts[0];
+  
   if (planType.startsWith('boost_product_')) {
     const match = planType.match(/^boost_product_(\d+)d_(.+)$/);
     if (match) return `🚀 Boost ${match[1]} Jours`;
     return '🚀 Boost Produit';
   }
+  
   const types = {
-    pass_semaine:        '⚡ Pass Semaine (7j - 1 000F)',
-    pass_15jours:        '⚡ Pass 15 Jours (15j - 2 500F)',
-    forfait_basique:     '📦 Forfait Basique (30j - 5 000F)',
-    forfait_premium:     '⭐ Forfait Premium (30j - 10 000F)',
-    forfait_boutique:    '🏪 Forfait Boutique (30j - 15 000F)',
+    boost_1_annonce:     '⚡ Boost Flash (2j)',
+    pack_5_annonces:     '⭐️ Pack Semaine (7j)',
+    pack_10_annonces:    '🚀 Pack VIP (30j)',
+    boost_reel_semaine:  '🎬 Boost Reel (7j)',
+    pass_semaine:        '⚡ Pass Semaine (7j)',
+    pass_15jours:        '⚡ Pass 15 Jours (15j)',
+    forfait_basique:     '📦 Forfait Basique (30j)',
+    forfait_premium:     '⭐ Forfait Premium (30j)',
+    forfait_boutique:    '🏪 Forfait Boutique (30j)',
     forfait_standard:    '📋 Forfait Standard',
     seller_pro:          '💼 Seller Pro',
     boutique_premium:    '🏆 Boutique Premium',
-    Certification:       '👑 Certification (5 000F)',
-    boost_reel_7j:       '🎬 Boost Reel (7j - 1 500F)'
+    Certification:       '👑 Certification',
+    boost_reel_7j:       '🎬 Boost Reel (7j)'
   };
-  return types[planType] || planType;
+  
+  const base = types[planType] || planType;
+  if (parts.length > 1 && parts[1]) {
+    const ids = parts[1].split(',');
+    return `${base} (${ids.length} annonce${ids.length > 1 ? 's' : ''})`;
+  }
+  return base;
 };
 
 const PaymentRequestsTab = ({

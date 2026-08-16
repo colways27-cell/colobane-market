@@ -141,29 +141,52 @@ const AdminPage = () => {
       } else if (paiement.plan_type === 'pass_15jours') {
         const pass15 = new Date(); pass15.setDate(pass15.getDate() + 15);
         await supabase.from('profiles').update({ subscription_plan: 'pass_15jours', subscription_end_date: pass15.toISOString(), account_type: 'boutique', is_verified: true }).eq('id', paiement.user_id);
-      } else if (paiement.plan_type === 'boost_reel_7j') {
+      }
+      
+      let type = paiement.plan_type || '';
+      let adsToBoost = [];
+      if (type.includes('|')) {
+        const parts = type.split('|');
+        type = parts[0];
+        adsToBoost = parts[1].split(',');
+      }
+
+      if (['pack_5_annonces', 'pack_10_annonces', 'boost_1_annonce'].includes(type)) {
+        if (adsToBoost.length > 0) {
+          const boostEndDate = new Date();
+          let days = 2; // Default for flash
+          if (type === 'pack_5_annonces') days = 7;
+          if (type === 'pack_10_annonces') days = 30;
+          boostEndDate.setDate(boostEndDate.getDate() + days);
+          
+          await supabase.from('products').update({ 
+            is_boosted: true, 
+            boost_end_date: boostEndDate.toISOString() 
+          }).in('id', adsToBoost);
+        }
+      } else if (type === 'boost_reel_semaine' || type === 'boost_reel_7j') {
         const passReel7 = new Date(); passReel7.setDate(passReel7.getDate() + 7);
         await supabase.from('profiles').update({ is_verified: true, subscription_plan: 'boost_reel_7j', subscription_end_date: passReel7.toISOString() }).eq('id', paiement.user_id);
         await supabase.from('products').update({ is_boosted: true, boost_end_date: passReel7.toISOString() }).eq('seller_id', paiement.user_id);
-      } else if (paiement.plan_type === 'forfait_basique') {
+      } else if (type === 'forfait_basique') {
         await supabase.from('profiles').update({ subscription_plan: 'basique', subscription_end_date: subEndDateISO, account_type: 'boutique', is_verified: true }).eq('id', paiement.user_id);
-      } else if (paiement.plan_type === 'forfait_premium') {
+      } else if (type === 'forfait_premium') {
         await supabase.from('profiles').update({ subscription_plan: 'premium', subscription_end_date: subEndDateISO, account_type: 'boutique', is_verified: true }).eq('id', paiement.user_id);
         await supabase.from('products').update({ is_boosted: true }).eq('seller_id', paiement.user_id);
-      } else if (paiement.plan_type === 'forfait_boutique') {
+      } else if (type === 'forfait_boutique') {
         await supabase.from('profiles').update({ subscription_plan: 'boutique', subscription_end_date: subEndDateISO, account_type: 'boutique', is_verified: true }).eq('id', paiement.user_id);
-      } else if (paiement.plan_type === 'forfait_standard') {
+      } else if (type === 'forfait_standard') {
         await supabase.from('profiles').update({ subscription_plan: 'standard', subscription_end_date: subEndDateISO }).eq('id', paiement.user_id);
-      } else if (paiement.plan_type === 'Certification') {
+      } else if (type === 'Certification') {
         await supabase.from('profiles').update({ is_verified: true }).eq('id', paiement.user_id);
-      } else if (paiement.plan_type?.startsWith('boost_product_')) {
-        const match = paiement.plan_type.match(/^boost_product_(\d+)d_(.+)$/);
+      } else if (type?.startsWith('boost_product_')) {
+        const match = type.match(/^boost_product_(\d+)d_(.+)$/);
         if (match) {
           const endDate = new Date();
           endDate.setDate(endDate.getDate() + parseInt(match[1], 10));
           await supabase.from('products').update({ is_boosted: true, boost_end_date: endDate.toISOString() }).eq('id', match[2]);
         } else {
-          await supabase.from('products').update({ is_boosted: true }).eq('id', paiement.plan_type.replace('boost_product_', ''));
+          await supabase.from('products').update({ is_boosted: true }).eq('id', type.replace('boost_product_', ''));
         }
       }
       toast.success('✅ Paiement validé !', { id: 'validate' });

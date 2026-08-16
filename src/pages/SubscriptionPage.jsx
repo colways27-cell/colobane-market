@@ -90,9 +90,13 @@ const SubscriptionPage = () => {
     const whatsappWindow = window.open('', '_blank');
 
     try {
+      const planTypeWithIds = selectedProductIds.length > 0 
+        ? `${selectedPlan.type}|${selectedProductIds.join(',')}` 
+        : selectedPlan.type;
+
       const { error } = await supabase.from('payment_requests').insert([{
         user_id: user.id,
-        plan_type: selectedPlan.type,
+        plan_type: planTypeWithIds,
         amount: selectedPlan.price,
         phone_used: paymentPhone,
         status: 'pending'
