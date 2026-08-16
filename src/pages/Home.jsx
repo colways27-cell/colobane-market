@@ -431,7 +431,27 @@ const Home = () => {
 
     // Filtrer par la catégorie active sélectionnée dans le slider
     if (activeCategorySlide) {
-      list = list.filter(p => p.category === activeCategorySlide);
+      const categoryMapping = {
+        'montres_bijoux': ['accessoires'],
+        'vetements_homme': ['habillement', 'friperie'],
+        'vetements_femme': ['habillement', 'friperie'],
+        'chaussures': ['habillement', 'friperie'],
+        'telephones': ['telephones_tablettes'],
+        'ordinateurs': ['informatique']
+      };
+
+      list = list.filter(p => {
+        if (p.category === activeCategorySlide) return true;
+        
+        // Fallback pour mapper les anciennes catégories (ex: montres_bijoux) 
+        // vers les nouvelles (ex: accessoires)
+        const mappedCategories = categoryMapping[activeCategorySlide];
+        if (mappedCategories && mappedCategories.includes(p.category)) {
+          return true;
+        }
+        
+        return false;
+      });
     }
 
     // 1. Filtrer intelligemment par la région / quartier
