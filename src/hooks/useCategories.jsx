@@ -10,6 +10,33 @@ const getIconComponent = (iconName, size = 28, strokeWidth = 1.5) => {
   return <IconComponent size={size} strokeWidth={strokeWidth} />;
 };
 
+const defaultIconNames = {
+  'telephones_tablettes': 'Smartphone',
+  'informatique': 'Laptop',
+  'electronique': 'Tv',
+  'maison_jardin': 'Armchair',
+  'habillement': 'Shirt',
+  'friperie': 'ShoppingBag',
+  'beaute': 'Sparkles',
+  'vehicules': 'CarFront',
+  'immobilier': 'Building',
+  'materiaux_outils': 'Hammer',
+  'agriculture': 'Sprout',
+  'animaux': 'PawPrint',
+  'alimentation': 'Utensils',
+  'livres_papeterie': 'BookOpen',
+  'jeux_video': 'Gamepad2',
+  'pieces_auto': 'Wrench',
+  'services': 'Handshake',
+  'emplois': 'Briefcase',
+  'telephones': 'Smartphone',
+  'ordinateurs': 'Laptop',
+  'vetements_homme': 'Shirt',
+  'vetements_femme': 'Shirt',
+  'chaussures': 'ShoppingBag',
+  'montres_bijoux': 'Sparkles'
+};
+
 export const useCategories = () => {
   const [categories, setCategories] = useState(defaultCategories);
   const [loading, setLoading] = useState(true);
@@ -24,13 +51,20 @@ export const useCategories = () => {
           .maybeSingle();
 
         if (data && data.setting_value && Array.isArray(data.setting_value)) {
-          // Reconstruire les icônes React
+          // Reconstruire les icônes React et merger avec les valeurs par défaut
           const dynamicCats = data.setting_value
             .filter(cat => cat.is_active !== false) // Filtrer les inactifs
-            .map(cat => ({
-              ...cat,
-              icon: getIconComponent(cat.iconName || 'Box')
-            }));
+            .map(cat => {
+              const defaultCat = defaultCategories.find(dc => dc.id === cat.id) || {};
+              const iconName = cat.iconName || defaultIconNames[cat.id] || 'Box';
+              return {
+                ...defaultCat,
+                ...cat,
+                name: cat.name || defaultCat.name || cat.id,
+                color: cat.color || defaultCat.color || '#475569',
+                icon: getIconComponent(iconName)
+              };
+            });
           setCategories(dynamicCats);
         }
       } catch (err) {
