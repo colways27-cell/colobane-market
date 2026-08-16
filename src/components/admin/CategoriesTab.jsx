@@ -97,8 +97,8 @@ const CategoriesTab = () => {
 
   return (
     <div style={{ background: 'white', padding: '24px', borderRadius: '16px', border: '1px solid #E2E8F0' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <div style={{ flex: '1 1 200px' }}>
           <h2 style={{ margin: 0, fontSize: '1.25rem', color: '#0F172A', fontWeight: 900 }}>Gestion des Catégories</h2>
           <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', color: '#64748B' }}>
             Activez, désactivez et réorganisez les catégories affichées sur le site.
@@ -107,7 +107,7 @@ const CategoriesTab = () => {
         <button
           onClick={handleSaveAll}
           disabled={saving}
-          style={{ padding: '10px 20px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 800, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}
+          style={{ width: '100%', maxWidth: '280px', padding: '12px 20px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 800, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1, whiteSpace: 'nowrap', textAlign: 'center' }}
         >
           {saving ? 'Sauvegarde...' : '💾 Sauvegarder les modifications'}
         </button>
@@ -117,18 +117,22 @@ const CategoriesTab = () => {
         {categories.map((cat, index) => {
           const IconComp = Icons[cat.iconName || 'Box'] || Icons.HelpCircle;
           return (
-            <div key={cat.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: '#F8FAFC', borderRadius: '12px', border: '1px solid #E2E8F0', opacity: cat.is_active ? 1 : 0.6 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <div style={{ color: cat.color || '#475569', display: 'flex', alignItems: 'center' }}>
+            <div key={cat.id} style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: '#F8FAFC', borderRadius: '12px', border: '1px solid #E2E8F0', opacity: cat.is_active ? 1 : 0.6 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: '1 1 200px', minWidth: '0' }}>
+                <div style={{ color: cat.color || '#475569', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
                   <IconComp size={24} strokeWidth={1.5} />
                 </div>
-                <div>
-                  <div style={{ fontWeight: 800, fontSize: '1rem', color: '#0F172A' }}>{cat.name}</div>
-                  <div style={{ fontSize: '0.75rem', color: '#64748B' }}>Identifiant : {cat.id} | {cat.fields?.length || 0} champs</div>
+                <div style={{ minWidth: '0' }}>
+                  <div style={{ fontWeight: 800, fontSize: '1rem', color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{cat.name}</div>
+                  <div style={{ fontSize: '0.75rem', color: '#64748B', display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                    <span>ID: {cat.id}</span>
+                    <span>|</span>
+                    <span>{cat.fields?.length || 0} champs</span>
+                  </div>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
                 <div style={{ display: 'flex', gap: '4px' }}>
                   <button onClick={() => moveCategory(index, 'up')} disabled={index === 0} style={{ padding: '6px', background: '#E2E8F0', border: 'none', borderRadius: '6px', cursor: index === 0 ? 'not-allowed' : 'pointer' }}>↑</button>
                   <button onClick={() => moveCategory(index, 'down')} disabled={index === categories.length - 1} style={{ padding: '6px', background: '#E2E8F0', border: 'none', borderRadius: '6px', cursor: index === categories.length - 1 ? 'not-allowed' : 'pointer' }}>↓</button>
