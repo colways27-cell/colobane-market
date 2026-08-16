@@ -6,7 +6,7 @@ import ReportModal from '../components/ReportModal';
 import SocialSEO from '../components/SocialSEO';
 import { shareProduct, shareWhatsAppStatus, copyToClipboard } from '../utils/socialShare';
 import toast from 'react-hot-toast';
-import { Shield, Tag, Gauge, Settings, Fuel, MapPin, Share2, AlertTriangle, MoreVertical } from 'lucide-react';
+import { Shield, Tag, Gauge, Settings, Fuel, MapPin, Share2, AlertTriangle, MoreVertical, ChevronLeft, ChevronRight } from 'lucide-react';
 import { categories } from '../data/categories';
 import FollowButton from '../components/FollowButton';
 
@@ -395,22 +395,48 @@ const ProductPage = () => {
         )}
 
         {/* Tap Navigation Overlays (Story Left / Right) */}
-        <div 
-          onClick={(e) => {
-            e.stopPropagation();
-            if (activeImage > 0) setActiveImage(a => a - 1);
-          }}
-          style={{ position: 'absolute', top: 0, left: 0, width: '35%', height: (hasVideo && activeImage === 0) ? '80%' : '100%', zIndex: 20, cursor: 'pointer' }}
-        />
-        <div 
-          onClick={(e) => {
-            e.stopPropagation();
-            const total = product.images?.length || 1;
-            if (activeImage < total - 1) setActiveImage(a => a + 1);
-            else setIsLightboxOpen(true);
-          }}
-          style={{ position: 'absolute', top: 0, right: 0, width: '65%', height: (hasVideo && activeImage === 0) ? '80%' : '100%', zIndex: 20, cursor: 'pointer' }}
-        />
+        {product.images && product.images.length > 1 && (
+          <>
+            {activeImage > 0 && (
+              <div 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveImage(a => a - 1);
+                }}
+                style={{ 
+                  position: 'absolute', top: 0, left: 0, width: '35%', height: (hasVideo && activeImage === 0) ? '80%' : '100%', 
+                  zIndex: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'flex-start', paddingLeft: '10px' 
+                }}
+              >
+                <div style={{ background: 'rgba(0,0,0,0.3)', borderRadius: '50%', padding: '6px', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <ChevronLeft size={24} color="white" />
+                </div>
+              </div>
+            )}
+            
+            {activeImage < (product.images?.length || 1) - 1 && (
+              <div 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveImage(a => a + 1);
+                }}
+                style={{ 
+                  position: 'absolute', top: 0, right: 0, width: '65%', height: (hasVideo && activeImage === 0) ? '80%' : '100%', 
+                  zIndex: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '10px' 
+                }}
+              >
+                <div style={{ background: 'rgba(0,0,0,0.3)', borderRadius: '50%', padding: '6px', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+                  <ChevronRight size={24} color="white" />
+                  {activeImage === 0 && (
+                    <div style={{ position: 'absolute', right: '40px', background: 'rgba(0,0,0,0.6)', color: 'white', padding: '4px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 'bold', whiteSpace: 'nowrap', animation: 'pulse 2s infinite' }}>
+                      Glisser ➔
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </>
+        )}
 
         {/* Story Counter Badge & Expand Fullscreen Pill */}
         <div style={{ position: 'absolute', bottom: '16px', left: '16px', right: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 30, pointerEvents: 'none' }}>
@@ -500,20 +526,35 @@ const ProductPage = () => {
               />
             )}
             {/* Story Tap Navigation Left / Right */}
-            <div 
-              onClick={() => {
-                if (activeImage > 0) setActiveImage(a => a - 1);
-              }}
-              style={{ position: 'absolute', top: 0, left: 0, width: '40%', height: '100%', cursor: 'pointer' }}
-            />
-            <div 
-              onClick={() => {
-                const total = product.images?.length || 1;
-                if (activeImage < total - 1) setActiveImage(a => a + 1);
-                else setIsLightboxOpen(false);
-              }}
-              style={{ position: 'absolute', top: 0, right: 0, width: '60%', height: '100%', cursor: 'pointer' }}
-            />
+            {product.images && product.images.length > 1 && (
+              <>
+                {activeImage > 0 && (
+                  <div 
+                    onClick={() => {
+                      setActiveImage(a => a - 1);
+                    }}
+                    style={{ position: 'absolute', top: 0, left: 0, width: '40%', height: '100%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'flex-start', paddingLeft: '16px' }}
+                  >
+                    <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '50%', padding: '10px', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <ChevronLeft size={32} color="white" />
+                    </div>
+                  </div>
+                )}
+                
+                {activeImage < (product.images?.length || 1) - 1 && (
+                  <div 
+                    onClick={() => {
+                      setActiveImage(a => a + 1);
+                    }}
+                    style={{ position: 'absolute', top: 0, right: 0, width: '40%', height: '100%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '16px' }}
+                  >
+                    <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '50%', padding: '10px', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <ChevronRight size={32} color="white" />
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
           </div>
 
           {/* Story Thumbnails Bar Bottom */}
