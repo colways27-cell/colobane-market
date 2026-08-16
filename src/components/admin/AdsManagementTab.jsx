@@ -154,11 +154,11 @@ const AdsManagementTab = () => {
               const status = getAdStatus(ad);
               
               return (
-                <div key={ad.id || index} style={{ padding: '24px', background: 'white', borderRadius: '16px', border: `1px solid ${ad.is_active ? '#CBD5E1' : '#E2E8F0'}`, display: 'flex', flexDirection: 'column', gap: '20px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+                <div key={ad.id || index} style={{ padding: '16px', background: 'white', borderRadius: '16px', border: `1px solid ${ad.is_active ? '#CBD5E1' : '#E2E8F0'}`, display: 'flex', flexDirection: 'column', gap: '20px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)', overflow: 'hidden' }}>
                   
                   {/* HEADER CARD */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #F1F5F9', paddingBottom: '16px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #F1F5F9', paddingBottom: '16px' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px' }}>
                       <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, cursor: 'pointer', fontSize: '1.1rem', color: ad.is_active ? '#0F172A' : '#94A3B8' }}>
                         <input 
                           type="checkbox" 
@@ -168,11 +168,11 @@ const AdsManagementTab = () => {
                         />
                         Activer
                       </label>
-                      <span style={{ background: status.bg, color: status.color, padding: '4px 10px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 800 }}>
+                      <span style={{ background: status.bg, color: status.color, padding: '4px 10px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 800, whiteSpace: 'nowrap' }}>
                         {status.label}
                       </span>
                     </div>
-                    <button onClick={() => removeAd(index)} style={{ padding: '6px 12px', background: '#FEF2F2', color: '#EF4444', border: 'none', borderRadius: '8px', fontWeight: 700, cursor: 'pointer', fontSize: '0.85rem' }}>
+                    <button onClick={() => removeAd(index)} style={{ padding: '6px 12px', background: '#FEF2F2', color: '#EF4444', border: 'none', borderRadius: '8px', fontWeight: 700, cursor: 'pointer', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
                       🗑️ Supprimer
                     </button>
                   </div>
@@ -222,9 +222,9 @@ const AdsManagementTab = () => {
                     {/* COLONNE DROITE: DATES & ACTIONS */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                       
-                      <div style={{ display: 'flex', gap: '12px' }}>
-                        <div style={{ flex: 1 }}>
-                          <label style={labelStyle}>Date de début (Optionnel)</label>
+                      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                        <div style={{ flex: '1 1 120px', minWidth: '0' }}>
+                          <label style={labelStyle}>Date de début</label>
                           <input 
                             type="datetime-local" 
                             value={ad.start_date || ''} 
@@ -232,8 +232,8 @@ const AdsManagementTab = () => {
                             style={inputStyle}
                           />
                         </div>
-                        <div style={{ flex: 1 }}>
-                          <label style={labelStyle}>Date de fin (Optionnel)</label>
+                        <div style={{ flex: '1 1 120px', minWidth: '0' }}>
+                          <label style={labelStyle}>Date de fin</label>
                           <input 
                             type="datetime-local" 
                             value={ad.end_date || ''} 
