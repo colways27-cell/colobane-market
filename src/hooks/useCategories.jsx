@@ -40,6 +40,7 @@ const defaultIconNames = {
   'chaussures': 'Footprints',
   'montres': 'Watch',
   'bijoux': 'Gem',
+  'montres_bijoux': 'Watch',
   'electromenager': 'Tv',
   'accessoires': 'Glasses',
   'beaute_sante': 'Flower2',
@@ -54,6 +55,7 @@ const legacyCategoryData = {
   'chaussures': { name: 'Chaussures', color: '#ff9500', iconName: 'Footprints' },
   'montres': { name: 'Montres', color: '#ffcc00', iconName: 'Watch' },
   'bijoux': { name: 'Bijoux', color: '#ff2d55', iconName: 'Gem' },
+  'montres_bijoux': { name: 'Montres & Bijoux', color: '#ffcc00', iconName: 'Watch' },
   'electromenager': { name: 'Électroménager', color: '#4cd964', iconName: 'Tv' },
   'meubles': { name: 'Meubles', color: '#ff2d55', iconName: 'Armchair' },
 };
@@ -72,16 +74,27 @@ export const useCategories = () => {
           .maybeSingle();
 
         if (data && data.setting_value && Array.isArray(data.setting_value)) {
+          // Split montres_bijoux dynamically if it exists in DB
+          let dbCats = [];
+          data.setting_value.forEach(cat => {
+            if (cat.id === 'montres_bijoux') {
+              dbCats.push({ ...cat, id: 'montres', label: 'Montres', name: 'Montres', iconName: 'Watch', subcategories: ['Montres Homme', 'Montres Femme'] });
+              dbCats.push({ ...cat, id: 'bijoux', label: 'Bijoux', name: 'Bijoux', iconName: 'Gem', subcategories: ['Colliers', 'Bagues', 'Bracelets'] });
+            } else {
+              dbCats.push(cat);
+            }
+          });
+
           // Reconstruire les icônes React et merger avec les valeurs par défaut
-          const dynamicCats = data.setting_value
+          const dynamicCats = dbCats
             .filter(cat => cat.is_active !== false) // Filtrer les inactifs
             .map(cat => {
               const defaultCat = defaultCategories.find(dc => dc.id === cat.id) || legacyCategoryData[cat.id] || {};
-              const iconName = cat.iconName || defaultCat.iconName || defaultIconNames[cat.id] || 'Box';
+              const iconName = cat.icon || cat.iconName || defaultCat.iconName || defaultIconNames[cat.id] || 'Box';
               return {
                 ...defaultCat,
                 ...cat,
-                name: cat.name || defaultCat.name || cat.id,
+                name: cat.label || cat.name || defaultCat.name || cat.id,
                 color: cat.color || defaultCat.color || '#475569',
                 icon: getIconComponent(iconName)
               };
