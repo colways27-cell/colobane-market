@@ -7,7 +7,7 @@ import SkeletonCard from '../components/SkeletonCard';
 import FavoriteButton from '../components/FavoriteButton';
 import ReportModal from '../components/ReportModal';
 import toast from 'react-hot-toast';
-import { Store, ChevronDown, ChevronUp, Search, MapPin, Navigation, Compass } from 'lucide-react';
+import { Store, ChevronDown, ChevronUp, Search, MapPin, Navigation, Compass, LayoutGrid } from 'lucide-react';
 import totemLapin from '../assets/totem-lapin.webp';
 import { getUserCoordinates, sortProductsByProximity, SENEGAL_LOCATION_COORDS } from '../utils/geolocation';
 import AroundMeModal from '../components/AroundMeModal';
@@ -914,155 +914,141 @@ const Home = () => {
       <section style={{ marginBottom: '1.5rem', padding: '0 16px', maxWidth: '1200px', margin: '0 auto 1.5rem auto', position: 'relative' }}>
         <h2 style={{ fontSize: '1.1rem', fontWeight: '700', color: 'var(--text-main)', marginBottom: '1rem' }}>Que recherchez-vous ?</h2>
         
-        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-          {/* Bouton Gauche */}
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(4, 1fr)', 
+          gap: '16px 8px', 
+          width: '100%' 
+        }}>
+          {/* Boutiques */}
           <button 
-            onClick={() => scroll('left')}
-            className="touch-target active-scale"
+            onClick={() => navigate(`/boutiques`)} 
+            className="touch-target active-scale" 
             style={{
-              position: 'absolute',
-              left: '-10px',
-              zIndex: 10,
-              width: '36px',
-              height: '36px',
-              borderRadius: '50%',
-              background: 'var(--primary)',
-              color: 'white',
-              border: 'none',
               display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
-              justifyContent: 'center',
+              background: 'transparent',
+              border: 'none',
+              gap: '8px',
               cursor: 'pointer',
-              boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
-              opacity: showLeftArrow ? 1 : 0,
-              pointerEvents: showLeftArrow ? 'auto' : 'none',
-              transition: 'opacity 0.2s',
+              padding: '0',
             }}
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            <div style={{ 
+              width: '56px', 
+              height: '56px', 
+              borderRadius: '16px', 
+              background: 'linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%)', 
+              color: 'white', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              boxShadow: '0 4px 12px rgba(139, 92, 246, 0.3)',
+            }}>
+              <Store size={26} strokeWidth={2} />
+            </div>
+            <span style={{ fontWeight: '700', color: 'var(--text-main)', textAlign: 'center', lineHeight: '1.2', fontSize: '11px' }}>
+              Boutiques
+            </span>
           </button>
 
-          {/* Container défilant */}
-          <div 
-            ref={categoriesRef}
-            onScroll={handleScroll}
-            style={{
-              display: 'flex',
-              overflowX: 'auto',
-              gap: '12px',
-              padding: '4px 10px',
-              scrollbarWidth: 'none',
-              WebkitOverflowScrolling: 'touch',
-              width: '100%',
-              boxSizing: 'border-box',
-            }}
-          >
+          {/* Top 6 Categories */}
+          {categories.slice(0, 6).map(cat => {
+            const isActive = activeCategorySlide === cat.id;
+            return (
+              <button 
+                key={cat.id} 
+                onClick={() => {
+                  if (isActive) {
+                    setActiveCategorySlide(null);
+                  } else {
+                    setActiveCategorySlide(cat.id);
+                    setTimeout(() => {
+                      if (recentProductsRef.current) {
+                        const yOffset = -80;
+                        const y = recentProductsRef.current.getBoundingClientRect().top + window.scrollY + yOffset;
+                        window.scrollTo({ top: y, behavior: 'smooth' });
+                      }
+                    }, 100);
+                  }
+                }} 
+                className="touch-target active-scale" 
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  background: 'transparent',
+                  border: 'none',
+                  gap: '8px',
+                  cursor: 'pointer',
+                  padding: '0',
+                }}
+              >
+                <div style={{ 
+                  width: '56px', 
+                  height: '56px', 
+                  borderRadius: '16px', 
+                  background: isActive ? cat.color : `${cat.color}15`, 
+                  color: isActive ? 'white' : cat.color, 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  fontSize: '24px', 
+                  transition: 'all 0.2s', 
+                  boxShadow: isActive ? `0 4px 12px ${cat.color}40` : 'none' 
+                }}>
+                  {cat.icon}
+                </div>
+                <span style={{ 
+                  fontWeight: isActive ? '700' : '600', 
+                  color: isActive ? 'var(--primary)' : 'var(--text-main)', 
+                  textAlign: 'center', 
+                  lineHeight: '1.2', 
+                  fontSize: '11px', 
+                  whiteSpace: 'normal', 
+                  display: '-webkit-box', 
+                  WebkitLineClamp: 2, 
+                  WebkitBoxOrient: 'vertical', 
+                  overflow: 'hidden' 
+                }}>
+                  {cat.name}
+                </span>
+              </button>
+            );
+          })}
 
-
-            {/* Boutiques */}
-            <button 
-              onClick={() => navigate(`/boutiques`)} 
-              className="touch-target active-scale" 
-              style={{
-                flex: '0 0 80px',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                background: 'transparent',
-                border: 'none',
-                gap: '8px',
-                cursor: 'pointer',
-                padding: '4px',
-              }}
-            >
-              <div style={{ 
-                width: '60px', 
-                height: '60px', 
-                borderRadius: '18px', 
-                background: 'linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%)', 
-                color: 'white', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                boxShadow: '0 4px 12px rgba(139, 92, 246, 0.3)',
-                border: '1.5px solid rgba(255,255,255,0.2)'
-              }}>
-                <Store size={28} strokeWidth={2} />
-              </div>
-              <span className="text-muted-small" style={{ fontWeight: '800', color: 'var(--text-main)', textAlign: 'center', lineHeight: '1.2', fontSize: '10.5px', height: '26px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                Voir Boutiques
-              </span>
-            </button>
-
-            {/* Catégories de categories.jsx */}
-            {categories.map(cat => {
-              const isActive = activeCategorySlide === cat.id;
-              return (
-                <button 
-                  key={cat.id} 
-                  onClick={() => {
-                    if (isActive) {
-                      setActiveCategorySlide(null);
-                    } else {
-                      setActiveCategorySlide(cat.id);
-                      setTimeout(() => {
-                        if (recentProductsRef.current) {
-                          const yOffset = -80;
-                          const y = recentProductsRef.current.getBoundingClientRect().top + window.scrollY + yOffset;
-                          window.scrollTo({ top: y, behavior: 'smooth' });
-                        }
-                      }, 100);
-                    }
-                  }} 
-                  className="touch-target active-scale" 
-                  style={{
-                    flex: '0 0 80px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    background: 'transparent',
-                    border: 'none',
-                    gap: '8px',
-                    cursor: 'pointer',
-                    padding: '4px',
-                  }}
-                >
-                  <div style={{ width: '60px', height: '60px', borderRadius: '16px', background: isActive ? cat.color : `${cat.color}15`, color: isActive ? 'white' : cat.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', transition: 'all 0.2s', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-                    {cat.icon}
-                  </div>
-                  <span className="text-muted-small" style={{ fontWeight: isActive ? '700' : '500', color: isActive ? 'var(--primary)' : 'var(--text-main)', textAlign: 'center', lineHeight: '1.2', fontSize: '11px', whiteSpace: 'normal', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', height: '26px' }}>
-                    {cat.name}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Bouton Droite */}
+          {/* Voir Tout */}
           <button 
-            onClick={() => scroll('right')}
-            className="touch-target active-scale"
+            onClick={() => navigate('/explore')} 
+            className="touch-target active-scale" 
             style={{
-              position: 'absolute',
-              right: '-10px',
-              zIndex: 10,
-              width: '36px',
-              height: '36px',
-              borderRadius: '50%',
-              background: 'var(--primary)',
-              color: 'white',
-              border: 'none',
               display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
-              justifyContent: 'center',
+              background: 'transparent',
+              border: 'none',
+              gap: '8px',
               cursor: 'pointer',
-              boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
-              opacity: showRightArrow ? 1 : 0,
-              pointerEvents: showRightArrow ? 'auto' : 'none',
-              transition: 'opacity 0.2s',
+              padding: '0',
             }}
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            <div style={{ 
+              width: '56px', 
+              height: '56px', 
+              borderRadius: '16px', 
+              background: '#f1f5f9', 
+              color: 'var(--text-main)', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              boxShadow: 'none'
+            }}>
+              <LayoutGrid size={24} strokeWidth={1.5} />
+            </div>
+            <span style={{ fontWeight: '600', color: 'var(--text-main)', textAlign: 'center', lineHeight: '1.2', fontSize: '11px' }}>
+              Voir tout
+            </span>
           </button>
         </div>
       </section>
