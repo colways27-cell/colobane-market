@@ -7,7 +7,7 @@ import SkeletonCard from '../components/SkeletonCard';
 import FavoriteButton from '../components/FavoriteButton';
 import ReportModal from '../components/ReportModal';
 import toast from 'react-hot-toast';
-import { Store, ChevronDown, ChevronUp, Search, MapPin, Navigation, Compass, LayoutGrid, Zap, Bell, Smartphone, Shirt, Watch, Car, Sparkles, Star } from 'lucide-react';
+import { Store, ChevronDown, ChevronUp, Search, MapPin, Navigation, Compass, LayoutGrid, Zap, Bell, Smartphone, Shirt, Watch, Car, Sparkles, Star, Laptop, Tv, Armchair, Building, Briefcase } from 'lucide-react';
 import totemLapin from '../assets/totem-lapin.webp';
 import { getUserCoordinates, sortProductsByProximity, SENEGAL_LOCATION_COORDS } from '../utils/geolocation';
 import AroundMeModal from '../components/AroundMeModal';
@@ -1447,10 +1447,15 @@ const Home = () => {
             { id: 'all', label: 'Tout', icon: <Zap size={16} /> },
             { id: 'followed', label: `Suivies ${followedCount > 0 ? `(${followedCount})` : ''}`, icon: <Bell size={16} /> },
             { id: 'telephones_tablettes', label: 'Téléphones & Tech', icon: <Smartphone size={16} /> },
+            { id: 'informatique', label: 'Informatique', icon: <Laptop size={16} /> },
+            { id: 'electromenager', label: 'Électroménager', icon: <Tv size={16} /> },
             { id: 'habillement', label: 'Mode & Habits', icon: <Shirt size={16} /> },
             { id: 'accessoires', label: 'Accessoires', icon: <Watch size={16} /> },
             { id: 'vehicules', label: 'Véhicules', icon: <Car size={16} /> },
+            { id: 'immobilier', label: 'Immobilier', icon: <Building size={16} /> },
+            { id: 'maison_jardin', label: 'Maison & Jardin', icon: <Armchair size={16} /> },
             { id: 'beaute_sante', label: 'Beauté & Santé', icon: <Sparkles size={16} /> },
+            { id: 'services', label: 'Services', icon: <Briefcase size={16} /> },
             { id: 'boosted', label: 'Sponsorisés', icon: <Star size={16} /> }
           ].map((pill) => {
             const isActive = selectedHomePillCategory === pill.id;
