@@ -558,10 +558,10 @@ const ExplorePage = () => {
               {/* Presets rapides de budget */}
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '1rem' }}>
                 {[
-                  { label: '< 10k', min: '', max: '10000' },
-                  { label: '10k - 50k', min: '10000', max: '50000' },
-                  { label: '50k - 200k', min: '50000', max: '200000' },
-                  { label: '> 200k', min: '200000', max: '' }
+                  { label: '< 10 000 FCFA', min: '', max: '10000' },
+                  { label: '10 000 - 50 000 FCFA', min: '10000', max: '50000' },
+                  { label: '50 000 - 200 000 FCFA', min: '50000', max: '200000' },
+                  { label: '> 200 000 FCFA', min: '200000', max: '' }
                 ].map((p, idx) => {
                   const isSelected = minPrice === p.min && maxPrice === p.max;
                   return (
@@ -694,91 +694,114 @@ const ExplorePage = () => {
 
           {/* Catégories */}
           <div>
-            <h4 style={{ fontSize: '0.9rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.8rem', letterSpacing: '0.5px' }}>Catégories</h4>
-            <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-              <li>
-                <button 
-                  onClick={() => { setActiveCategory('all'); setActiveSubcategory('all'); }}
-                  style={{ 
-                    width: '100%', textAlign: 'left', padding: '0.6rem 1rem', 
-                    background: activeCategory === 'all' ? 'var(--primary-light)' : 'transparent',
-                    color: activeCategory === 'all' ? 'var(--primary)' : 'var(--text-main)',
-                    border: 'none', borderRadius: '8px', cursor: 'pointer',
-                    fontWeight: activeCategory === 'all' ? '600' : '500',
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  🌐 Toutes les catégories
-                </button>
-              </li>
+            <h4 style={{ fontSize: '0.85rem', color: '#64748B', fontWeight: '700', textTransform: 'uppercase', marginBottom: '1rem', letterSpacing: '0.5px' }}>Catégories</h4>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+              <button 
+                onClick={() => { setActiveCategory('all'); setActiveSubcategory('all'); }}
+                className="active-scale"
+                style={{ 
+                  padding: '8px 16px', 
+                  borderRadius: '24px', 
+                  background: activeCategory === 'all' ? '#FFF1F2' : '#FFFFFF',
+                  color: activeCategory === 'all' ? 'var(--primary)' : '#475569',
+                  border: activeCategory === 'all' ? '1.5px solid var(--primary)' : '1px solid #E2E8F0',
+                  fontWeight: '600',
+                  fontSize: '0.85rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  boxShadow: activeCategory === 'all' ? '0 2px 8px rgba(138,28,28,0.1)' : '0 1px 2px rgba(0,0,0,0.03)',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <span style={{ fontSize: '1rem' }}>🌐</span>
+                Toutes
+              </button>
               {categories.map(cat => {
-                const subcategoriesField = cat.fields?.find(f => f.type === 'select' && ['type', 'property_type', 'service_type', 'species', 'sector', 'contract_type', 'brand'].includes(f.name));
-                const subcategories = subcategoriesField?.options ? subcategoriesField.options.filter(o => o !== 'Autre') : [];
                 const isActive = activeCategory === cat.id;
-
                 return (
-                  <li key={cat.id}>
-                    <button 
-                      onClick={() => { setActiveCategory(cat.id); setActiveSubcategory('all'); }}
-                      style={{ 
-                        width: '100%', textAlign: 'left', padding: '0.6rem 1rem', 
-                        background: isActive ? 'var(--primary-light)' : 'transparent',
-                        color: isActive ? 'var(--primary)' : 'var(--text-main)',
-                        border: 'none', borderRadius: '8px', cursor: 'pointer',
-                        fontWeight: isActive ? '600' : '500',
-                        transition: 'all 0.2s',
-                        display: 'flex', gap: '0.5rem',
-                        alignItems: 'center', justifyContent: 'space-between'
-                      }}
-                    >
-                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                        <span>{cat.icon}</span>
-                        <span>{cat.name}</span>
-                      </div>
-                      {subcategories.length > 0 && (
-                        <span style={{ fontSize: '0.8rem', transform: isActive ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>▼</span>
-                      )}
-                    </button>
-                    
-                    {/* Sous-catégories (Accordion) */}
-                    {isActive && subcategories.length > 0 && (
-                      <ul style={{ listStyle: 'none', padding: '0.5rem 0 0.5rem 2.5rem', display: 'flex', flexDirection: 'column', gap: '0.3rem', animation: 'fadeIn 0.2s' }}>
-                        <li>
-                          <button
-                            onClick={() => setActiveSubcategory('all')}
-                            style={{
-                              width: '100%', textAlign: 'left', padding: '0.4rem 0.5rem',
-                              background: 'none', border: 'none', cursor: 'pointer',
-                              color: activeSubcategory === 'all' ? 'var(--primary)' : 'var(--text-muted)',
-                              fontWeight: activeSubcategory === 'all' ? '600' : 'normal',
-                              fontSize: '0.9rem'
-                            }}
-                          >
-                            Tout voir
-                          </button>
-                        </li>
-                        {subcategories.map(sub => (
-                          <li key={sub}>
-                            <button
-                              onClick={() => setActiveSubcategory(sub)}
-                              style={{
-                                width: '100%', textAlign: 'left', padding: '0.4rem 0.5rem',
-                                background: 'none', border: 'none', cursor: 'pointer',
-                                color: activeSubcategory === sub ? 'var(--primary)' : 'var(--text-muted)',
-                                fontWeight: activeSubcategory === sub ? '600' : 'normal',
-                                fontSize: '0.9rem'
-                              }}
-                            >
-                              {sub}
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </li>
+                  <button 
+                    key={cat.id}
+                    onClick={() => { setActiveCategory(cat.id); setActiveSubcategory('all'); }}
+                    className="active-scale"
+                    style={{ 
+                      padding: '8px 16px', 
+                      borderRadius: '24px', 
+                      background: isActive ? '#FFF1F2' : '#FFFFFF',
+                      color: isActive ? 'var(--primary)' : '#475569',
+                      border: isActive ? '1.5px solid var(--primary)' : '1px solid #E2E8F0',
+                      fontWeight: '600',
+                      fontSize: '0.85rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      boxShadow: isActive ? '0 2px 8px rgba(138,28,28,0.1)' : '0 1px 2px rgba(0,0,0,0.03)',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    <span style={{ display: 'flex', fontSize: '1rem', color: isActive ? 'var(--primary)' : '#64748B' }}>{cat.icon}</span>
+                    {cat.name}
+                  </button>
                 );
               })}
-            </ul>
+            </div>
+
+            {/* Sous-catégories dynamiques */}
+            {activeCategory !== 'all' && (() => {
+              const cat = categories.find(c => c.id === activeCategory);
+              const subcategoriesField = cat?.fields?.find(f => f.type === 'select' && ['type', 'property_type', 'service_type', 'species', 'sector', 'contract_type', 'brand'].includes(f.name));
+              const subcategories = subcategoriesField?.options ? subcategoriesField.options.filter(o => o !== 'Autre') : [];
+              
+              if (subcategories.length > 0) {
+                return (
+                  <div style={{ marginTop: '1rem', padding: '1rem', background: '#F8FAFC', borderRadius: '12px', border: '1px solid #E2E8F0', animation: 'fadeIn 0.2s ease' }}>
+                    <h5 style={{ fontSize: '0.8rem', color: '#64748B', marginTop: 0, marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Sous-catégories</h5>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                      <button
+                        onClick={() => setActiveSubcategory('all')}
+                        className="active-scale"
+                        style={{
+                          padding: '6px 12px',
+                          borderRadius: '16px',
+                          fontSize: '0.8rem',
+                          fontWeight: '600',
+                          border: activeSubcategory === 'all' ? '1.5px solid var(--primary)' : '1px solid #E2E8F0',
+                          background: activeSubcategory === 'all' ? 'var(--primary)' : '#FFFFFF',
+                          color: activeSubcategory === 'all' ? '#FFFFFF' : '#475569',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease'
+                        }}
+                      >
+                        Tout voir
+                      </button>
+                      {subcategories.map(sub => (
+                        <button
+                          key={sub}
+                          onClick={() => setActiveSubcategory(sub)}
+                          className="active-scale"
+                          style={{
+                            padding: '6px 12px',
+                            borderRadius: '16px',
+                            fontSize: '0.8rem',
+                            fontWeight: '600',
+                            border: activeSubcategory === sub ? '1.5px solid var(--primary)' : '1px solid #E2E8F0',
+                            background: activeSubcategory === sub ? 'var(--primary)' : '#FFFFFF',
+                            color: activeSubcategory === sub ? '#FFFFFF' : '#475569',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease'
+                          }}
+                        >
+                          {sub}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              }
+              return null;
+            })()}
           </div>
 
         </div>
