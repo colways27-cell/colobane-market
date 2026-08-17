@@ -7,7 +7,7 @@ import SkeletonCard from '../components/SkeletonCard';
 import FavoriteButton from '../components/FavoriteButton';
 import ReportModal from '../components/ReportModal';
 import toast from 'react-hot-toast';
-import { Store, ChevronDown, ChevronUp, Search, MapPin, Navigation, Compass, LayoutGrid } from 'lucide-react';
+import { Store, ChevronDown, ChevronUp, Search, MapPin, Navigation, Compass, LayoutGrid, Zap, Bell, Smartphone, Shirt, Watch, Car, Sparkles, Star } from 'lucide-react';
 import totemLapin from '../assets/totem-lapin.webp';
 import { getUserCoordinates, sortProductsByProximity, SENEGAL_LOCATION_COORDS } from '../utils/geolocation';
 import AroundMeModal from '../components/AroundMeModal';
@@ -1442,38 +1442,46 @@ const Home = () => {
         </div>
         
         {/* Quick Category Filter Pills Bar */}
-        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', marginBottom: '16px', paddingBottom: '4px', scrollbarWidth: 'none' }}>
+        <div className="hide-scrollbar" style={{ display: 'flex', gap: '10px', overflowX: 'auto', marginBottom: '16px', padding: '0 16px 8px 16px', margin: '0 -16px', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
           {[
-            { id: 'all', label: '⚡ Tout', icon: '⚡' },
-            { id: 'followed', label: `🔔 Suivies ${followedCount > 0 ? `(${followedCount})` : ''}`, icon: '🔔' },
-            { id: 'telephones', label: '📱 Téléphones & Tech', icon: '📱' },
-            { id: 'habillement', label: '👗 Mode & Habits', icon: '👗' },
-            { id: 'accessoires', label: '⌚ Accessoires', icon: '⌚' },
-            { id: 'vehicules', label: '🚗 Véhicules', icon: '🚗' },
-            { id: 'beaute_sante', label: '✨ Beauté & Santé', icon: '✨' },
-            { id: 'boosted', label: '⭐ Sponsorisés', icon: '⭐' }
-          ].map((pill) => (
-            <button
-              key={pill.id}
-              onClick={() => setSelectedHomePillCategory(pill.id)}
-              style={{
-                padding: '8px 16px',
-                borderRadius: '20px',
-                border: 'none',
-                fontWeight: 800,
-                fontSize: '0.82rem',
-                cursor: 'pointer',
-                background: selectedHomePillCategory === pill.id ? 'linear-gradient(135deg, var(--primary) 0%, #C0392B 100%)' : '#F1F5F9',
-                color: selectedHomePillCategory === pill.id ? '#FFFFFF' : '#475569',
-                whiteSpace: 'nowrap',
-                boxShadow: selectedHomePillCategory === pill.id ? '0 4px 12px rgba(138,28,28,0.25)' : 'none',
-                transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                flexShrink: 0
-              }}
-            >
-              {pill.label}
-            </button>
-          ))}
+            { id: 'all', label: 'Tout', icon: <Zap size={16} /> },
+            { id: 'followed', label: `Suivies ${followedCount > 0 ? `(${followedCount})` : ''}`, icon: <Bell size={16} /> },
+            { id: 'telephones', label: 'Téléphones & Tech', icon: <Smartphone size={16} /> },
+            { id: 'habillement', label: 'Mode & Habits', icon: <Shirt size={16} /> },
+            { id: 'accessoires', label: 'Accessoires', icon: <Watch size={16} /> },
+            { id: 'vehicules', label: 'Véhicules', icon: <Car size={16} /> },
+            { id: 'beaute_sante', label: 'Beauté & Santé', icon: <Sparkles size={16} /> },
+            { id: 'boosted', label: 'Sponsorisés', icon: <Star size={16} /> }
+          ].map((pill) => {
+            const isActive = selectedHomePillCategory === pill.id;
+            return (
+              <button
+                key={pill.id}
+                onClick={() => setSelectedHomePillCategory(pill.id)}
+                className="touch-target active-scale"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '8px 16px',
+                  borderRadius: '24px',
+                  border: isActive ? '1.5px solid var(--primary)' : '1px solid #E2E8F0',
+                  fontWeight: 600,
+                  fontSize: '0.85rem',
+                  cursor: 'pointer',
+                  background: isActive ? '#FFF1F2' : '#FFFFFF',
+                  color: isActive ? 'var(--primary)' : '#475569',
+                  whiteSpace: 'nowrap',
+                  boxShadow: isActive ? '0 2px 8px rgba(138,28,28,0.1)' : '0 1px 2px rgba(0,0,0,0.03)',
+                  transition: 'all 0.2s ease',
+                  flexShrink: 0
+                }}
+              >
+                <span style={{ color: isActive ? 'var(--primary)' : '#94A3B8', display: 'flex' }}>{pill.icon}</span>
+                {pill.label}
+              </button>
+            );
+          })}
         </div>
 
         {/* Product Grid with Skeleton Loader */}
