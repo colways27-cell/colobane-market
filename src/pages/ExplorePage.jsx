@@ -520,58 +520,66 @@ const ExplorePage = () => {
         {/* Sidebar des Filtres */}
         <div className="explore-sidebar" style={{ background: 'white', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)', height: 'fit-content' }}>
           
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-            <h3 style={{ fontSize: '1.2rem', margin: 0 }}>Filtres</h3>
-            <button onClick={handleResetFilters} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 'bold' }}>Réinitialiser</button>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid #F1F5F9' }}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: '800', margin: 0, color: 'var(--text-main)' }}>Filtres</h3>
+            <button onClick={handleResetFilters} className="active-scale" style={{ background: '#FFF1F2', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: '700', padding: '6px 12px', borderRadius: '20px' }}>Réinitialiser</button>
           </div>
 
           <form onSubmit={handleSearchSubmit}>
             {/* Prix */}
-            <div style={{ marginBottom: '2rem' }}>
-              <h4 style={{ fontSize: '0.9rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.8rem', letterSpacing: '0.5px' }}>Budget (FCFA)</h4>
-              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                <input 
-                  type="number" 
-                  placeholder="Min" 
-                  value={minPrice}
-                  onChange={(e) => setMinPrice(e.target.value)}
-                  className="form-control" 
-                  style={{ padding: '0.5rem', flex: 1, minWidth: 0 }}
-                />
-                <span>-</span>
-                <input 
-                  type="number" 
-                  placeholder="Max" 
-                  value={maxPrice}
-                  onChange={(e) => setMaxPrice(e.target.value)}
-                  className="form-control" 
-                  style={{ padding: '0.5rem', flex: 1, minWidth: 0 }}
-                />
+            <div style={{ marginBottom: '2.5rem' }}>
+              <h4 style={{ fontSize: '0.85rem', color: '#64748B', fontWeight: '700', textTransform: 'uppercase', marginBottom: '1rem', letterSpacing: '0.5px' }}>💰 Budget (FCFA)</h4>
+              <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
+                <div style={{ position: 'relative', flex: 1 }}>
+                  <input 
+                    type="number" 
+                    placeholder="Min" 
+                    value={minPrice}
+                    onChange={(e) => setMinPrice(e.target.value)}
+                    className="form-control hide-arrows" 
+                    style={{ padding: '0.75rem 0.75rem 0.75rem 2rem', width: '100%', borderRadius: '12px', border: '1px solid #E2E8F0', fontSize: '0.95rem', fontWeight: '600' }}
+                  />
+                  <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8', fontSize: '0.85rem', fontWeight: '600' }}>F</span>
+                </div>
+                <span style={{ color: '#94A3B8', fontWeight: 'bold' }}>-</span>
+                <div style={{ position: 'relative', flex: 1 }}>
+                  <input 
+                    type="number" 
+                    placeholder="Max" 
+                    value={maxPrice}
+                    onChange={(e) => setMaxPrice(e.target.value)}
+                    className="form-control hide-arrows" 
+                    style={{ padding: '0.75rem 0.75rem 0.75rem 2rem', width: '100%', borderRadius: '12px', border: '1px solid #E2E8F0', fontSize: '0.95rem', fontWeight: '600' }}
+                  />
+                  <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8', fontSize: '0.85rem', fontWeight: '600' }}>F</span>
+                </div>
               </div>
               
               {/* Presets rapides de budget */}
-              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '0.8rem' }}>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '1rem' }}>
                 {[
-                  { label: '< 10k F', min: '', max: '10000' },
-                  { label: '10k-50k F', min: '10000', max: '50000' },
-                  { label: '50k-200k F', min: '50000', max: '200000' },
-                  { label: '> 200k F', min: '200000', max: '' }
+                  { label: '< 10k', min: '', max: '10000' },
+                  { label: '10k - 50k', min: '10000', max: '50000' },
+                  { label: '50k - 200k', min: '50000', max: '200000' },
+                  { label: '> 200k', min: '200000', max: '' }
                 ].map((p, idx) => {
                   const isSelected = minPrice === p.min && maxPrice === p.max;
                   return (
                     <button
                       key={idx}
                       type="button"
+                      className="active-scale"
                       onClick={() => { setMinPrice(p.min); setMaxPrice(p.max); }}
                       style={{
-                        padding: '4px 8px',
-                        borderRadius: '12px',
-                        fontSize: '0.75rem',
+                        padding: '6px 12px',
+                        borderRadius: '20px',
+                        fontSize: '0.8rem',
                         fontWeight: '600',
-                        border: isSelected ? '1.5px solid var(--primary)' : '1px solid var(--border-color)',
-                        background: isSelected ? 'var(--primary-light)' : 'white',
-                        color: isSelected ? 'var(--primary)' : 'var(--text-muted)',
-                        cursor: 'pointer'
+                        border: isSelected ? '1.5px solid var(--primary)' : '1px solid #E2E8F0',
+                        background: isSelected ? '#FFF1F2' : '#F8FAFC',
+                        color: isSelected ? 'var(--primary)' : '#475569',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease'
                       }}
                     >
                       {p.label}
@@ -580,63 +588,70 @@ const ExplorePage = () => {
                 })}
               </div>
 
-              <button type="submit" className="btn-secondary" style={{ width: '100%', marginTop: '0.8rem', padding: '0.5rem' }}>Appliquer le budget</button>
+              <button type="submit" className="active-scale" style={{ width: '100%', marginTop: '1.2rem', padding: '0.75rem', borderRadius: '12px', background: 'var(--primary)', color: 'white', fontWeight: '700', border: 'none', cursor: 'pointer', boxShadow: '0 4px 12px rgba(138,28,28,0.2)' }}>
+                Appliquer le budget
+              </button>
             </div>
           </form>
 
           {/* Section Proximité GPS & Rayon */}
-          <div style={{ marginBottom: '2rem' }}>
-            <h4 style={{ fontSize: '0.9rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.8rem', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span>Proximité GPS</span>
-              {activeUserCoords && <span style={{ color: '#10B981', fontWeight: 'bold', textTransform: 'none', fontSize: '0.8rem' }}>● Actif</span>}
+          <div style={{ marginBottom: '2.5rem' }}>
+            <h4 style={{ fontSize: '0.85rem', color: '#64748B', fontWeight: '700', textTransform: 'uppercase', marginBottom: '1rem', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span>📍 Proximité GPS</span>
+              {activeUserCoords && <span style={{ color: '#10B981', fontWeight: '700', textTransform: 'none', fontSize: '0.75rem', background: '#ECFDF5', padding: '2px 8px', borderRadius: '12px' }}>● Actif</span>}
             </h4>
             <button
               type="button"
               onClick={() => setShowAroundMeModal(true)}
+              className="active-scale"
               style={{
                 width: '100%',
-                padding: '0.8rem 1rem',
-                borderRadius: '12px',
-                border: activeUserCoords ? '2px solid #10B981' : '1px solid var(--border-color)',
-                background: activeUserCoords ? '#ECFDF5' : '#F8FAFC',
+                padding: '1rem',
+                borderRadius: '16px',
+                border: activeUserCoords ? '1.5px solid #10B981' : '1px solid #E2E8F0',
+                background: activeUserCoords ? '#ECFDF5' : '#FFFFFF',
                 color: activeUserCoords ? '#047857' : 'var(--text-main)',
-                fontWeight: '700',
-                fontSize: '0.88rem',
+                fontWeight: '600',
+                fontSize: '0.9rem',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                gap: '8px',
-                marginBottom: activeUserCoords ? '0.8rem' : '0'
+                gap: '12px',
+                marginBottom: activeUserCoords ? '1rem' : '0',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+                transition: 'all 0.2s ease'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Compass size={18} color={activeUserCoords ? '#10B981' : 'var(--primary)'} />
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '140px' }}>
-                  {selectedQuartier || selectedRegion || 'Position GPS'}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Compass size={20} color={activeUserCoords ? '#10B981' : '#64748B'} />
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '140px', fontWeight: activeUserCoords ? '700' : '600' }}>
+                  {selectedQuartier || selectedRegion || 'Utiliser ma position'}
                 </span>
               </div>
-              <span style={{ fontSize: '0.78rem', background: activeUserCoords ? '#10B981' : '#E2E8F0', color: activeUserCoords ? 'white' : '#475569', padding: '2px 8px', borderRadius: '10px', flexShrink: 0 }}>
-                {selectedRadius ? `${selectedRadius} km` : 'Fixer GPS'}
+              <span style={{ fontSize: '0.8rem', background: activeUserCoords ? '#10B981' : '#F1F5F9', color: activeUserCoords ? 'white' : '#64748B', padding: '4px 10px', borderRadius: '12px', flexShrink: 0, fontWeight: '700' }}>
+                {selectedRadius ? `${selectedRadius} km` : 'Fixer'}
               </span>
             </button>
 
             {activeUserCoords && (
-              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 {[5, 10, 25, 50, null].map(r => (
                   <button
                     key={r || 'all'}
                     type="button"
+                    className="active-scale"
                     onClick={() => setSelectedRadius(r)}
                     style={{
-                      padding: '4px 8px',
-                      borderRadius: '10px',
-                      fontSize: '0.75rem',
-                      fontWeight: '600',
+                      padding: '6px 12px',
+                      borderRadius: '16px',
+                      fontSize: '0.8rem',
+                      fontWeight: '700',
                       border: selectedRadius === r ? '1.5px solid #10B981' : '1px solid #E2E8F0',
-                      background: selectedRadius === r ? '#10B981' : 'white',
+                      background: selectedRadius === r ? '#10B981' : '#FFFFFF',
                       color: selectedRadius === r ? 'white' : '#475569',
-                      cursor: 'pointer'
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease'
                     }}
                   >
                     {r ? `${r} km` : 'Tout'}

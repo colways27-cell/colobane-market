@@ -1740,3 +1740,13 @@ select {
   color: #f8fafc !important;
   border-color: #27272a !important;
 }
+
+/* Hide arrows in number inputs */
+.hide-arrows::-webkit-outer-spin-button,
+.hide-arrows::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.hide-arrows {
+  -moz-appearance: textfield;
+}
