@@ -966,11 +966,11 @@ const Home = () => {
                     setActiveCategorySlide(cat.id);
                     setTimeout(() => {
                       if (recentProductsRef.current) {
-                        const yOffset = -80;
+                        const yOffset = -70; // Ajustement pour voir les sous-catégories et le titre
                         const y = recentProductsRef.current.getBoundingClientRect().top + window.scrollY + yOffset;
                         window.scrollTo({ top: y, behavior: 'smooth' });
                       }
-                    }, 100);
+                    }, 350);
                   }
                 }} 
                 className="touch-target active-scale" 
