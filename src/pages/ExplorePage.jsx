@@ -695,28 +695,29 @@ const ExplorePage = () => {
           {/* Catégories */}
           <div>
             <h4 style={{ fontSize: '0.85rem', color: '#64748B', fontWeight: '700', textTransform: 'uppercase', marginBottom: '1rem', letterSpacing: '0.5px' }}>Catégories</h4>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
               <button 
                 onClick={() => { setActiveCategory('all'); setActiveSubcategory('all'); }}
                 className="active-scale"
                 style={{ 
-                  padding: '8px 16px', 
-                  borderRadius: '24px', 
+                  padding: '10px 12px', 
+                  borderRadius: '12px', 
                   background: activeCategory === 'all' ? '#FFF1F2' : '#FFFFFF',
                   color: activeCategory === 'all' ? 'var(--primary)' : '#475569',
                   border: activeCategory === 'all' ? '1.5px solid var(--primary)' : '1px solid #E2E8F0',
                   fontWeight: '600',
-                  fontSize: '0.85rem',
+                  fontSize: '0.82rem',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '6px',
-                  boxShadow: activeCategory === 'all' ? '0 2px 8px rgba(138,28,28,0.1)' : '0 1px 2px rgba(0,0,0,0.03)',
-                  transition: 'all 0.2s ease'
+                  gap: '8px',
+                  boxShadow: activeCategory === 'all' ? '0 2px 8px rgba(138,28,28,0.1)' : '0 1px 2px rgba(0,0,0,0.02)',
+                  transition: 'all 0.2s ease',
+                  textAlign: 'left'
                 }}
               >
-                <span style={{ fontSize: '1rem' }}>🌐</span>
-                Toutes
+                <span style={{ fontSize: '1rem', flexShrink: 0 }}>🌐</span>
+                <span style={{ lineHeight: '1.2' }}>Toutes</span>
               </button>
               {categories.map(cat => {
                 const isActive = activeCategory === cat.id;
@@ -726,23 +727,24 @@ const ExplorePage = () => {
                     onClick={() => { setActiveCategory(cat.id); setActiveSubcategory('all'); }}
                     className="active-scale"
                     style={{ 
-                      padding: '8px 16px', 
-                      borderRadius: '24px', 
+                      padding: '10px 12px', 
+                      borderRadius: '12px', 
                       background: isActive ? '#FFF1F2' : '#FFFFFF',
                       color: isActive ? 'var(--primary)' : '#475569',
                       border: isActive ? '1.5px solid var(--primary)' : '1px solid #E2E8F0',
                       fontWeight: '600',
-                      fontSize: '0.85rem',
+                      fontSize: '0.82rem',
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '6px',
-                      boxShadow: isActive ? '0 2px 8px rgba(138,28,28,0.1)' : '0 1px 2px rgba(0,0,0,0.03)',
-                      transition: 'all 0.2s ease'
+                      gap: '8px',
+                      boxShadow: isActive ? '0 2px 8px rgba(138,28,28,0.1)' : '0 1px 2px rgba(0,0,0,0.02)',
+                      transition: 'all 0.2s ease',
+                      textAlign: 'left'
                     }}
                   >
-                    <span style={{ display: 'flex', fontSize: '1rem', color: isActive ? 'var(--primary)' : '#64748B' }}>{cat.icon}</span>
-                    {cat.name}
+                    <span style={{ display: 'flex', fontSize: '1rem', flexShrink: 0, color: isActive ? 'var(--primary)' : '#64748B' }}>{cat.icon}</span>
+                    <span style={{ lineHeight: '1.2', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{cat.name}</span>
                   </button>
                 );
               })}
