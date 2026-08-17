@@ -1446,7 +1446,7 @@ const Home = () => {
           {[
             { id: 'all', label: 'Tout', icon: <Zap size={16} /> },
             { id: 'followed', label: `Suivies ${followedCount > 0 ? `(${followedCount})` : ''}`, icon: <Bell size={16} /> },
-            { id: 'telephones', label: 'Téléphones & Tech', icon: <Smartphone size={16} /> },
+            { id: 'telephones_tablettes', label: 'Téléphones & Tech', icon: <Smartphone size={16} /> },
             { id: 'habillement', label: 'Mode & Habits', icon: <Shirt size={16} /> },
             { id: 'accessoires', label: 'Accessoires', icon: <Watch size={16} /> },
             { id: 'vehicules', label: 'Véhicules', icon: <Car size={16} /> },
@@ -1457,7 +1457,13 @@ const Home = () => {
             return (
               <button
                 key={pill.id}
-                onClick={() => setSelectedHomePillCategory(pill.id)}
+                onClick={() => {
+                  if (['all', 'followed', 'boosted'].includes(pill.id)) {
+                    setSelectedHomePillCategory(pill.id);
+                  } else {
+                    navigate(`/explore?category=${pill.id}`);
+                  }
+                }}
                 className="touch-target active-scale"
                 style={{
                   display: 'flex',
