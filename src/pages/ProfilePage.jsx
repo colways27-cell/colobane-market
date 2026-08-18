@@ -12,6 +12,7 @@ import {
 } from '../utils/pushNotifications';
 import { openWavePayment } from '../config/paymentConfig';
 import VendorAnalyticsDashboard from '../components/vendor/VendorAnalyticsDashboard';
+import OneSignal from 'react-onesignal';
 
 import { locationsList as locations } from '../data/locations';
 
@@ -1108,12 +1109,13 @@ const ProfilePage = () => {
                     <button 
                       onClick={async () => {
                         try {
-                          if (window.OneSignal) {
-                            await window.OneSignal.Slidedown.promptPush();
-                          } else {
-                            await requestNotificationPermission(user?.id);
+                          await OneSignal.Slidedown.promptPush();
+                          if (window.Notification && Notification.permission === 'granted') {
+                             await OneSignal.User.PushSubscription.optIn();
+                             alert("Notifications push activées avec succès ! Vérifiez OneSignal.");
                           }
                         } catch (e) {
+                          console.error('OneSignal prompt error:', e);
                           await requestNotificationPermission(user?.id);
                         }
                       }}
