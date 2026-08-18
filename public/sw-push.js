@@ -1,7 +1,7 @@
-/* ColobaneMarket Service Worker — Push Notifications Listener */
+importScripts("https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js");
 
+/* Ancien code désactivé pour laisser OneSignal gérer les pushs
 self.addEventListener('push', function (event) {
-  let data = { title: 'Colobane Market 🛍️', body: 'Vous avez une nouvelle notification !', url: '/' };
   if (event.data) {
     try {
       data = event.data.json();
@@ -41,3 +41,4 @@ self.addEventListener('notificationclick', function (event) {
     })
   );
 });
+*/

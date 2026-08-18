@@ -180,9 +180,16 @@ function App() {
             appId: appId,
             allowLocalhostAsSecureOrigin: true,
             notifyButton: {
-              enable: false, // On utilise notre propre bouton PushNotificationPrompt
+              enable: false, 
             }
           });
+          
+          // Si l'utilisateur avait déjà accepté les notifications avant OneSignal, on l'inscrit automatiquement
+          if (window.Notification && Notification.permission === 'granted') {
+            try {
+              await OneSignal.User.PushSubscription.optIn();
+            } catch(e) {}
+          }
         }
       } catch (e) {
         console.error("OneSignal init error:", e);
