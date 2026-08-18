@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './components/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -167,8 +167,30 @@ const LayoutWrapper = () => {
   );
 };
 
-// ─── App ─────────────────────────────────────────────────────────────────────
+import OneSignal from 'react-onesignal';
+
 function App() {
+  useEffect(() => {
+    // Initialisation de OneSignal
+    const initOneSignal = async () => {
+      try {
+        const appId = import.meta.env.VITE_ONESIGNAL_APP_ID;
+        if (appId) {
+          await OneSignal.init({
+            appId: appId,
+            allowLocalhostAsSecureOrigin: true,
+            notifyButton: {
+              enable: false, // On utilise notre propre bouton PushNotificationPrompt
+            }
+          });
+        }
+      } catch (e) {
+        console.error("OneSignal init error:", e);
+      }
+    };
+    initOneSignal();
+  }, []);
+
   return (
     <AuthProvider>
       <Router>

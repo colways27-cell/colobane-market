@@ -40,7 +40,16 @@ const PushNotificationPrompt = () => {
 
   const handleEnable = async () => {
     setShowPrompt(false);
-    await requestNotificationPermission(user?.id);
+    try {
+      if (window.OneSignal) {
+        await window.OneSignal.Slidedown.promptPush();
+      } else {
+        await requestNotificationPermission(user?.id);
+      }
+    } catch (e) {
+      console.error(e);
+      await requestNotificationPermission(user?.id);
+    }
   };
 
   const handleDismiss = () => {
