@@ -27,15 +27,27 @@ const PushNotificationPrompt = () => {
   useEffect(() => {
     if (!checkNotificationSupport()) return;
 
-    const currentPermission = getNotificationPermissionState();
     const isDismissed = localStorage.getItem('colobane_push_prompt_dismissed');
 
-    if (currentPermission === 'default' && !isDismissed) {
-      const timer = setTimeout(() => {
-        setShowPrompt(true);
+    const checkSubscription = async () => {
+      // Si on a désactivé le prompt, on ne fait rien
+      if (isDismissed) return;
+      
+      // On attend un peu que OneSignal s'initialise
+      setTimeout(async () => {
+        try {
+          const isSubscribed = OneSignal?.User?.PushSubscription?.optedIn;
+          if (!isSubscribed) {
+            setShowPrompt(true);
+          }
+        } catch (e) {
+          // Fallback
+          setShowPrompt(true);
+        }
       }, 3000);
-      return () => clearTimeout(timer);
-    }
+    };
+
+    checkSubscription();
   }, []);
 
   const handleEnable = async () => {
