@@ -33,6 +33,7 @@ const AuthPage = () => {
   const [pseudo, setPseudo] = useState('');
   const [email, setEmail] = useState('');
   const [city, setCity] = useState('Dakar');
+  const [pin, setPin] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
   const [newPassword, setNewPassword] = useState('');
@@ -94,7 +95,7 @@ const AuthPage = () => {
     try {
       const digits = resetPhone.replace(/\s+/g, '').replace(/^0+/, '');
       if (digits.length !== 9) throw new Error('Le numéro doit contenir 9 chiffres.');
-      if (!verifyName.trim()) throw new Error('Veuillez entrer votre nom complet.');
+      if (!verifyName.trim() || verifyName.trim().length !== 4) throw new Error('Veuillez entrer un Code PIN à 4 chiffres.');
 
       // Vérifier que le numéro existe
       const { data: profiles } = await supabase
@@ -174,13 +175,14 @@ const AuthPage = () => {
           email: authEmail,
           password: password,
           options: {
-            data: {
+              data: {
               full_name: `${prenom} ${nom}`.trim(),
               pseudo: pseudo.trim() || `${prenom}`.trim(),
               whatsapp_number: formattedPhone,
               city: city,
               real_email: email || undefined,
-              phone_auth_email: fakeEmail
+              phone_auth_email: fakeEmail,
+              recovery_pin: pin || undefined
             }
           }
         });
@@ -318,8 +320,17 @@ const AuthPage = () => {
                     </div>
                     <input type="tel" value={resetPhone} onChange={e => setResetPhone(e.target.value)} required placeholder="77 123 45 67" className="clean-input" style={{ letterSpacing: '1px' }} />
                   </InputWrapper>
-                  <InputWrapper label="Nom complet (Prénom + Nom)" icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>}>
-                    <input type="text" value={verifyName} onChange={e => setVerifyName(e.target.value)} required placeholder="Aminata Diallo" className="clean-input" />
+                  <InputWrapper label="Code PIN (Tapez 0000 si ancien compte)" icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>}>
+                    <input 
+                      type="text" 
+                      maxLength="4" 
+                      pattern="\d{4}" 
+                      value={verifyName} 
+                      onChange={e => setVerifyName(e.target.value.replace(/\D/g, ''))} 
+                      required 
+                      placeholder="Ex: 1234" 
+                      className="clean-input" 
+                    />
                   </InputWrapper>
                   <button type="submit" className="active-scale" disabled={loading} style={{ width: '100%', background: 'var(--primary)', color: 'white', padding: '1.1rem', borderRadius: '16px', border: 'none', fontWeight: '700', fontSize: '1rem', marginTop: '0.5rem', cursor: 'pointer', boxShadow: '0 8px 25px rgba(138, 28, 28, 0.25)' }}>
                     {loading ? 'Vérification...' : 'Vérifier mon identité →'}
@@ -431,6 +442,22 @@ const AuthPage = () => {
                       <div style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: '#94A3B8' }}>▼</div>
                     </div>
                   </InputWrapper>
+
+                  <InputWrapper label="Code PIN (Pour récupérer votre mot de passe)" icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>}>
+                    <input 
+                      type="text" 
+                      maxLength="4"
+                      pattern="\d{4}"
+                      value={pin} 
+                      onChange={e => setPin(e.target.value.replace(/\D/g, ''))} 
+                      required 
+                      placeholder="Ex: 1234 (4 chiffres)" 
+                      className="clean-input" 
+                    />
+                  </InputWrapper>
+                  <p style={{ fontSize: '0.78rem', color: '#94A3B8', marginTop: '-0.7rem', marginBottom: '0.8rem', paddingLeft: '4px' }}>
+                    🔑 Conservez ce code PIN. Il vous permettra de changer votre mot de passe en cas d'oubli.
+                  </p>
                 </>
               )}
 
