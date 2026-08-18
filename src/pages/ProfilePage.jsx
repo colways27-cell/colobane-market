@@ -1112,9 +1112,16 @@ const ProfilePage = () => {
                           await OneSignal.Slidedown.promptPush();
                           if (window.Notification && Notification.permission === 'granted') {
                              await OneSignal.User.PushSubscription.optIn();
-                             alert("Notifications push activées avec succès ! Vérifiez OneSignal.");
+                             const subId = OneSignal.User.PushSubscription.id;
+                             const token = OneSignal.User.PushSubscription.token;
+                             if (!subId && !token) {
+                               alert("Alerte: OneSignal s'est exécuté mais n'a pas pu obtenir d'identifiant d'appareil. Vérifiez que l'App ID est correct dans Vercel.");
+                             } else {
+                               alert(`Succès! Votre appareil est enregistré.\nID: ${subId || 'en cours'}\nToken: ${token || 'en cours'}\nAllez vérifier sur OneSignal!`);
+                             }
                           }
                         } catch (e) {
+                          alert('Erreur OneSignal: ' + e.message);
                           console.error('OneSignal prompt error:', e);
                           await requestNotificationPermission(user?.id);
                         }
