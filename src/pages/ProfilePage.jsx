@@ -1109,21 +1109,29 @@ const ProfilePage = () => {
                     <button 
                       onClick={async () => {
                         try {
-                          await OneSignal.Slidedown.promptPush();
-                          if (window.Notification && Notification.permission === 'granted') {
-                             await OneSignal.User.PushSubscription.optIn();
-                             const subId = OneSignal.User.PushSubscription.id;
-                             const token = OneSignal.User.PushSubscription.token;
-                             if (!subId && !token) {
-                               alert("Alerte: OneSignal s'est exécuté mais n'a pas pu obtenir d'identifiant d'appareil. Vérifiez que l'App ID est correct dans Vercel.");
-                             } else {
-                               alert(`Succès! Votre appareil est enregistré.\nID: ${subId || 'en cours'}\nToken: ${token || 'en cours'}\nAllez vérifier sur OneSignal!`);
-                             }
+                          if (!window.Notification) {
+                            alert("Votre navigateur ne supporte pas les notifications Web Push (si vous êtes sur iPhone, vous devez d'abord utiliser l'option 'Ajouter à l'écran d'accueil').");
+                            return;
                           }
+                          
+                          await OneSignal.Slidedown.promptPush();
+                          
+                          setTimeout(async () => {
+                            if (Notification.permission === 'granted') {
+                               await OneSignal.User.PushSubscription.optIn();
+                               const subId = OneSignal.User.PushSubscription.id;
+                               if (!subId) {
+                                 alert("Alerte: OneSignal s'est exécuté mais n'a pas pu obtenir d'ID. L'App ID Vercel est peut-être manquant.");
+                               } else {
+                                 alert(`Succès! Appareil enregistré.\nID: ${subId}\nAllez vérifier OneSignal!`);
+                               }
+                            } else {
+                               alert("Permission non accordée. Veuillez autoriser les notifications dans les paramètres de votre navigateur.");
+                            }
+                          }, 2000); // Petit délai pour laisser le temps au navigateur de mettre à jour la permission
+                          
                         } catch (e) {
-                          alert('Erreur OneSignal: ' + e.message);
-                          console.error('OneSignal prompt error:', e);
-                          await requestNotificationPermission(user?.id);
+                          alert('Erreur: ' + e.message);
                         }
                       }}
                       style={{ background: 'var(--primary)', color: 'white', border: 'none', padding: '10px 16px', borderRadius: '12px', fontWeight: '800', cursor: 'pointer' }}
