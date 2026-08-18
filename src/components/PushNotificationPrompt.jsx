@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import OneSignal from 'react-onesignal';
 import { useAuth } from './AuthContext';
 import { 
   checkNotificationSupport, 
@@ -30,7 +31,6 @@ const PushNotificationPrompt = () => {
     const isDismissed = localStorage.getItem('colobane_push_prompt_dismissed');
 
     if (currentPermission === 'default' && !isDismissed) {
-      // Delai d'affichage pour ne pas agresser l'utilisateur immédiatement au chargement
       const timer = setTimeout(() => {
         setShowPrompt(true);
       }, 3000);
@@ -41,11 +41,7 @@ const PushNotificationPrompt = () => {
   const handleEnable = async () => {
     setShowPrompt(false);
     try {
-      if (window.OneSignal) {
-        await window.OneSignal.Slidedown.promptPush();
-      } else {
-        await requestNotificationPermission(user?.id);
-      }
+      await OneSignal.Slidedown.promptPush();
     } catch (e) {
       console.error(e);
       await requestNotificationPermission(user?.id);
