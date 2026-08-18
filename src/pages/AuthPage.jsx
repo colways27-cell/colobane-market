@@ -96,17 +96,9 @@ const AuthPage = () => {
       const digits = resetPhone.replace(/\s+/g, '').replace(/^0+/, '');
       if (digits.length !== 9) throw new Error('Le numéro doit contenir 9 chiffres.');
       if (!verifyName.trim() || verifyName.trim().length !== 4) throw new Error('Veuillez entrer un Code PIN à 4 chiffres.');
-
-      // Vérifier que le numéro existe
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id')
-        .or(`whatsapp_number.eq.+221${digits},phone_number.eq.+221${digits}`)
-        .limit(1);
-
-      if (!profiles || profiles.length === 0)
-        throw new Error("Aucun compte trouvé avec ce numéro.");
-
+      
+      // On passe directement à l'étape 2 sans vérifier 'profiles' car la table est protégée par RLS pour les invités.
+      // La vérification réelle de l'existence du compte se fera via la fonction RPC 'reset_password_by_phone' (qui est SECURITY DEFINER).
       setResetStep(2);
     } catch (error) {
       setErrorMsg(error.message);
