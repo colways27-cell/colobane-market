@@ -1102,6 +1102,29 @@ const ProfilePage = () => {
 
                   <div className="hover-lift" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem', border: '2px solid #E2E8F0', borderRadius: '16px', background: '#FAFAF9' }}>
                     <div>
+                      <h4 style={{ margin: '0 0 6px 0', fontWeight: '800', fontSize: '1.1rem' }}>Notifications Push</h4>
+                      <p style={{ margin: 0, fontSize: '0.95rem', color: 'var(--text-muted)' }}>Recevoir des alertes sur le téléphone même si le site est fermé</p>
+                    </div>
+                    <button 
+                      onClick={async () => {
+                        try {
+                          if (window.OneSignal) {
+                            await window.OneSignal.Slidedown.promptPush();
+                          } else {
+                            await requestNotificationPermission(user?.id);
+                          }
+                        } catch (e) {
+                          await requestNotificationPermission(user?.id);
+                        }
+                      }}
+                      style={{ background: 'var(--primary)', color: 'white', border: 'none', padding: '10px 16px', borderRadius: '12px', fontWeight: '800', cursor: 'pointer' }}
+                    >
+                      Activer 🔔
+                    </button>
+                  </div>
+
+                  <div className="hover-lift" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem', border: '2px solid #E2E8F0', borderRadius: '16px', background: '#FAFAF9' }}>
+                    <div>
                       <h4 style={{ margin: '0 0 6px 0', fontWeight: '800', fontSize: '1.1rem' }}>Boutique Officielle</h4>
                       <p style={{ margin: 0, fontSize: '0.95rem', color: 'var(--text-muted)' }}>Mettre à jour vos informations professionnelles</p>
                     </div>
