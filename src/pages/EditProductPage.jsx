@@ -3,8 +3,10 @@ import { categories } from '../data/categories';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../components/AuthContext';
 import { supabase } from '../lib/supabase';
-import toast from 'react-hot-toast';
+import { useCategories } from '../hooks/useCategories';
 import imageCompression from 'browser-image-compression';
+import { analyzeContentForModeration, trackViolationAttempt } from '../utils/advancedModeration';
+import toast from 'react-hot-toast';
 
 const locations = [
   'Dakar', 'Pikine', 'Guédiawaye', 'Rufisque', 'Thiès', 'Mbour', 'Saint-Louis', 
@@ -68,6 +70,19 @@ const EditProductPage = () => {
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
+
+  // Cleanup Blob URLs to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (previews && previews.length > 0) {
+        previews.forEach(url => {
+          if (typeof url === 'string' && url.startsWith('blob:')) {
+            URL.revokeObjectURL(url);
+          }
+        });
+      }
+    };
+  }, [previews]);
 
   useEffect(() => {
     if (user === null) {
@@ -275,6 +290,27 @@ const EditProductPage = () => {
     setErrorMsg('');
 
     try {
+      // 1. Modération avancée Niveau 3
+      const { title, description, price, price_type, location, delivery, contact_whatsapp, ...metadata } = formData;
+      const analysis = analyzeContentForModeration({
+        title,
+        description,
+        category: selectedCategory,
+        metadata
+      });
+
+      if (analysis.isProhibited) {
+        const violation = await trackViolationAttempt(user?.id);
+        const errorMsgStr = violation.isSuspended
+          ? `⛔ Compte Suspendu : Tentative de publication de contenu interdit ("${analysis.keyword}"). Votre compte a été suspendu pour récidive.`
+          : `${analysis.reason} (Avertissement 1/2)`;
+
+        toast.error(errorMsgStr, { duration: 8000 });
+        setErrorMsg(errorMsgStr);
+        setLoading(false);
+        return;
+      }
+
       const imageUrls = await uploadImages();
       const finalImages = [...existingImages, ...imageUrls];
       

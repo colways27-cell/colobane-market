@@ -235,6 +235,19 @@ const PublishPage = () => {
     forfait_premium: { price: 10000, duration_days: 30, ads_count: 5, label: "Boutique Premium + 5 Boosts" }
   });
 
+  // Cleanup Blob URLs to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (previews && previews.length > 0) {
+        previews.forEach(url => {
+          if (typeof url === 'string' && url.startsWith('blob:')) {
+            URL.revokeObjectURL(url);
+          }
+        });
+      }
+    };
+  }, [previews]);
+
   useEffect(() => {
     try {
       const savedCats = JSON.parse(localStorage.getItem('colobane_recent_cats') || '[]');

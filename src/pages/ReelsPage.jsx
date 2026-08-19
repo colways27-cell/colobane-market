@@ -68,6 +68,20 @@ const ReelsPage = () => {
   const recordedChunksRef = useRef([]);
   const recordTimerRef = useRef(null);
 
+  // Cleanup Blob URLs to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (reelMediaPreviews && reelMediaPreviews.length > 0) {
+        reelMediaPreviews.forEach(url => {
+          if (url.startsWith('blob:')) URL.revokeObjectURL(url);
+        });
+      }
+      if (selectedSound?.url && selectedSound.url.startsWith('blob:')) {
+        URL.revokeObjectURL(selectedSound.url);
+      }
+    };
+  }, [reelMediaPreviews, selectedSound]);
+
   // Auto-play background sound track when active Reel changes
   useEffect(() => {
     if (products.length === 0) return;
