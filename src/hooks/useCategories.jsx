@@ -99,7 +99,16 @@ export const useCategories = () => {
                 icon: getIconComponent(iconName)
               };
             });
-          setCategories(dynamicCats);
+          // Ajouter les catégories locales manquantes (celles qu'on vient d'ajouter dans le code)
+          const localOnlyCats = defaultCategories
+            .filter(dc => !dbCats.some(dbCat => dbCat.id === dc.id))
+            .map(cat => ({
+              ...cat,
+              // Force l'icône si pas défini
+              icon: cat.icon || getIconComponent(defaultIconNames[cat.id] || 'Box')
+            }));
+
+          setCategories([...dynamicCats, ...localOnlyCats]);
         }
       } catch (err) {
         console.error("Error fetching dynamic categories:", err);
