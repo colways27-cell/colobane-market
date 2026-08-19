@@ -1133,7 +1133,7 @@ const ReelsPage = () => {
                     {product.images && product.images.length > 1 && (
                       <div style={{
                         position: 'absolute',
-                        bottom: '90px',
+                        bottom: '300px',
                         left: '50%',
                         transform: 'translateX(-50%)',
                         display: 'flex',
@@ -1465,7 +1465,7 @@ const ReelsPage = () => {
                     alignItems: 'center',
                     gap: '4px'
                   }}>
-                    🎬 REEL PRO DAAR
+                    🎬 REEL PRO DAKAR
                   </span>
                   {product.profiles?.is_verified && (
                     <span style={{
