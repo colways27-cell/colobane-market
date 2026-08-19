@@ -21,7 +21,12 @@ import {
   Wrench, 
   Handshake, 
   Briefcase,
-  PackageOpen
+  PackageOpen,
+  Carrot,
+  Apple,
+  Fish,
+  Bird,
+  Heart
 } from 'lucide-react';
 
 export const categories = [
@@ -272,6 +277,54 @@ export const categories = [
       { name: 'level_required', label: 'Niveau requis', type: 'text', placeholder: 'Ex: Bac, Bac+3, Aucun diplôme...' },
       { name: 'hours', label: 'Horaires', type: 'text', placeholder: 'Ex: Temps plein, Temps partiel...' },
       { name: 'salary', label: 'Salaire proposé', type: 'text', placeholder: 'Ex: À débattre, 150000 FCFA...' }
+    ]
+  },
+  {
+    id: 'fruits_legumes',
+    name: 'Fruits & Légumes',
+    icon: <Carrot size={28} strokeWidth={1.5} />,
+    color: '#10b981',
+    fields: [
+      { name: 'type', label: 'Type', type: 'select', options: ['Fruits', 'Légumes', 'Tubercules', 'Autre'] },
+      { name: 'quantity', label: 'Quantité / Poids', type: 'text', placeholder: 'Ex: 10 Kg, Par carton...' },
+      { name: 'origin', label: 'Provenance', type: 'text', placeholder: 'Ex: Local, Importé...' },
+      { name: 'sale_type', label: 'Vente', type: 'select', options: ['Détail', 'Gros', 'Demi-gros'] }
+    ]
+  },
+  {
+    id: 'poissonnerie',
+    name: 'Poissonnerie',
+    icon: <Fish size={28} strokeWidth={1.5} />,
+    color: '#3b82f6',
+    fields: [
+      { name: 'type', label: 'Type', type: 'select', options: ['Poisson frais', 'Fruits de mer', 'Poisson fumé/séché', 'Autre'] },
+      { name: 'species', label: 'Espèce', type: 'text', placeholder: 'Ex: Thiof, Lotte, Crevettes...' },
+      { name: 'quantity', label: 'Quantité / Poids', type: 'text', placeholder: 'Ex: 5 Kg, Par caisse...' },
+      { name: 'sale_type', label: 'Vente', type: 'select', options: ['Détail', 'Gros', 'Demi-gros'] }
+    ]
+  },
+  {
+    id: 'volaille',
+    name: 'Volaille',
+    icon: <Bird size={28} strokeWidth={1.5} />,
+    color: '#f59e0b',
+    fields: [
+      { name: 'type', label: 'Type', type: 'select', options: ['Poulet de chair', 'Poule pondeuse', 'Pintade', 'Canard', 'Œufs', 'Autre'] },
+      { name: 'quantity', label: 'Quantité', type: 'text', placeholder: 'Ex: 100 têtes, 5 plateaux...' },
+      { name: 'condition_stage', label: 'État', type: 'select', options: ['Vivant', 'Abattu/Nettoyé', 'Poussin'] },
+      { name: 'sale_type', label: 'Vente', type: 'select', options: ['Détail', 'Gros', 'Demi-gros'] }
+    ]
+  },
+  {
+    id: 'lingerie',
+    name: 'Lingerie & Nuit',
+    icon: <Heart size={28} strokeWidth={1.5} />,
+    color: '#e91e63',
+    fields: [
+      { name: 'type', label: 'Type', type: 'select', options: ['Sous-vêtements', 'Nuisette / Pyjama', 'Lingerie fine', 'Maillot de bain', 'Autre'] },
+      { name: 'gender', label: 'Genre', type: 'select', options: ['Femme', 'Homme'] },
+      { name: 'size', label: 'Taille', type: 'text', placeholder: 'Ex: M, L, 90C...' },
+      { name: 'condition', label: 'État', type: 'select', options: ['Neuf avec étiquette', 'Neuf sans étiquette'] }
     ]
   },
   {
