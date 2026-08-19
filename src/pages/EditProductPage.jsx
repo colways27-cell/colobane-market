@@ -113,7 +113,7 @@ const EditProductPage = () => {
         // Handle custom fields
         const cat = categories.find(c => c.id === data.category);
         if (cat) {
-          cat.fields.forEach(field => {
+          cat.fields?.forEach(field => {
             if (mergedData[field.name] && !field.options?.includes(mergedData[field.name])) {
               mergedData[`custom_${field.name}`] = mergedData[field.name];
               mergedData[field.name] = 'Autre';
@@ -141,7 +141,7 @@ const EditProductPage = () => {
   }, [user, navigate, productId]);
 
   const getSubcategoryField = (cat) => {
-    if (!cat) return null;
+    if (!cat || !cat.fields) return null;
     return cat.fields.find(f => ['type', 'property_type', 'service_type', 'job_type'].includes(f.name));
   };
 
@@ -480,7 +480,7 @@ const EditProductPage = () => {
                   <FastTextarea name="description" placeholder="Décrivez votre article en détail (état, marque, caractéristiques...)" value={formData.description} onChange={handleInputChange} style={{ width: '100%', padding: '1rem 0', border: 'none', background: 'transparent', outline: 'none', fontSize: '0.95rem', minHeight: '120px', resize: 'vertical' }} />
                 </InputWrapper>
 
-                {category && category.fields.filter(field => {
+                {category?.fields?.filter(field => {
                   if (['type', 'property_type', 'service_type', 'job_type'].includes(field.name)) return false;
                   if (!field.showIf) return true;
                   const dependentValue = formData[field.showIf.field];

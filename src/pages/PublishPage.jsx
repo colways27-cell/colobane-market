@@ -1624,7 +1624,7 @@ const PublishPage = () => {
                 </div>
 
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', marginBottom: '1.5rem' }}>
-                  {category && category.fields.filter(field => {
+                  {category?.fields?.filter(field => {
                     if (['type', 'property_type', 'service_type', 'job_type'].includes(field.name)) return false;
                     if (!field.showIf) return true;
                     const dependentValue = formData[field.showIf.field];

@@ -77,7 +77,7 @@ const CategoryPage = () => {
   }
 
   // Sous-catégories trouvées dans les champs
-  const subcatField = category.fields.find(f => ['type', 'property_type', 'service_type', 'job_type'].includes(f.name));
+  const subcatField = category.fields?.find(f => ['type', 'property_type', 'service_type', 'job_type'].includes(f.name));
   const subcatOptions = subcatField?.options || [];
 
   const filteredProducts = selectedSubcat === 'all' 
