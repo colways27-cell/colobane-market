@@ -71,6 +71,12 @@ const Navbar = () => {
         .select('*')
         .eq('id', user.id)
         .single();
+        
+      const { data: buyerReqs } = await supabase
+        .from('buyer_requests')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(15);
 
       setIsAdmin(!!profile?.is_admin);
 
@@ -106,6 +112,58 @@ const Navbar = () => {
           });
         }
       }
+      
+      if (buyerReqs) {
+        buyerReqs.forEach(req => {
+          // On ne notifie pas le créateur du Wutal Ma lui-même
+          if (req.user_id !== user.id) {
+            notifs.push({
+              id: `buyer-${req.id}`,
+              type: 'opportunity',
+              title: '🙋‍♂️ Nouveau Wutal Ma',
+              message: `Recherche : "${req.title}" à ${req.location} (${req.budget} F).`,
+              date: req.created_at,
+              link: '/wutal-ma'
+            });
+          }
+        });
+      }
+
+      // NOUVEAUTÉ : Boutiques suivies
+      try {
+        const followedBoutiques = JSON.parse(localStorage.getItem('colobane_followed_boutiques') || '[]');
+        if (followedBoutiques.length > 0) {
+          const oneWeekAgo = new Date();
+          oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+          
+          const { data: followedProducts } = await supabase
+            .from('products')
+            .select('id, title, user_id, created_at, profiles(pseudo, full_name)')
+            .in('user_id', followedBoutiques)
+            .gte('created_at', oneWeekAgo.toISOString())
+            .order('created_at', { ascending: false })
+            .limit(10);
+            
+          if (followedProducts) {
+            followedProducts.forEach(prod => {
+              const vendorName = prod.profiles?.pseudo || prod.profiles?.full_name || 'Une boutique suivie';
+              notifs.push({
+                id: `prod-${prod.id}`,
+                type: 'success',
+                title: '🛍️ Nouvel arrivage !',
+                message: `${vendorName} vient de publier : ${prod.title}`,
+                date: prod.created_at,
+                link: `/product/${prod.id}`
+              });
+            });
+          }
+        }
+      } catch(e) {
+        console.error("Erreur abonnements: ", e);
+      }
+      
+      // Trier les notifications de la plus récente à la plus ancienne
+      notifs.sort((a, b) => new Date(b.date) - new Date(a.date));
 
       const readNotifIds = JSON.parse(localStorage.getItem('colobane_read_notifs') || '[]');
       const unreadNotifs = notifs.filter(n => !readNotifIds.includes(n.id));
