@@ -258,12 +258,15 @@ const ReelsPage = () => {
           .select('product_id, user_id')
           .in('product_id', productIds);
 
+        // Fetch current user explicitly to avoid race condition with state
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
+
         const countsMap = {};
         const likedState = {};
         if (allFavs) {
           allFavs.forEach(f => {
             countsMap[f.product_id] = (countsMap[f.product_id] || 0) + 1;
-            if (user && f.user_id === user.id) {
+            if (currentUser && f.user_id === currentUser.id) {
               likedState[f.product_id] = true;
             }
           });
