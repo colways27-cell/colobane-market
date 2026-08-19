@@ -24,14 +24,20 @@ ON public.buyer_requests FOR SELECT
 USING (true);
 
 DROP POLICY IF EXISTS "Public insert buyer_requests" ON public.buyer_requests;
-CREATE POLICY "Public insert buyer_requests" 
+CREATE POLICY "Auth insert buyer_requests" 
 ON public.buyer_requests FOR INSERT 
-WITH CHECK (true);
+WITH CHECK (auth.role() = 'authenticated' AND auth.uid() = user_id);
 
 DROP POLICY IF EXISTS "Public delete buyer_requests" ON public.buyer_requests;
-CREATE POLICY "Public delete buyer_requests" 
+CREATE POLICY "Owner and admin delete buyer_requests" 
 ON public.buyer_requests FOR DELETE 
-USING (true);
+USING (
+  auth.uid() = user_id 
+  OR EXISTS (
+    SELECT 1 FROM public.profiles 
+    WHERE profiles.id = auth.uid() AND profiles.is_admin = true
+  )
+);
 
 -- 4. Attribution des droits aux rôles anon et authenticated
 GRANT ALL ON public.buyer_requests TO anon;
