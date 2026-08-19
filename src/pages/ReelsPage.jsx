@@ -1286,7 +1286,10 @@ const ReelsPage = () => {
 
                 {/* Like Button */}
                 <button
-                  onClick={() => toggleLike(product.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleLike(product.id);
+                  }}
                   style={{
                     background: 'none',
                     border: 'none',
@@ -1316,7 +1319,10 @@ const ReelsPage = () => {
 
                 {/* WhatsApp Button */}
                 <button
-                  onClick={() => handleWhatsAppContact(product)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleWhatsAppContact(product);
+                  }}
                   style={{
                     background: 'none',
                     border: 'none',
@@ -1345,7 +1351,10 @@ const ReelsPage = () => {
 
                 {/* Share Button */}
                 <button
-                  onClick={() => handleShare(product)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleShare(product);
+                  }}
                   style={{
                     background: 'none',
                     border: 'none',
