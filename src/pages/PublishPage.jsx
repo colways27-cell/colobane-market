@@ -479,7 +479,7 @@ const PublishPage = () => {
   const category = categories.find((c) => c.id === selectedCategory);
 
   const getSubcategoryField = (cat) => {
-    if (!cat) return null;
+    if (!cat || !cat.fields) return null;
     return cat.fields.find(f => ['type', 'property_type', 'service_type', 'job_type'].includes(f.name));
   };
 
