@@ -181,7 +181,9 @@ function App() {
             allowLocalhostAsSecureOrigin: true,
             notifyButton: {
               enable: false, 
-            }
+            },
+            serviceWorkerParam: { scope: "/" },
+            serviceWorkerPath: "sw.js"
           });
           
           // Si l'utilisateur avait déjà accepté les notifications avant OneSignal, on l'inscrit automatiquement
