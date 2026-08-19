@@ -642,7 +642,7 @@ const AdminPage = () => {
 
         {activeTab === 'paiements' && (
           <PaymentRequestsTab 
-            paiements={filteredPaiements} 
+            paiements={paiements} 
             onValiderPaiement={validerPaiement} 
             onValiderPlusieursPaiements={validerPlusieursPaiements}
             onRefuserPaiement={refuserPaiement} 
@@ -679,9 +679,9 @@ const AdminPage = () => {
 
         {(activeTab === 'annonces' || activeTab === 'moderation') && (
           <ProductModerationTab 
-            allProducts={products} 
+            allProducts={allProducts} 
             reports={reports} 
-            boosts={products.filter(p => p.is_boosted)}
+            boosts={allProducts.filter(p => p.is_boosted)}
             onDesactiverBoost={desactiverBoost} 
             onSupprimerProduit={supprimerProduit}
             onSupprimerPlusieursProduits={supprimerPlusieursProduits}

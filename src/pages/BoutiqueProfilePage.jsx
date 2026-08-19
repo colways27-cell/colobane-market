@@ -195,7 +195,7 @@ const BoutiqueProfilePage = () => {
         url={canonicalUrl}
         type="profile"
       />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaStore) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaStore).replace(/</g, '\\u003c') }} />
 
       {/* Immersive Banner */}
       <div 

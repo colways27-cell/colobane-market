@@ -203,25 +203,62 @@ const getCategoryReasonMessage = (categoryName, keyword) => {
 
 // ══════════════════════════════════════════════════════════════════════════════
 // GESTION ET SUIVI DES INFRACTIONS (SUSPENSION APRÈS 2 TENTATIVES)
+// Stockage en base de données (Supabase profiles) pour empêcher le contournement
 // ══════════════════════════════════════════════════════════════════════════════
-export const trackViolationAttempt = (userId) => {
+import { supabase } from '../lib/supabase';
+
+export const trackViolationAttempt = async (userId) => {
   if (!userId) return { attemptCount: 1, isSuspended: false };
 
-  const storageKey = `moderation_violations_${userId}`;
-  const existingAttempts = parseInt(localStorage.getItem(storageKey) || '0', 10);
-  const newAttempts = existingAttempts + 1;
+  try {
+    // Lire le compteur actuel depuis la base de données
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('moderation_violations')
+      .eq('id', userId)
+      .single();
 
-  localStorage.setItem(storageKey, newAttempts.toString());
+    const existingAttempts = profile?.moderation_violations || 0;
+    const newAttempts = existingAttempts + 1;
+    const isSuspended = newAttempts >= 2;
 
-  return {
-    attemptCount: newAttempts,
-    isSuspended: newAttempts >= 2
-  };
+    // Mettre à jour en base de données
+    await supabase
+      .from('profiles')
+      .update({ 
+        moderation_violations: newAttempts,
+        is_suspended: isSuspended 
+      })
+      .eq('id', userId);
+
+    return { attemptCount: newAttempts, isSuspended };
+  } catch (err) {
+    console.error('Error tracking violation:', err);
+    // Fallback localStorage en cas d'erreur réseau
+    const storageKey = `moderation_violations_${userId}`;
+    const existingAttempts = parseInt(localStorage.getItem(storageKey) || '0', 10);
+    const newAttempts = existingAttempts + 1;
+    localStorage.setItem(storageKey, newAttempts.toString());
+    return { attemptCount: newAttempts, isSuspended: newAttempts >= 2 };
+  }
 };
 
-export const checkIsUserSuspendedForModeration = (userId) => {
+export const checkIsUserSuspendedForModeration = async (userId) => {
   if (!userId) return false;
-  const storageKey = `moderation_violations_${userId}`;
-  const attempts = parseInt(localStorage.getItem(storageKey) || '0', 10);
-  return attempts >= 2;
+
+  try {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('moderation_violations, is_suspended')
+      .eq('id', userId)
+      .single();
+
+    return profile?.is_suspended || (profile?.moderation_violations || 0) >= 2;
+  } catch (err) {
+    console.error('Error checking suspension:', err);
+    // Fallback localStorage
+    const storageKey = `moderation_violations_${userId}`;
+    const attempts = parseInt(localStorage.getItem(storageKey) || '0', 10);
+    return attempts >= 2;
+  }
 };

@@ -53,31 +53,8 @@ export default function ReportModal({ isOpen, onClose, productId = null, vendorI
         console.warn('Reports table insert note:', insertError);
       }
 
-      // 2. Vérification automatique du nombre de signalements (si 3 signalements -> masquage automatique & alerte admin)
-      if (productId) {
-        try {
-          const { count: reportCount } = await supabase
-            .from('reports')
-            .select('*', { count: 'exact', head: true })
-            .eq('product_id', productId)
-            .eq('status', 'pending');
-
-          if (reportCount && reportCount >= 3) {
-            // Masquer le produit
-            await supabase
-              .from('products')
-              .update({ is_hidden: true, status: 'hidden' })
-              .eq('id', productId);
-
-            // Alerte WhatsApp Admin (221773713175)
-            const adminPhone = "221773713175";
-            const text = encodeURIComponent(`⚠️ ALERTE MODÉRATION AUTOMATIQUE ! L'annonce ID ${productId} a reçu 3 signalements et a été masquée automatiquement de ColobaneMarket.`);
-            window.open(`https://wa.me/${adminPhone}?text=${text}`, '_blank');
-          }
-        } catch (checkErr) {
-          console.warn('Report count check error:', checkErr);
-        }
-      }
+      // Note: La modération automatique (masquage après 3 signalements) doit être gérée 
+      // côté serveur via un Trigger Postgres, pas côté client.
 
       toast.success('Merci pour votre signalement. Notre équipe va examiner ça.', { duration: 4000 });
       onClose();

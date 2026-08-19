@@ -302,7 +302,7 @@ const ProductPage = () => {
         price={product.price}
         type="product"
       />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaProduct) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaProduct).replace(/</g, '\\u003c') }} />
 
       {/* Top Bar Floating */}
       <div style={{ position: 'absolute', top: '16px', left: '16px', right: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 50 }}>

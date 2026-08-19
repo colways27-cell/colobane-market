@@ -582,7 +582,7 @@ const PublishPage = () => {
       }
 
       // 2. Vérification de suspension de compte pour récidive d'infraction
-      if (user?.id && checkIsUserSuspendedForModeration(user.id)) {
+      if (user?.id && await checkIsUserSuspendedForModeration(user.id)) {
         const msg = "⛔ Votre compte est suspendu pour tentative de publication de contenu strictement interdit (2ème infraction). Contactez le support.";
         toast.error(msg, { duration: 8000 });
         setErrorMsg(msg);
@@ -600,7 +600,7 @@ const PublishPage = () => {
 
       if (analysis.isProhibited) {
         // Enregistrement de l'infraction & vérification de la suspension
-        const violation = trackViolationAttempt(user?.id);
+        const violation = await trackViolationAttempt(user?.id);
         const errorMsgStr = violation.isSuspended
           ? `⛔ Compte Suspendu : Tentative de publication de contenu interdit ("${analysis.keyword}"). Votre compte a été suspendu pour récidive.`
           : `${analysis.reason} (Avertissement 1/2)`;
@@ -717,7 +717,7 @@ const PublishPage = () => {
     }
 
     // 2. Vérification de suspension de compte pour récidive d'infraction
-    if (user?.id && checkIsUserSuspendedForModeration(user.id)) {
+    if (user?.id && await checkIsUserSuspendedForModeration(user.id)) {
       const msg = "⛔ Votre compte est suspendu pour tentative de publication de contenu strictement interdit (2ème infraction). Contactez le support.";
       toast.error(msg, { duration: 8000 });
       setErrorMsg(msg);
@@ -734,7 +734,7 @@ const PublishPage = () => {
     });
 
     if (analysis.isProhibited) {
-      const violation = trackViolationAttempt(user?.id);
+      const violation = await trackViolationAttempt(user?.id);
       const errorMsgStr = violation.isSuspended
         ? `⛔ Compte Suspendu : Tentative de publication de contenu interdit ("${analysis.keyword}"). Votre compte a été suspendu pour récidive.`
         : `${analysis.reason} (Avertissement 1/2)`;
