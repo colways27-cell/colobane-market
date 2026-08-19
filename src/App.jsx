@@ -6,6 +6,7 @@ import InstallPWA from './components/InstallPWA';
 import PushNotificationPrompt from './components/PushNotificationPrompt';
 import ScrollToTop from './components/ScrollToTop';
 import Navbar from './components/Navbar';
+import PromoBanner from './components/PromoBanner';
 import Footer from './components/Footer';
 import BottomNav from './components/BottomNav';
 import GlobalAnnouncement from './components/GlobalAnnouncement';
@@ -126,6 +127,7 @@ const LayoutWrapper = () => {
   return (
     <div className="app-container">
       <ScrollToTop />
+      <PromoBanner />
       <Navbar />
       <InstallPWA />
       <PushNotificationPrompt />
