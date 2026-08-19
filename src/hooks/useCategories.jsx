@@ -78,8 +78,8 @@ export const useCategories = () => {
           let dbCats = [];
           data.setting_value.forEach(cat => {
             if (cat.id === 'montres_bijoux') {
-              dbCats.push({ ...cat, id: 'montres', label: 'Montres', name: 'Montres', iconName: 'Watch', subcategories: ['Montres Homme', 'Montres Femme'] });
-              dbCats.push({ ...cat, id: 'bijoux', label: 'Bijoux', name: 'Bijoux', iconName: 'Gem', subcategories: ['Colliers', 'Bagues', 'Bracelets'] });
+              dbCats.push({ ...cat, id: 'montres', label: 'Montres', name: 'Montres', icon: 'Watch', iconName: 'Watch', subcategories: ['Montres Homme', 'Montres Femme'] });
+              dbCats.push({ ...cat, id: 'bijoux', label: 'Bijoux', name: 'Bijoux', icon: 'Gem', iconName: 'Gem', subcategories: ['Colliers', 'Bagues', 'Bracelets'] });
             } else {
               dbCats.push(cat);
             }
