@@ -224,6 +224,7 @@ const PublishPage = () => {
   const [monthlyCount, setMonthlyCount] = useState(0);
   const [hasReachedLimit, setHasReachedLimit] = useState(false);
   const locationQuery = useLocation();
+  const isReelMode = new URLSearchParams(locationQuery.search).get('mode') === 'reel';
 
   const [pricingPlans, setPricingPlans] = useState({
     boost_product_1j: { price: 500, duration_days: 1, ads_count: 1, label: "1 Annonce - 24H" },
@@ -1502,7 +1503,7 @@ const PublishPage = () => {
                               className="active-scale touch-target" 
                               onDragOver={handleDragOver}
                               onDragLeave={handleDragLeave}
-                              onDrop={handleDrop}
+                          onDrop={handleDrop}
                               style={{ position: 'relative', width: '100%', paddingTop: '100%', borderRadius: '16px', border: `2px dashed ${isDragging ? 'var(--primary)' : '#CBD5E1'}`, background: isDragging ? 'var(--primary-light)' : '#F8FAFC', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', transition: 'all 0.2s' }}
                             >
                               <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '8px', color: 'var(--primary)' }}>
@@ -1521,54 +1522,49 @@ const PublishPage = () => {
                 </div>
 
                 {/* Option Vidéo Reels Pro */}
-                <div style={{
-                  marginTop: '1.5rem',
-                  marginBottom: '1.5rem',
-                  background: 'linear-gradient(135deg, #09090B 0%, #172554 40%, #BE123C 100%)',
-                  borderRadius: '20px',
-                  padding: '16px 20px',
-                  color: '#FFFFFF',
-                  border: '1px solid rgba(244, 63, 94, 0.4)',
-                  boxShadow: '0 4px 20px rgba(190, 18, 60, 0.2)'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '20px' }}>🎬</span>
-                      <span style={{ fontWeight: 800, fontSize: '0.95rem' }}>Vidéo Reel TikTok Pro</span>
+                {isReelMode && (
+                  <div style={{
+                    marginTop: '1.5rem',
+                    marginBottom: '1.5rem',
+                    background: 'linear-gradient(135deg, #09090B 0%, #172554 40%, #BE123C 100%)',
+                    borderRadius: '20px',
+                    padding: '16px 20px',
+                    color: '#FFFFFF',
+                    border: '1px solid rgba(244, 63, 94, 0.4)',
+                    boxShadow: '0 4px 20px rgba(190, 18, 60, 0.2)'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '20px' }}>🎬</span>
+                        <span style={{ fontWeight: 800, fontSize: '0.95rem' }}>Vidéo Reel TikTok Pro</span>
+                      </div>
+                      <span style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#000', fontSize: '10px', fontWeight: 900, padding: '3px 8px', borderRadius: '10px' }}>FORFAIT PRO / VIP</span>
                     </div>
-                    <span style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#000', fontSize: '10px', fontWeight: 900, padding: '3px 8px', borderRadius: '10px' }}>FORFAIT PRO / VIP</span>
-                  </div>
-                  <p style={{ fontSize: '0.82rem', color: '#CBD5E1', margin: '0 0 12px 0', lineHeight: '1.5' }}>
-                    👑 <strong>Forfait VIP ({pricingPlans.forfait_premium?.price || 10000}F)</strong> : Reels Vidéo <strong>ILLIMITÉS</strong> pendant 1 mois.
-                    <br />
-                    🔥 <strong>Forfait Pro ({pricingPlans.forfait_boutique?.price || 5000}F)</strong> : <strong>3 Reels Vidéo</strong> inclus par mois.
-                    <br />
-                    ⚡ <strong>Non Abonné</strong> : Option <strong>Boost Reel à {(pricingPlans.boost_product_7j?.price || 1500).toLocaleString()} FCFA / {pricingPlans.boost_product_7j?.duration_days || 7} Jours</strong>.
-                  </p>
+                    <p style={{ fontSize: '0.82rem', color: '#CBD5E1', margin: '0 0 12px 0', lineHeight: '1.5' }}>
+                      👑 <strong>Forfait VIP ({pricingPlans.forfait_premium?.price || 10000}F)</strong> : Reels Vidéo <strong>ILLIMITÉS</strong> pendant 1 mois.
+                      <br />
+                      🔥 <strong>Forfait Pro ({pricingPlans.forfait_boutique?.price || 5000}F)</strong> : <strong>3 Reels Vidéo</strong> inclus par mois.
+                      <br />
+                      ⚡ <strong>Non Abonné</strong> : Option <strong>Boost Reel à {(pricingPlans.boost_product_7j?.price || 1500).toLocaleString()} FCFA / {pricingPlans.boost_product_7j?.duration_days || 7} Jours</strong>.
+                    </p>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '12px' }}>
-                    <label className="active-scale touch-target" style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '8px',
-                      background: 'rgba(255,255,255,0.15)',
-                      border: '1.5px dashed rgba(255,255,255,0.4)',
-                      borderRadius: '14px',
-                      padding: '12px 16px',
-                      color: '#FFFFFF',
-                      fontWeight: 800,
-                      fontSize: '0.88rem',
-                      cursor: 'pointer',
-                      textAlign: 'center',
-                      backdropFilter: 'blur(8px)'
-                    }}>
-                      <span>📱</span> Importer une Vidéo ou 3 Photos depuis mon téléphone
-                      <input 
-                        type="file" 
-                        accept="video/*,image/*" 
-                        multiple 
-                        onChange={(e) => {
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '12px' }}>
+                      <label className="active-scale touch-target" style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        background: 'rgba(255,255,255,0.15)',
+                        border: '1.5px dashed rgba(255,255,255,0.4)',
+                        borderRadius: '14px',
+                        padding: '12px 16px',
+                        color: '#FFFFFF',
+                        fontWeight: 800,
+                        fontSize: '0.9rem',
+                        cursor: 'pointer'
+                      }}>
+                        📱 Importer une Vidéo ou 3 Photos depuis mon téléphone
+                        <input type="file" accept="video/*,image/*" multiple onChange={(e) => {
                           const files = Array.from(e.target.files || []);
                           if (files.length === 0) return;
                           const firstFile = files[0];
@@ -1622,6 +1618,7 @@ const PublishPage = () => {
                     />
                   </InputWrapper>
                 </div>
+                )}
 
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', marginBottom: '1.5rem' }}>
                   {category?.fields?.filter(field => {
